@@ -1,12 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Heart, Star, Send, CheckCircle,
-  Mail, MapPin, MessageSquare,
-  ChevronRight, ExternalLink,
-  Github, Twitter,
+  Heart,
+  Star,
+  Send,
+  CheckCircle,
+  Mail,
+  MapPin,
+  MessageSquare,
+  ChevronRight,
+  ExternalLink,
+  Github,
+  Twitter,
 } from 'lucide-react';
 import FeedbackService from '@api/services/feedback.service';
 import useAuthStore from '@store/auth.store';
@@ -20,28 +27,28 @@ export default function Footer() {
   const { user, isAuthenticated } = useAuthStore();
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackSent, setFeedbackSent] = useState(false);
-  const [rating, setRating]       = useState(0);
+  const [rating, setRating] = useState(0);
   const [hoveredStar, setHovered] = useState(0);
-  const [name, setName]           = useState(user?.full_name || '');
-  const [email, setEmail]         = useState(user?.email || '');
-  const [message, setMessage]     = useState('');
-  const [feedbackType, setType]   = useState('feedback');
+  const [name, setName] = useState(user?.full_name || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [message, setMessage] = useState('');
+  const [feedbackType, setType] = useState('feedback');
 
   const TYPES = [
-    { value: 'feedback',   label: '💬 Feedback',   color: 'var(--color-brand)' },
+    { value: 'feedback', label: '💬 Feedback', color: 'var(--color-brand)' },
     { value: 'suggestion', label: '💡 Suggestion', color: 'var(--color-warning)' },
-    { value: 'bug',        label: '🐛 Bug Report', color: 'var(--color-error)' },
-    { value: 'praise',     label: '🎉 Praise',     color: 'var(--color-success)' },
-    { value: 'complaint',  label: '😤 Complaint',  color: '#EF4444' },
+    { value: 'bug', label: '🐛 Bug Report', color: 'var(--color-error)' },
+    { value: 'praise', label: '🎉 Praise', color: 'var(--color-success)' },
+    { value: 'complaint', label: '😤 Complaint', color: '#EF4444' },
   ];
 
   const submitMutation = useMutation({
     mutationFn: () =>
       FeedbackService.submit({
-        name:    name.trim() || undefined,
-        email:   email.trim() || undefined,
-        type:    feedbackType,
-        rating:  rating || undefined,
+        name: name.trim() || undefined,
+        email: email.trim() || undefined,
+        type: feedbackType,
+        rating: rating || undefined,
         message: message.trim(),
       }),
     onSuccess: () => {
@@ -63,27 +70,44 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   const QUICK_LINKS = [
-  { label: 'Everyday Essentials', to: '/essentials' },
-  { label: 'Vehicles',           to: '/vehicles' },
-  { label: 'Real Estate',        to: '/real-estate' },
-  { label: 'All Listings',       to: '/marketplace' },
-];
+    { label: 'Everyday Essentials', to: '/essentials' },
+    { label: 'Vehicles', to: '/vehicles' },
+    { label: 'Real Estate', to: '/real-estate' },
+    { label: 'All Listings', to: '/marketplace' },
+  ];
 
   const COMPANY_LINKS = [
-  { label: 'About Us',       to: '#' },
-  { label: 'FAQ',            to: '/faq' },
-  { label: 'Privacy Policy', to: '#' },
-  { label: 'Terms of Use',   to: '#' },
-  { label: 'Contact',        to: '#', onClick: () => setShowFeedback(true) },
-];
+    { label: 'About Us', to: '#' },
+    { label: 'FAQ', to: '/faq' },
+    { label: 'Privacy Policy', to: '#' },
+    { label: 'Terms of Use', to: '#' },
+    { label: 'Contact', to: '#', onClick: () => setShowFeedback(true) },
+  ];
 
   const SUPPORT_LINKS = [
-  { label: 'Help Center',     to: '/faq' },
-  { label: 'FAQ',             to: '/faq' },
-  { label: 'Safety Tips',     to: '/faq#safety' },
-  { label: 'Report an Issue', to: '#', onClick: () => { setType('bug'); setShowFeedback(true); } },
-  { label: 'Give Feedback',   to: '#', onClick: () => setShowFeedback(true) },
-];
+    { label: 'Help Center', to: '/faq' },
+    { label: 'FAQ', to: '/faq' },
+    { label: 'Safety Tips', to: '/faq#safety' },
+    {
+      label: 'Report an Issue',
+      to: '#',
+      onClick: () => {
+        setType('bug');
+        setShowFeedback(true);
+      },
+    },
+    { label: 'Give Feedback', to: '#', onClick: () => setShowFeedback(true) },
+  ];
+
+  const [expandedSection, setExpandedSection] = useState(null);
+  const [isMobileView, setIsMobileView] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobileView(window.innerWidth < 640);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   return (
     <>
@@ -133,96 +157,154 @@ export default function Footer() {
           </div>
         </div> */}
 
-        {/* ── Main Footer Content ─────────────────────────── */}
-        <div className="container-app py-10 sm:py-14">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 sm:gap-6">
-            {/* Brand column */}
-            <div className="col-span-2 sm:col-span-1 space-y-4">
-              <Link to="/" className="flex items-center gap-2.5">
-                <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center"
-                  style={{
-                    background: 'linear-gradient(135deg, var(--color-brand), #8B5CF6)',
-                    boxShadow: '0 0 15px var(--color-brand-glow)',
-                  }}
-                >
-                  <span className="text-white text-sm font-bold">A</span>
-                </div>
-                <span className="text-lg font-bold text-gradient-brand">
-                  Aliwayz
-                </span>
-              </Link>
-              <p
-                className="text-xs leading-relaxed max-w-[200px]"
-                style={{ color: 'var(--color-text-muted)' }}
-              >
-                Buy & sell locally with QR verified transactions.
-                Cars, Property & Daily Essentials.
-              </p>
+        {/* Main Footer Content */}
+        <div className="container-app py-8 sm:py-14">
+          {/* Mobile: Accordion style */}
+          {isMobileView ? (
+            <div className="space-y-0">
+              {/* Brand — always visible */}
+              <div className="mb-6 flex items-center gap-2.5">
+                <Link to="/" className="flex items-center gap-2.5">
+                  <div
+                    className="flex h-8 w-8 items-center justify-center rounded-lg"
+                    style={{
+                      background: 'linear-gradient(135deg, var(--color-brand), #8B5CF6)',
+                    }}
+                  >
+                    <span className="text-sm font-bold text-white">A</span>
+                  </div>
+                  <span className="text-gradient-brand text-base font-bold">Aliwayz</span>
+                </Link>
+              </div>
 
-              {/* Contact info */}
-              <div className="space-y-2">
+              {/* Collapsible sections */}
+              {[
+                { title: 'Browse', links: QUICK_LINKS },
+                { title: 'Company', links: COMPANY_LINKS },
+                { title: 'Support', links: SUPPORT_LINKS },
+              ].map((section) => (
+                <div key={section.title} style={{ borderTop: '1px solid var(--color-border)' }}>
+                  <button
+                    onClick={() =>
+                      setExpandedSection(expandedSection === section.title ? null : section.title)
+                    }
+                    className="flex w-full items-center justify-between py-3.5 text-sm font-semibold"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
+                    {section.title}
+                    <motion.span
+                      animate={{
+                        rotate: expandedSection === section.title ? 180 : 0,
+                      }}
+                      style={{ color: 'var(--color-text-muted)' }}
+                    >
+                      ▾
+                    </motion.span>
+                  </button>
+                  <AnimatePresence>
+                    {expandedSection === section.title && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="space-y-2 pb-3">
+                          {section.links.map((link) =>
+                            link.onClick ? (
+                              <button
+                                key={link.label}
+                                onClick={link.onClick}
+                                className="block py-1 text-sm transition-colors hover:underline"
+                                style={{ color: 'var(--color-text-secondary)' }}
+                              >
+                                {link.label}
+                              </button>
+                            ) : (
+                              <Link
+                                key={link.label}
+                                to={link.to}
+                                className="block py-1 text-sm transition-colors hover:underline"
+                                style={{ color: 'var(--color-text-secondary)' }}
+                              >
+                                {link.label}
+                              </Link>
+                            )
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ))}
+
+              {/* Contact */}
+              <div
+                className="space-y-2 pt-3"
+                style={{ borderTop: '1px solid var(--color-border)' }}
+              >
                 <a
                   href="mailto:support@aliwayz.com"
-                  className="flex items-center gap-2 text-xs transition-colors hover:underline"
-                  style={{ color: 'var(--color-text-muted)' }}
-                >
-                  <Mail size={12} />
-                  support@aliwayz.com
-                </a>
-                <div
                   className="flex items-center gap-2 text-xs"
                   style={{ color: 'var(--color-text-muted)' }}
                 >
-                  <MapPin size={12} />
-                  Worldwide
-                </div>
+                  <Mail size={12} /> support@aliwayz.com
+                </a>
               </div>
             </div>
+          ) : (
+            /* Desktop: Full grid (existing layout) */
+            <div className="grid grid-cols-2 gap-8 sm:grid-cols-4 sm:gap-6">
+              {/* Brand column */}
+              <div className="col-span-2 space-y-4 sm:col-span-1">
+                <Link to="/" className="flex items-center gap-2.5">
+                  <div
+                    className="flex h-9 w-9 items-center justify-center rounded-xl"
+                    style={{
+                      background: 'linear-gradient(135deg, var(--color-brand), #8B5CF6)',
+                      boxShadow: '0 0 15px var(--color-brand-glow)',
+                    }}
+                  >
+                    <span className="text-sm font-bold text-white">A</span>
+                  </div>
+                  <span className="text-gradient-brand text-lg font-bold">Aliwayz</span>
+                </Link>
+                <p
+                  className="max-w-[200px] text-xs leading-relaxed"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
+                  Buy & sell locally with QR verified transactions. Vehicles, Real Estate & Everyday
+                  Essentials.
+                </p>
+                <div className="space-y-2">
+                  <a
+                    href="mailto:support@aliwayz.com"
+                    className="flex items-center gap-2 text-xs transition-colors hover:underline"
+                    style={{ color: 'var(--color-text-muted)' }}
+                  >
+                    <Mail size={12} /> support@aliwayz.com
+                  </a>
+                  <div
+                    className="flex items-center gap-2 text-xs"
+                    style={{ color: 'var(--color-text-muted)' }}
+                  >
+                    <MapPin size={12} /> Nationwide
+                  </div>
+                </div>
+              </div>
 
-            {/* Quick Links */}
-            <div>
-              <h4
-                className="text-xs font-bold uppercase tracking-widest mb-4"
-                style={{ color: 'var(--color-text-muted)' }}
-              >
-                Browse
-              </h4>
-              <ul className="space-y-2.5">
-                {QUICK_LINKS.map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      to={link.to}
-                      className="text-sm transition-colors hover:underline"
-                      style={{ color: 'var(--color-text-secondary)' }}
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Company */}
-            <div>
-              <h4
-                className="text-xs font-bold uppercase tracking-widest mb-4"
-                style={{ color: 'var(--color-text-muted)' }}
-              >
-                Company
-              </h4>
-              <ul className="space-y-2.5">
-                {COMPANY_LINKS.map((link) => (
-                  <li key={link.label}>
-                    {link.onClick ? (
-                      <button
-                        onClick={link.onClick}
-                        className="text-sm transition-colors hover:underline text-left"
-                        style={{ color: 'var(--color-text-secondary)' }}
-                      >
-                        {link.label}
-                      </button>
-                    ) : (
+              {/* Quick Links */}
+              <div>
+                <h4
+                  className="mb-4 text-xs font-bold uppercase tracking-widest"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
+                  Browse
+                </h4>
+                <ul className="space-y-2.5">
+                  {QUICK_LINKS.map((link) => (
+                    <li key={link.label}>
                       <Link
                         to={link.to}
                         className="text-sm transition-colors hover:underline"
@@ -230,55 +312,84 @@ export default function Footer() {
                       >
                         {link.label}
                       </Link>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-            {/* Support */}
-            <div>
-              <h4
-                className="text-xs font-bold uppercase tracking-widest mb-4"
-                style={{ color: 'var(--color-text-muted)' }}
-              >
-                Support
-              </h4>
-              <ul className="space-y-2.5">
-                {SUPPORT_LINKS.map((link) => (
-                  <li key={link.label}>
-                    {link.onClick ? (
-                      <button
-                        onClick={link.onClick}
-                        className="text-sm transition-colors hover:underline text-left"
-                        style={{ color: 'var(--color-text-secondary)' }}
-                      >
-                        {link.label}
-                      </button>
-                    ) : (
-                      <Link
-                        to={link.to}
-                        className="text-sm transition-colors hover:underline"
-                        style={{ color: 'var(--color-text-secondary)' }}
-                      >
-                        {link.label}
-                      </Link>
-                    )}
-                  </li>
-                ))}
-              </ul>
+              {/* Company */}
+              <div>
+                <h4
+                  className="mb-4 text-xs font-bold uppercase tracking-widest"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
+                  Company
+                </h4>
+                <ul className="space-y-2.5">
+                  {COMPANY_LINKS.map((link) => (
+                    <li key={link.label}>
+                      {link.onClick ? (
+                        <button
+                          onClick={link.onClick}
+                          className="text-left text-sm transition-colors hover:underline"
+                          style={{ color: 'var(--color-text-secondary)' }}
+                        >
+                          {link.label}
+                        </button>
+                      ) : (
+                        <Link
+                          to={link.to}
+                          className="text-sm transition-colors hover:underline"
+                          style={{ color: 'var(--color-text-secondary)' }}
+                        >
+                          {link.label}
+                        </Link>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Support */}
+              <div>
+                <h4
+                  className="mb-4 text-xs font-bold uppercase tracking-widest"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
+                  Support
+                </h4>
+                <ul className="space-y-2.5">
+                  {SUPPORT_LINKS.map((link) => (
+                    <li key={link.label}>
+                      {link.onClick ? (
+                        <button
+                          onClick={link.onClick}
+                          className="text-left text-sm transition-colors hover:underline"
+                          style={{ color: 'var(--color-text-secondary)' }}
+                        >
+                          {link.label}
+                        </button>
+                      ) : (
+                        <Link
+                          to={link.to}
+                          className="text-sm transition-colors hover:underline"
+                          style={{ color: 'var(--color-text-secondary)' }}
+                        >
+                          {link.label}
+                        </Link>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-          </div>
+          )}
         </div>
-
         {/* ── Bottom Bar ──────────────────────────────────── */}
-        <div
-          className="py-5"
-          style={{ borderTop: '1px solid var(--color-border)' }}
-        >
-          <div className="container-app flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="py-5" style={{ borderTop: '1px solid var(--color-border)' }}>
+          <div className="container-app flex flex-col items-center justify-between gap-3 sm:flex-row">
             <p
-              className="text-xs flex items-center gap-1"
+              className="flex items-center gap-1 text-xs"
               style={{ color: 'var(--color-text-muted)' }}
             >
               © {currentYear} Aliwayz. Made with
@@ -287,14 +398,15 @@ export default function Footer() {
             </p>
 
             <div className="flex items-center gap-4">
-              <span
-                className="text-[10px]"
-                style={{ color: 'var(--color-text-muted)' }}
-              >
+              <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
                 QR Verified Marketplace
               </span>
-              <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>·</span>
-              <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>v1.0.0</span>
+              <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
+                ·
+              </span>
+              <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
+                v1.0.0
+              </span>
             </div>
           </div>
         </div>
@@ -303,7 +415,7 @@ export default function Footer() {
       {/* ═══ FEEDBACK MODAL ═══════════════════════════════ */}
       <AnimatePresence>
         {showFeedback && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4">
             {/* Overlay */}
             <motion.div
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
@@ -315,7 +427,7 @@ export default function Footer() {
 
             {/* Modal */}
             <motion.div
-              className="relative w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+              className="relative max-h-[90vh] w-full overflow-hidden overflow-y-auto rounded-t-3xl sm:max-w-lg sm:rounded-2xl"
               style={{
                 backgroundColor: 'var(--color-surface)',
                 border: '1px solid var(--color-border)',
@@ -329,7 +441,7 @@ export default function Footer() {
               {/* Drag handle mobile */}
               <div className="flex justify-center pt-3 sm:hidden">
                 <div
-                  className="w-10 h-1 rounded-full"
+                  className="h-1 w-10 rounded-full"
                   style={{ backgroundColor: 'var(--color-border-strong)' }}
                 />
               </div>
@@ -338,17 +450,20 @@ export default function Footer() {
                 {feedbackSent ? (
                   /* ── Success State ──────────────────────── */
                   <motion.div
-                    className="text-center py-6 space-y-4"
+                    className="space-y-4 py-6 text-center"
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                   >
                     <div
-                      className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center"
+                      className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl"
                       style={{ backgroundColor: 'rgba(16,185,129,0.15)' }}
                     >
                       <CheckCircle size={32} style={{ color: 'var(--color-success)' }} />
                     </div>
-                    <h3 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                    <h3
+                      className="text-lg font-bold"
+                      style={{ color: 'var(--color-text-primary)' }}
+                    >
                       Thank you! 🎉
                     </h3>
                     <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
@@ -362,10 +477,13 @@ export default function Footer() {
                     {/* Header */}
                     <div className="text-center">
                       <span className="text-3xl">💭</span>
-                      <h3 className="text-lg font-bold mt-2" style={{ color: 'var(--color-text-primary)' }}>
+                      <h3
+                        className="mt-2 text-lg font-bold"
+                        style={{ color: 'var(--color-text-primary)' }}
+                      >
                         Share Your Feedback
                       </h3>
-                      <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                      <p className="mt-1 text-xs" style={{ color: 'var(--color-text-muted)' }}>
                         Help us improve Aliwayz
                       </p>
                     </div>
@@ -376,11 +494,15 @@ export default function Footer() {
                         <button
                           key={t.value}
                           onClick={() => setType(t.value)}
-                          className="px-3 py-1.5 rounded-full text-xs font-medium transition-all"
+                          className="rounded-full px-3 py-1.5 text-xs font-medium transition-all"
                           style={{
-                            backgroundColor: feedbackType === t.value ? `${t.color}15` : 'var(--color-surface-elevated)',
+                            backgroundColor:
+                              feedbackType === t.value
+                                ? `${t.color}15`
+                                : 'var(--color-surface-elevated)',
                             border: `1px solid ${feedbackType === t.value ? t.color : 'var(--color-border)'}`,
-                            color: feedbackType === t.value ? t.color : 'var(--color-text-secondary)',
+                            color:
+                              feedbackType === t.value ? t.color : 'var(--color-text-secondary)',
                           }}
                         >
                           {t.label}
@@ -389,11 +511,14 @@ export default function Footer() {
                     </div>
 
                     {/* Star rating */}
-                    <div className="text-center space-y-1">
-                      <label className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>
+                    <div className="space-y-1 text-center">
+                      <label
+                        className="text-xs font-medium"
+                        style={{ color: 'var(--color-text-muted)' }}
+                      >
                         Rate your experience (optional)
                       </label>
-                      <div className="flex gap-1 justify-center">
+                      <div className="flex justify-center gap-1">
                         {[1, 2, 3, 4, 5].map((s) => (
                           <motion.button
                             key={s}
@@ -407,7 +532,10 @@ export default function Footer() {
                               size={28}
                               fill={s <= (hoveredStar || rating) ? 'var(--color-warning)' : 'none'}
                               style={{
-                                color: s <= (hoveredStar || rating) ? 'var(--color-warning)' : 'var(--color-border-strong)',
+                                color:
+                                  s <= (hoveredStar || rating)
+                                    ? 'var(--color-warning)'
+                                    : 'var(--color-border-strong)',
                                 transition: 'all 0.1s',
                               }}
                             />
@@ -415,8 +543,15 @@ export default function Footer() {
                         ))}
                       </div>
                       {(hoveredStar || rating) > 0 && (
-                        <p className="text-xs font-medium" style={{ color: 'var(--color-warning)' }}>
-                          {['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent!'][hoveredStar || rating]}
+                        <p
+                          className="text-xs font-medium"
+                          style={{ color: 'var(--color-warning)' }}
+                        >
+                          {
+                            ['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent!'][
+                              hoveredStar || rating
+                            ]
+                          }
                         </p>
                       )}
                     </div>
@@ -452,11 +587,7 @@ export default function Footer() {
 
                     {/* Actions */}
                     <div className="flex gap-3">
-                      <Button
-                        variant="outline"
-                        fullWidth
-                        onClick={handleReset}
-                      >
+                      <Button variant="outline" fullWidth onClick={handleReset}>
                         Cancel
                       </Button>
                       <Button

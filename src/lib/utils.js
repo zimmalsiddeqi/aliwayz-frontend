@@ -64,6 +64,7 @@ export function formatChatTime(dateString) {
     });
   }
 
+
   const yesterday = new Date(now);
   yesterday.setDate(yesterday.getDate() - 1);
   if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
@@ -128,6 +129,19 @@ export function deepMerge(target, source) {
     }
   }
   return result;
+}
+
+/**
+ * Format seller rating — shows "New Seller" if no ratings
+ */
+export function formatSellerRating(rating, reviewCount = 0) {
+  if (!rating || rating === 0 || reviewCount === 0) {
+    return { label: 'New Seller', isNew: true };
+  }
+  return {
+    label: Number(rating).toFixed(1),
+    isNew: false,
+  };
 }
 
 /**

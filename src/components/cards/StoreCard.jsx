@@ -11,50 +11,49 @@ const StoreCard = memo(function StoreCard({ store, variant = 'default' }) {
     return (
       <Link
         to={`/store/${store.slug}`}
-        className="flex items-center gap-3 p-3 rounded-xl transition-all duration-200 hover:bg-[var(--glass-bg-strong)]"
+        className="flex items-center gap-3 rounded-xl p-3 transition-all duration-200 hover:bg-[var(--glass-bg-strong)]"
       >
-        <Avatar
-          src={store.logo_url}
-          name={store.store_name}
-          size="md"
-        />
-        <div className="flex-1 min-w-0">
+        <Avatar src={store.logo_url} name={store.store_name} size="md" />
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
             <p
-              className="font-semibold text-sm truncate"
+              className="truncate text-sm font-semibold"
               style={{ color: 'var(--color-text-primary)' }}
             >
               {store.store_name}
             </p>
             {store.is_verified && <span className="text-xs">✅</span>}
           </div>
-          <p
-            className="text-xs truncate"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
+          <p className="truncate text-xs" style={{ color: 'var(--color-text-muted)' }}>
             {store.location_city || 'Location not set'}
           </p>
         </div>
-        <div className="flex items-center gap-0.5 text-xs" style={{ color: 'var(--color-warning)' }}>
-          <Star size={12} fill="currentColor" />
-          {formatRating(store.average_rating)}
-        </div>
+        {store.average_rating > 0 && store.total_reviews > 0 ? (
+          <span className="flex items-center gap-0.5">
+            <Star size={12} fill="var(--color-warning)" style={{ color: 'var(--color-warning)' }} />
+            {formatRating(store.average_rating)}
+          </span>
+        ) : (
+          <span
+            className="rounded-full px-1.5 py-0.5 text-[10px] font-semibold"
+            style={{
+              backgroundColor: 'rgba(91,110,245,0.1)',
+              color: 'var(--color-brand)',
+            }}
+          >
+            New Seller
+          </span>
+        )}
       </Link>
     );
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-    >
-      <Link
-        to={`/store/${store.slug}`}
-        className="card-interactive block overflow-hidden"
-      >
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+      <Link to={`/store/${store.slug}`} className="card-interactive block overflow-hidden">
         {/* Banner */}
         <div
-          className="h-24 sm:h-28 relative"
+          className="relative h-24 sm:h-28"
           style={{
             background: store.banner_url
               ? `url(${store.banner_url}) center/cover`
@@ -65,31 +64,27 @@ const StoreCard = memo(function StoreCard({ store, variant = 'default' }) {
         </div>
 
         {/* Content */}
-        <div className="p-4 -mt-8 relative">
-          <div className="flex items-end gap-3 mb-3">
+        <div className="relative -mt-8 p-4">
+          <div className="mb-3 flex items-end gap-3">
             <div
-              className="rounded-xl overflow-hidden border-2 flex-shrink-0"
+              className="flex-shrink-0 overflow-hidden rounded-xl border-2"
               style={{ borderColor: 'var(--color-surface)' }}
             >
-              <Avatar
-                src={store.logo_url}
-                name={store.store_name}
-                size="lg"
-              />
+              <Avatar src={store.logo_url} name={store.store_name} size="lg" />
             </div>
-            <div className="flex-1 min-w-0 pb-0.5">
+            <div className="min-w-0 flex-1 pb-0.5">
               <div className="flex items-center gap-1.5">
                 <h3
-                  className="font-bold text-sm truncate"
+                  className="truncate text-sm font-bold"
                   style={{ color: 'var(--color-text-primary)' }}
                 >
                   {store.store_name}
                 </h3>
-                {store.is_verified && <span className="text-xs flex-shrink-0">✅</span>}
+                {store.is_verified && <span className="flex-shrink-0 text-xs">✅</span>}
               </div>
               {store.location_city && (
                 <p
-                  className="text-xs flex items-center gap-1"
+                  className="flex items-center gap-1 text-xs"
                   style={{ color: 'var(--color-text-muted)' }}
                 >
                   <MapPin size={10} />
@@ -100,9 +95,16 @@ const StoreCard = memo(function StoreCard({ store, variant = 'default' }) {
           </div>
 
           {/* Stats */}
-          <div className="flex items-center gap-4 text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+          <div
+            className="flex items-center gap-4 text-xs"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
             <span className="flex items-center gap-1">
-              <Star size={12} style={{ color: 'var(--color-warning)' }} fill="var(--color-warning)" />
+              <Star
+                size={12}
+                style={{ color: 'var(--color-warning)' }}
+                fill="var(--color-warning)"
+              />
               {formatRating(store.average_rating)}
             </span>
             <span className="flex items-center gap-1">

@@ -66,24 +66,25 @@ export default function Navbar() {
       { to: '/search', icon: Search, label: 'Search' },
     ];
 
-    if (isAuthenticated && isSeller(role)) {
+    // Sell button — NOT for admin
+    if (isAuthenticated && isSeller(role) && role !== 'admin') {
       items.push({ to: '/sell/create', icon: PlusCircle, label: 'Sell', highlight: true });
     }
 
     if (isAuthenticated) {
-      items.push({
-        to: '/inbox',
-        icon: MessageCircle,
-        label: 'Inbox',
-        badge: totalUnread,
-      });
+      items.push({ to: '/inbox', icon: MessageCircle, label: 'Inbox', badge: totalUnread });
     }
 
-    items.push({
-      to: isAuthenticated ? '/profile' : '/login',
-      icon: User,
-      label: isAuthenticated ? 'Profile' : 'Login',
-    });
+    // Admin gets admin panel instead of profile in bottom nav
+    if (isAuthenticated && isAdmin(role)) {
+      items.push({ to: '/admin', icon: Settings, label: 'Admin' });
+    } else {
+      items.push({
+        to: isAuthenticated ? '/profile' : '/login',
+        icon: User,
+        label: isAuthenticated ? 'Profile' : 'Login',
+      });
+    }
 
     return items;
   };
@@ -95,7 +96,8 @@ export default function Navbar() {
       { to: '/search', icon: Search, label: 'Search' },
     ];
 
-    if (isAuthenticated && isSeller(role)) {
+    // Sell — for sellers and both ONLY, NOT admin
+    if (isAuthenticated && isSeller(role) && role !== 'admin') {
       items.push({ to: '/sell/create', icon: PlusCircle, label: 'Sell' });
     }
 
@@ -120,8 +122,8 @@ export default function Navbar() {
         ],
       });
 
-      // Buyer section
-      if (isBuyer(role)) {
+      // Buyer section — NOT for admin
+      if (isBuyer(role) && role !== 'admin') {
         sections.push({
           title: 'Shopping',
           items: [
@@ -133,8 +135,8 @@ export default function Navbar() {
         });
       }
 
-      // Seller section
-      if (isSeller(role)) {
+      // Seller section — NOT for admin
+      if (isSeller(role) && role !== 'admin') {
         sections.push({
           title: 'Selling',
           items: [
@@ -162,8 +164,10 @@ export default function Navbar() {
       // Admin
       if (isAdmin(role)) {
         sections.push({
-          title: 'Admin',
-          items: [{ to: '/admin', icon: Settings, label: 'Admin Panel' }],
+          title: 'Administration',
+          items: [
+            { to: '/admin', icon: Settings, label: 'Admin Panel' },
+          ],
         });
       }
     }

@@ -10,13 +10,11 @@ export default function RoleBasedHome() {
 
   if (!isInitialized) return <LoadingScreen />;
 
-  // Admin → admin panel
+  // Admin always goes to admin panel
   if (isAuthenticated && user?.role === 'admin') {
     return <Navigate to="/admin" replace />;
   }
 
-  // ALL other roles (guest, buyer, seller, both) → same HomePage
-  // HomePage handles role-specific UI internally
   return (
     <Suspense fallback={<LoadingScreen />}>
       <HomePage />

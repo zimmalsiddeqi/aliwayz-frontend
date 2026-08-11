@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Button from '@components/ui/Button';
 
@@ -32,16 +33,15 @@ export default function EmptyState({
           {description}
         </p>
       )}
-      {actionLabel && (
-        actionTo ? (
-          <a href={actionTo} className="btn-brand text-sm">
-            {actionLabel}
-          </a>
-        ) : (
-          <Button size="sm" onClick={onAction}>
-            {actionLabel}
-          </Button>
-        )
+      {actionLabel && actionTo && (
+        <Link to={actionTo}>
+          <Button size="sm">{actionLabel}</Button>
+        </Link>
+      )}
+      {actionLabel && onAction && !actionTo && (
+        <Button size="sm" onClick={onAction}>
+          {actionLabel}
+        </Button>
       )}
     </motion.div>
   );
