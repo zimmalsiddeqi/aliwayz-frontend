@@ -63,6 +63,18 @@ export default function ConversationPage() {
   const [saleCompleted, setSaleCompleted] = useState(false);
   const [qrReadyAlert, setQrReadyAlert] = useState(false);
 
+  const handleOpenReviewModal = useCallback(() => {
+    let currentTId = transactionId;
+    if (!currentTId && convData?.data?.qr_transactions?.length > 0) {
+      const completedQR = convData.data.qr_transactions.find(qr => qr.status === 'completed');
+      if (completedQR) {
+        currentTId = completedQR.id;
+        setTransactionId(currentTId);
+      }
+    }
+    setShowReviewModal(true);
+  }, [transactionId, convData?.data]);
+
   // ── Socket hook ────────────────────────────────────────
   const {
     isConnected,
@@ -121,7 +133,7 @@ export default function ConversationPage() {
         queryClient.invalidateQueries({
           queryKey: queryKeys.conversations.messages(conversationId),
         });
-        setTimeout(() => setShowReviewModal(true), 1500);
+        setTimeout(() => handleOpenReviewModal(), 1500);
         toast.success('🎉 Deal completed!');
       }
     };
@@ -430,7 +442,7 @@ export default function ConversationPage() {
               </div>
               <Button
                 size="xs"
-                onClick={() => setShowReviewModal(true)}
+                onClick={() => handleOpenReviewModal()}
                 leftIcon={<Star size={12} />}
                 className="flex-shrink-0"
               >
@@ -699,7 +711,7 @@ export default function ConversationPage() {
         )}
 
         {/* ═══ MESSAGE INPUT ══════════════════════════════ */}
-        {!isCompleted && conversation?.status !== 'blocked' ? (
+        {conversation?.status !== 'blocked' ? (
           <div
             className="flex flex-shrink-0 items-end gap-2 px-3 py-2.5 sm:px-4 sm:py-3"
             style={{
@@ -744,9 +756,7 @@ export default function ConversationPage() {
             }}
           >
             <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-              {isCompleted
-                ? '✅ Sale completed. This conversation is closed.'
-                : '🚫 This conversation has been blocked.'}
+              🚫 This conversation has been blocked.
             </p>
           </div>
         )}
@@ -774,7 +784,7 @@ export default function ConversationPage() {
           onSuccess={(result) => {
             setSaleCompleted(true);
             setTransactionId(result.transaction_id);
-            setTimeout(() => setShowReviewModal(true), 1500);
+            setTimeout(() => handleOpenReviewModal(), 1500);
             toast.success('🎉 Purchase confirmed!');
           }}
         />
