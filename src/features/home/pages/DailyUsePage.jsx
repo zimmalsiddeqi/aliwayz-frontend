@@ -100,7 +100,13 @@ export default function DailyUsePage() {
           ...(filters.condition && { condition: filters.condition }),
         });
       }
-      const categoriesToFetch = dailyParentCategories;
+      
+      const digitalProductCategory = allCategories.find(c => c.id === CATEGORY_IDS.DIGITAL_PRODUCTS);
+      const categoriesToFetch = [...dailyParentCategories];
+      if (digitalProductCategory && !categoriesToFetch.some(c => c.id === digitalProductCategory.id)) {
+        categoriesToFetch.push(digitalProductCategory);
+      }
+      
       const results = await Promise.all(
         categoriesToFetch.map((cat) =>
           ProductService.browse({

@@ -5,7 +5,7 @@ import Button from '@components/ui/Button';
 import ReviewService from '@api/services/review.service';
 import toast from '@lib/toast';
 
-export default function ReviewPanel({ sellerId, productId, onComplete }) {
+export default function ReviewPanel({ transactionId, reviewerType, onClose }) {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -13,15 +13,14 @@ export default function ReviewPanel({ sellerId, productId, onComplete }) {
 
   const submitMutation = useMutation({
     mutationFn: () => ReviewService.create({
-      target_user_id: sellerId,
-      product_id: productId,
+      qr_transaction_id: transactionId,
       rating,
       comment
     }),
     onSuccess: () => {
       toast.success('Review submitted successfully!');
       qc.invalidateQueries({ queryKey: ['reviews'] });
-      onComplete();
+      if (onClose) onClose();
     },
     onError: (err) => {
       toast.error(err?.response?.data?.message || 'Failed to submit review');

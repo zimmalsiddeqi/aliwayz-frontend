@@ -141,9 +141,9 @@ export default function QRVerificationPage() {
             </div>
           ) : (
             <ReviewPanel 
-              sellerId={scanResult.product?.seller_id || product?.seller_id}
-              productId={scanResult.product?.id || productId}
-              onComplete={() => navigate('/')} 
+              transactionId={scanResult.id}
+              reviewerType={userIsBuyer ? 'buyer' : 'seller'}
+              onClose={() => navigate('/')} 
             />
           )}
         </motion.div>
