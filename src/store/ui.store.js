@@ -49,6 +49,7 @@ const useUIStore = create(
     }),
     {
       name: 'aliwayz-ui-prefs',
+      version: 1, // Bump version to force reset from cached 'dark' to default 'light'
       partialize: (state) => ({
         theme: state.theme,
       }),
