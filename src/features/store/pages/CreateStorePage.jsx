@@ -149,12 +149,6 @@ export default function CreateStorePage() {
       toast.success('Store created! 🎉');
       navigate('/sell/my-listings');
     },
-    // After store creation success, redirect to dashboard:
-    onSuccess: (response) => {
-      queryClient.invalidateQueries({ queryKey: ['my-store'] });
-      toast.success('Store created! 🎉');
-      navigate('/sell/my-listings'); // ← This is correct, stays same
-    },
     onError: (err) => {
       toast.error(getErrorMessage(err));
       setFormErrors(err, setError);

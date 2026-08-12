@@ -8,6 +8,7 @@ import useAuthStore from '@store/auth.store';
 import useLocationStore from '@store/location.store';
 import SearchBar from '@components/common/SearchBar';
 import LocationSelector from '@components/common/LocationSelector';
+import RecommendedProducts from '../components/RecommendedProducts';
 import { isSeller, cn } from '@lib/utils';
 import ProductService from '@api/services/product.service';
 import CategoryService from '@api/services/category.service';
@@ -285,6 +286,8 @@ export default function HomePage() {
             ))}
           </motion.div>
         </section>
+
+        <RecommendedProducts />
 
         <section className="container-app py-2">
           <div className="flex flex-col md:flex-row gap-6 items-start">

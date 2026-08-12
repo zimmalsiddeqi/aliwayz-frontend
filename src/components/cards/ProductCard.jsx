@@ -4,6 +4,7 @@ import { Heart, Eye, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import useAuthStore from '@store/auth.store';
+import useInterestStore from '@store/interest.store';
 import ProductService from '@api/services/product.service';
 import BadgeUI from '@components/ui/Badge';
 import { cn, formatPrice, formatRelativeTime, getConditionLabel, getConditionColor } from '@lib/utils';
@@ -15,6 +16,8 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
   const { isAuthenticated, user } = useAuthStore();
   const queryClient = useQueryClient();
   const [isFav, setIsFav] = useState(product.is_favorited || false);
+  const logView = useInterestStore((s) => s.logView);
+  const logFavorite = useInterestStore((s) => s.logFavorite);
 
   const imageUrl = getPrimaryImage(product.product_images);
   const store    = product.stores;
@@ -42,6 +45,9 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
     }
     if (user?.id === product.users?.id) return;
     favMutation.mutate();
+    if (!isFav) {
+      logFavorite(product.category_id);
+    }
   };
 
   return (
@@ -52,6 +58,7 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
     >
       <Link
         to={`/product/${product.id}`}
+        onClick={() => logView(product.category_id)}
         className="group block card-interactive overflow-hidden"
       >
         {/* Image */}

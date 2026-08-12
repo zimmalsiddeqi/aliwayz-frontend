@@ -16,7 +16,9 @@ export default function RootLayout() {
           <Outlet />
         </Suspense>
       </main>
-      <Footer />
+      <div className="hidden md:block">
+        <Footer />
+      </div>
     </div>
   );
 }

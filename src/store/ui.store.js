@@ -5,7 +5,7 @@ const useUIStore = create(
   persist(
     (set, get) => ({
       // ── Theme ────────────────────────────────────────────────
-      theme: 'dark', // 'dark' | 'light'
+      theme: 'light', // 'dark' | 'light'
 
       // ── Sidebar ──────────────────────────────────────────────
       sidebarOpen:       false,

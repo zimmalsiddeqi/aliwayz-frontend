@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,7 +16,9 @@ import Select from '@components/ui/Select';
 import Input from '@components/ui/Input';
 import EmptyState from '@components/common/EmptyState';
 import LocationSelector from '@components/common/LocationSelector';
-import { isSeller } from '@lib/utils';
+import useMediaQuery from '@hooks/useMediaQuery';
+import { isSeller, cn } from '@lib/utils';
+import SearchCategoriesModal from '../components/SearchCategoriesModal';
 import {
   VEHICLE_MAKES,
   VEHICLE_BODY_TYPES,
@@ -24,14 +26,18 @@ import {
   VEHICLE_TRANSMISSIONS,
   VEHICLE_CONDITIONS,
   CATEGORY_IDS,
+  SORT_OPTIONS,
 } from '@utils/constants';
 import { getCategoryIdsForMain, getSubcategories } from '@utils/categoryHelpers';
 
 export default function CarsPage() {
+  const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthStore();
   const { lat, lng, isLocated, radiusMiles } = useLocationStore();
   const canSell = isAuthenticated && isSeller(user?.role);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
+  const [searchCategoriesOpen, setSearchCategoriesOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSubCat, setSelectedSubCat] = useState('');
@@ -220,66 +226,17 @@ export default function CarsPage() {
           </div>
         </div>
 
-        {/* Location */}
+        {/* Location & Filters */}
         <div className="container-app py-3">
-          <LocationSelector />
-        </div>
-
-        <div className="container-app py-3">
-          {carSubcategories.length > 0 && (
-            <div className="-mx-4 mb-5 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
-              <button
-                onClick={() => setSelectedSubCat('')}
-                className="flex-shrink-0 whitespace-nowrap rounded-xl px-3 py-2 text-xs font-medium transition-all"
-                style={{
-                  backgroundColor: !selectedSubCat ? '#2563EB' : 'var(--color-surface)',
-                  color: !selectedSubCat ? 'white' : 'var(--color-text-secondary)',
-                  border: `1px solid ${!selectedSubCat ? '#2563EB' : 'var(--color-border)'}`,
-                }}
-              >
-                All Vehicles
-              </button>
-              {carSubcategories.map((sub) => (
-                <button
-                  key={sub.id}
-                  onClick={() => setSelectedSubCat(selectedSubCat === sub.id ? '' : sub.id)}
-                  className="flex-shrink-0 whitespace-nowrap rounded-xl px-3 py-2 text-xs font-medium transition-all"
-                  style={{
-                    backgroundColor: selectedSubCat === sub.id ? '#2563EB' : 'var(--color-surface)',
-                    color: selectedSubCat === sub.id ? 'white' : 'var(--color-text-secondary)',
-                    border: `1px solid ${selectedSubCat === sub.id ? '#2563EB' : 'var(--color-border)'}`,
-                  }}
-                >
-                  {sub.name}
-                </button>
-              ))}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <LocationSelector compact={isMobile} />
             </div>
-          )}
-
-          <div className="mb-5 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>
-                {isLoading
-                  ? 'Loading...'
-                  : `${filteredProducts.length} vehicle${filteredProducts.length !== 1 ? 's' : ''}`}
-              </p>
-              {isLocated && radiusMiles !== 9999 && (
-                <p className="mt-0.5 text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
-                  📍 Within {radiusMiles} miles of your location
-                </p>
-              )}
-            </div>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <Select
                 value={filters.sort}
                 onChange={(e) => setFilter('sort', e.target.value)}
-                options={[
-                  { value: 'newest', label: 'Newest' },
-                  { value: 'oldest', label: 'Oldest' },
-                  { value: 'price_asc', label: 'Price ↑' },
-                  { value: 'price_desc', label: 'Price ↓' },
-                  { value: 'popular', label: 'Popular' },
-                ]}
+                options={SORT_OPTIONS}
                 containerClassName="!space-y-0"
                 className="!rounded-xl !py-2 text-xs"
               />
@@ -289,9 +246,68 @@ export default function CarsPage() {
                 leftIcon={<SlidersHorizontal size={14} />}
                 onClick={() => setShowFilters(!showFilters)}
               >
-                Filters
+                Filter
               </Button>
             </div>
+          </div>
+        </div>
+
+        <div className="container-app py-2">
+          {carSubcategories.length > 0 && (
+            <div className="-mx-4 sm:mx-0 mb-4 flex items-center justify-start gap-1.5 sm:gap-2 px-4 sm:px-0 flex-nowrap w-full overflow-hidden pb-1 sm:pb-0">
+              <button
+                onClick={() => setSelectedSubCat('')}
+                className="flex flex-shrink-0 items-center gap-1 sm:gap-1.5 whitespace-nowrap rounded-xl px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium transition-all"
+                style={{
+                  backgroundColor: !selectedSubCat ? '#2563EB' : 'var(--color-surface)',
+                  color: !selectedSubCat ? 'white' : 'var(--color-text-secondary)',
+                  border: `1px solid ${!selectedSubCat ? '#2563EB' : 'var(--color-border)'}`,
+                }}
+              >
+                <span className="text-[12px] sm:text-sm">🌟</span> All Vehicles
+              </button>
+              {carSubcategories.slice(0, 5).map((sub, index) => (
+                <button
+                  key={sub.id}
+                  onClick={() => setSelectedSubCat(selectedSubCat === sub.id ? '' : sub.id)}
+                  className={cn(
+                    "flex-shrink-0 items-center gap-1 sm:gap-1.5 whitespace-nowrap rounded-xl px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium transition-all",
+                    index > 1 ? "hidden sm:flex" : "flex"
+                  )}
+                  style={{
+                    backgroundColor: selectedSubCat === sub.id ? '#2563EB' : 'var(--color-surface)',
+                    color: selectedSubCat === sub.id ? 'white' : 'var(--color-text-secondary)',
+                    border: `1px solid ${selectedSubCat === sub.id ? '#2563EB' : 'var(--color-border)'}`,
+                  }}
+                >
+                  {sub.name}
+                </button>
+              ))}
+              <button
+                onClick={() => setSearchCategoriesOpen(true)}
+                className="flex flex-shrink-0 items-center gap-1 sm:gap-1.5 whitespace-nowrap rounded-xl px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium transition-all hover:bg-[var(--glass-bg-strong)]"
+                style={{
+                  backgroundColor: 'var(--color-surface)',
+                  color: 'var(--color-text-secondary)',
+                  border: '1px solid var(--color-border)',
+                }}
+              >
+                <span className="text-[12px] sm:text-sm">🔍</span> All Categories
+              </button>
+            </div>
+          )}
+
+          <div className="mb-4">
+            <p className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+              {isLoading
+                ? 'Loading...'
+                : `${filteredProducts.length} vehicle${filteredProducts.length !== 1 ? 's' : ''}`}
+            </p>
+            {isLocated && radiusMiles !== 9999 && (
+              <p className="mt-0.5 text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+                📍 Within {radiusMiles} miles of your location
+              </p>
+            )}
           </div>
 
           <AnimatePresence>
@@ -388,6 +404,15 @@ export default function CarsPage() {
           )}
         </div>
       </div>
+      <SearchCategoriesModal
+        isOpen={searchCategoriesOpen}
+        onClose={() => setSearchCategoriesOpen(false)}
+        categories={carSubcategories}
+        onSelect={(cat) => {
+          setSelectedSubCat(cat.id);
+          setSearchCategoriesOpen(false);
+        }}
+      />
     </>
   );
 }
