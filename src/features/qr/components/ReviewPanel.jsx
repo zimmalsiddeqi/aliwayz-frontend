@@ -3,6 +3,7 @@ import { Star } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Button from '@components/ui/Button';
 import ReviewService from '@api/services/review.service';
+import { getErrorMessage } from '@lib/utils';
 import toast from '@lib/toast';
 
 export default function ReviewPanel({ transactionId, reviewerType, onClose }) {
@@ -23,7 +24,7 @@ export default function ReviewPanel({ transactionId, reviewerType, onClose }) {
       if (onClose) onClose();
     },
     onError: (err) => {
-      toast.error(err?.response?.data?.message || 'Failed to submit review');
+      toast.error(getErrorMessage(err));
     }
   });
 
