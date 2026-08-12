@@ -1275,13 +1275,17 @@ function ReviewModal({ isOpen, onClose, transactionId, reviewerType }) {
   const LABELS = ['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent! ⭐'];
 
   const mutation = useMutation({
-    mutationFn: () =>
-      ReviewService.create({
+    mutationFn: () => {
+      if (!transactionId) {
+        return Promise.reject(new Error('Transaction ID not found. Ensure backend changes are deployed!'));
+      }
+      return ReviewService.create({
         qr_transaction_id: transactionId,
         rating,
         comment: comment.trim() || undefined,
         ...Object.fromEntries(Object.entries(tags).map(([k, v]) => [k, !!v])),
-      }),
+      });
+    },
     onSuccess: () => {
       toast.success('Review submitted! ⭐');
       onClose();
