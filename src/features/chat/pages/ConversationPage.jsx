@@ -27,6 +27,7 @@ import useAuthStore from '@store/auth.store';
 import useChatStore from '@store/chat.store';
 import useConversationSocket from '@hooks/useSocket';
 import { getSocket, SOCKET_EVENTS } from '@lib/socket';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 import Avatar from '@components/ui/Avatar';
 import Spinner from '@components/ui/Spinner';
 import Button from '@components/ui/Button';
@@ -1098,9 +1099,13 @@ function QRGeneratorModal({ isOpen, onClose, product, buyerId }) {
 // ──────────────────────────────────────────────────────────────
 function QRScannerModal({ isOpen, onClose, prefillToken, onSuccess }) {
   const [token, setToken] = useState(prefillToken || '');
+  const [useCamera, setUseCamera] = useState(false);
 
   useEffect(() => {
-    if (prefillToken) setToken(prefillToken);
+    if (prefillToken) {
+      setToken(prefillToken);
+      setUseCamera(false);
+    }
   }, [prefillToken]);
 
   const scanMutation = useMutation({
@@ -1111,6 +1116,28 @@ function QRScannerModal({ isOpen, onClose, prefillToken, onSuccess }) {
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });
+
+  useEffect(() => {
+    if (!useCamera) return;
+
+    const scanner = new Html5QrcodeScanner('chat-qr-reader', {
+      qrbox: { width: 250, height: 250 },
+      fps: 10,
+    }, false);
+
+    scanner.render(
+      (decodedText) => {
+        scanner.clear();
+        setUseCamera(false);
+        setToken(decodedText.trim());
+      },
+      () => {}
+    );
+
+    return () => {
+      scanner.clear().catch(console.error);
+    };
+  }, [useCamera]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Confirm Purchase" size="sm">
@@ -1133,13 +1160,33 @@ function QRScannerModal({ isOpen, onClose, prefillToken, onSuccess }) {
           )}
         </div>
 
-        <textarea
-          value={token}
-          onChange={(e) => setToken(e.target.value)}
-          placeholder="Token auto-fills from chat message..."
-          rows={3}
-          className="input-base resize-none font-mono text-[10px] sm:text-[11px]"
-        />
+        {useCamera ? (
+          <div className="overflow-hidden rounded-xl bg-black/5 relative min-h-[300px]">
+            <div id="chat-qr-reader" className="w-full [&>div]:border-none [&_video]:object-cover" />
+            <button 
+              onClick={() => setUseCamera(false)} 
+              className="mt-4 mb-2 text-xs text-center w-full hover:underline" 
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+               Cancel Camera
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <textarea
+              value={token}
+              onChange={(e) => setToken(e.target.value)}
+              placeholder="Token auto-fills from chat message..."
+              rows={3}
+              className="input-base resize-none font-mono text-[10px] sm:text-[11px] w-full"
+            />
+            {!prefillToken && (
+              <Button fullWidth variant="outline" size="sm" onClick={() => setUseCamera(true)}>
+                Open Camera to Scan
+              </Button>
+            )}
+          </div>
+        )}
 
         <div
           className="flex items-start gap-2 rounded-xl p-2.5 text-[11px]"
