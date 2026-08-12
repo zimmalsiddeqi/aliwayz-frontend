@@ -141,7 +141,7 @@ export default function QRVerificationPage() {
             </div>
           ) : (
             <ReviewPanel 
-              transactionId={scanResult.id}
+              transactionId={scanResult.transaction_id}
               reviewerType={userIsBuyer ? 'buyer' : 'seller'}
               onClose={() => navigate('/')} 
             />
