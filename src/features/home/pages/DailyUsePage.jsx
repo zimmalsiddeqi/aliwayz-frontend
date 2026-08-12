@@ -100,7 +100,7 @@ export default function DailyUsePage() {
           ...(filters.condition && { condition: filters.condition }),
         });
       }
-      const categoriesToFetch = dailyParentCategories.slice(0, 6);
+      const categoriesToFetch = dailyParentCategories;
       const results = await Promise.all(
         categoriesToFetch.map((cat) =>
           ProductService.browse({
@@ -145,7 +145,7 @@ export default function DailyUsePage() {
   return (
     <>
       <Helmet>
-        <title>Everyday Essentials — Aliwayz</title>
+        <title>Marketplace — Aliwayz</title>
       </Helmet>
       <div className="pb-24 md:pb-10">
         <div
@@ -177,7 +177,7 @@ export default function DailyUsePage() {
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
               <div>
                 <h1 className="mb-1 text-3xl font-bold text-white sm:text-4xl">
-                  🛒 Everyday Essentials
+                  🛒 Marketplace
                 </h1>
                 <p className="text-sm text-white/70">
                   {total} item{total !== 1 ? 's' : ''} available
