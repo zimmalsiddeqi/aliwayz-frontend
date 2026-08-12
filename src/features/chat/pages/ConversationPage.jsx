@@ -93,7 +93,9 @@ export default function ConversationPage() {
   const handleOpenReviewModal = useCallback(() => {
     let currentTId = transactionId;
     if (!currentTId && convData?.data?.qr_transactions?.length > 0) {
-      const completedQR = convData.data.qr_transactions.find(qr => qr.status === 'completed');
+      const completedQR = convData.data.qr_transactions.find(
+        (qr) => qr.status === 'scanned' || qr.status === 'completed'
+      );
       if (completedQR) {
         currentTId = completedQR.id;
         setTransactionId(currentTId);
