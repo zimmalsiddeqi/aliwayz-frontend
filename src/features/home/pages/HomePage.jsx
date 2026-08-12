@@ -70,7 +70,7 @@ const fadeUp = {
 const CATEGORIES = [
   {
     id:          'essentials',
-    name:        'Daily Essentials',
+    name:        'Marketplace',
     emoji:       '🛒',
     description: 'Electronics, fashion, home goods & more',
     gradient:    'linear-gradient(135deg, #4C1D95 0%, #7C3AED 60%, #A78BFA 100%)',
