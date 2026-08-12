@@ -17,6 +17,7 @@ import { cn, formatPrice, getErrorMessage, isSeller, isBuyer } from '@lib/utils'
 import { formatQRExpiry } from '@utils/formatters';
 import toast from '@lib/toast';
 import ReviewPanel from '../components/ReviewPanel';
+import QRScanner from '../components/QRScanner';
 
 export default function QRVerificationPage() {
   const { productId } = useParams();
@@ -87,7 +88,7 @@ export default function QRVerificationPage() {
 
   // Scan QR
   const scanMutation = useMutation({
-    mutationFn: (data) => QRService.scan(data),
+    mutationFn: (data) => QRService.scan({ ...data, product_id: productId }),
     onSuccess:  (response) => {
       setScanResult(response.data);
       qc.invalidateQueries({ queryKey: queryKeys.products.byId(productId) });
@@ -282,26 +283,13 @@ export default function QRVerificationPage() {
             </div>
 
             <div className="space-y-3">
-              <input
-                type="text"
-                placeholder="Paste QR token here..."
-                className="input-base font-mono text-xs"
-                id="qr-token-input"
-              />
-              <Button
-                fullWidth
-                size="lg"
+              <QRScanner
                 isLoading={scanMutation.isPending}
-                loadingText="Verifying..."
-                onClick={() => {
-                  const token = document.getElementById('qr-token-input')?.value?.trim();
-                  if (!token) { toast.error('Paste the QR token'); return; }
+                onScan={(token) => {
+                  if (!token) { toast.error('Invalid QR token'); return; }
                   scanMutation.mutate({ token });
                 }}
-                leftIcon={<ScanLine size={18} />}
-              >
-                Complete Purchase
-              </Button>
+              />
             </div>
           </motion.div>
         )}

@@ -1,29 +1,31 @@
 import { useEffect } from 'react';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
+import toast from '@lib/toast';
 import Spinner from '@components/ui/Spinner';
 
 export default function QRScanner({ onScan, isLoading }) {
   useEffect(() => {
-    // Only initialize scanner if not loading
     if (isLoading) return;
 
-    const scanner = new Html5QrcodeScanner('qr-reader', {
-      qrbox: { width: 250, height: 250 },
-      fps: 10,
-    }, false);
-
-    scanner.render(
+    const html5QrCode = new Html5Qrcode('qr-reader');
+    html5QrCode.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 250, height: 250 } },
       (decodedText) => {
-        scanner.clear();
-        onScan(decodedText.trim());
+        html5QrCode.stop().then(() => {
+          onScan(decodedText.trim());
+        }).catch(console.error);
       },
-      (error) => {
-        // Ignore standard "no QR found" spam
-      }
-    );
+      (error) => {} // ignore
+    ).catch((err) => {
+      console.error(err);
+      toast.error('Failed to start camera. Please ensure permissions are granted.');
+    });
 
     return () => {
-      scanner.clear().catch(console.error);
+      if (html5QrCode.isScanning) {
+        html5QrCode.stop().catch(console.error);
+      }
     };
   }, [onScan, isLoading]);
 

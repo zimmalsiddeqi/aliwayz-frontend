@@ -27,7 +27,7 @@ import useAuthStore from '@store/auth.store';
 import useChatStore from '@store/chat.store';
 import useConversationSocket from '@hooks/useSocket';
 import { getSocket, SOCKET_EVENTS } from '@lib/socket';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
 import Avatar from '@components/ui/Avatar';
 import Spinner from '@components/ui/Spinner';
 import Button from '@components/ui/Button';
@@ -770,6 +770,7 @@ export default function ConversationPage() {
           isOpen={showQRScanner}
           onClose={() => setShowQRScanner(false)}
           prefillToken={prefillToken}
+          productId={product?.id}
           onSuccess={(result) => {
             setSaleCompleted(true);
             setTransactionId(result.transaction_id);
@@ -1097,7 +1098,7 @@ function QRGeneratorModal({ isOpen, onClose, product, buyerId }) {
 // ──────────────────────────────────────────────────────────────
 // QR SCANNER MODAL (Buyer)
 // ──────────────────────────────────────────────────────────────
-function QRScannerModal({ isOpen, onClose, prefillToken, onSuccess }) {
+function QRScannerModal({ isOpen, onClose, prefillToken, productId, onSuccess }) {
   const [token, setToken] = useState(prefillToken || '');
   const [useCamera, setUseCamera] = useState(false);
 
@@ -1109,7 +1110,7 @@ function QRScannerModal({ isOpen, onClose, prefillToken, onSuccess }) {
   }, [prefillToken]);
 
   const scanMutation = useMutation({
-    mutationFn: () => QRService.scan({ token: token.trim() }),
+    mutationFn: () => QRService.scan({ product_id: productId, token: token.trim() }),
     onSuccess: (res) => {
       onSuccess(res.data);
       onClose();
@@ -1120,22 +1121,27 @@ function QRScannerModal({ isOpen, onClose, prefillToken, onSuccess }) {
   useEffect(() => {
     if (!useCamera) return;
 
-    const scanner = new Html5QrcodeScanner('chat-qr-reader', {
-      qrbox: { width: 250, height: 250 },
-      fps: 10,
-    }, false);
-
-    scanner.render(
+    const html5QrCode = new Html5Qrcode('chat-qr-reader');
+    html5QrCode.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 250, height: 250 } },
       (decodedText) => {
-        scanner.clear();
-        setUseCamera(false);
-        setToken(decodedText.trim());
+        html5QrCode.stop().then(() => {
+          setUseCamera(false);
+          setToken(decodedText.trim());
+        }).catch(console.error);
       },
-      () => {}
-    );
+      (error) => {} // ignore stream errors
+    ).catch((err) => {
+      console.error(err);
+      toast.error('Failed to start camera. Please ensure permissions are granted.');
+      setUseCamera(false);
+    });
 
     return () => {
-      scanner.clear().catch(console.error);
+      if (html5QrCode.isScanning) {
+        html5QrCode.stop().catch(console.error);
+      }
     };
   }, [useCamera]);
 
