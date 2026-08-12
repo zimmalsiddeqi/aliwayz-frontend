@@ -63,18 +63,6 @@ export default function ConversationPage() {
   const [saleCompleted, setSaleCompleted] = useState(false);
   const [qrReadyAlert, setQrReadyAlert] = useState(false);
 
-  const handleOpenReviewModal = useCallback(() => {
-    let currentTId = transactionId;
-    if (!currentTId && convData?.data?.qr_transactions?.length > 0) {
-      const completedQR = convData.data.qr_transactions.find(qr => qr.status === 'completed');
-      if (completedQR) {
-        currentTId = completedQR.id;
-        setTransactionId(currentTId);
-      }
-    }
-    setShowReviewModal(true);
-  }, [transactionId, convData?.data]);
-
   // ── Socket hook ────────────────────────────────────────
   const {
     isConnected,
@@ -101,6 +89,18 @@ export default function ConversationPage() {
   const isProductBuyer = user?.id === conversation?.buyer_id;
   const isCompleted = conversation?.status === 'completed' || saleCompleted;
   const isOtherOnline = other?.id ? onlineUsers.has(other.id) : false;
+
+  const handleOpenReviewModal = useCallback(() => {
+    let currentTId = transactionId;
+    if (!currentTId && convData?.data?.qr_transactions?.length > 0) {
+      const completedQR = convData.data.qr_transactions.find(qr => qr.status === 'completed');
+      if (completedQR) {
+        currentTId = completedQR.id;
+        setTransactionId(currentTId);
+      }
+    }
+    setShowReviewModal(true);
+  }, [transactionId, convData?.data]);
 
   // ── Fetch messages ─────────────────────────────────────
   const { data: msgData, isLoading: messagesLoading } = useQuery({
