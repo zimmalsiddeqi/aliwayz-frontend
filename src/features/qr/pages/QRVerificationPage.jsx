@@ -16,6 +16,7 @@ import PageHeader from '@components/common/PageHeader';
 import { cn, formatPrice, getErrorMessage, isSeller, isBuyer } from '@lib/utils';
 import { formatQRExpiry } from '@utils/formatters';
 import toast from '@lib/toast';
+import ReviewPanel from '../components/ReviewPanel';
 
 export default function QRVerificationPage() {
   const { productId } = useParams();
@@ -27,6 +28,7 @@ export default function QRVerificationPage() {
   const [countdown, setCountdown] = useState('');
   const [scanResult, setScanResult] = useState(null);
   const [buyerId, setBuyerId]     = useState('');
+  const [showReview, setShowReview] = useState(false);
 
   const userIsSeller = isSeller(user?.role);
   const userIsBuyer  = isBuyer(user?.role);
@@ -130,10 +132,19 @@ export default function QRVerificationPage() {
           <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
             {scanResult.product?.title} — {formatPrice(scanResult.product?.price, scanResult.product?.currency)}
           </p>
-          <div className="flex gap-3">
-            <Button fullWidth variant="outline" onClick={() => navigate('/')}>Go Home</Button>
-            <Button fullWidth onClick={() => navigate('/inbox')}>Leave Review</Button>
-          </div>
+
+          {!showReview ? (
+            <div className="flex gap-3 mt-4">
+              <Button fullWidth variant="outline" onClick={() => navigate('/')}>Go Home</Button>
+              <Button fullWidth onClick={() => setShowReview(true)}>Leave Review</Button>
+            </div>
+          ) : (
+            <ReviewPanel 
+              sellerId={scanResult.product?.seller_id || product?.seller_id}
+              productId={scanResult.product?.id || productId}
+              onComplete={() => navigate('/')} 
+            />
+          )}
         </motion.div>
       </div>
     );

@@ -46,15 +46,19 @@ const useChatStore = create((set, get) => ({
     set((state) => {
       const existing = state.messages[conversationId] || [];
 
-      // Replace temp message if it exists
-      if (message.tempId) {
-        const updated = existing.map((m) =>
-          m.id === message.tempId ? { ...message, tempId: undefined } : m
-        );
+      // Replace temp message if it exists (by tempId or by content match)
+      const existingTempIndex = existing.findIndex((m) => 
+        (message.tempId && m.id === message.tempId) || 
+        (m.isPending && m.content === message.content && m.sender_id === message.sender_id)
+      );
+
+      if (existingTempIndex !== -1) {
+        const updated = [...existing];
+        updated[existingTempIndex] = { ...message, tempId: undefined };
         return { messages: { ...state.messages, [conversationId]: updated } };
       }
 
-      // Avoid duplicates
+      // Avoid duplicates by real ID
       const isDuplicate = existing.some((m) => m.id === message.id);
       if (isDuplicate) return state;
 
