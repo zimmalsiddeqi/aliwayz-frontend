@@ -102,13 +102,13 @@ export default function SearchBar({ className, autoFocus = false, onClose }) {
 
   return (
     <div ref={containerRef} className={cn('relative w-full', className)}>
-      <div className="flex flex-col sm:flex-row items-stretch rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm focus-within:ring-2 focus-within:ring-[var(--color-brand)] focus-within:border-[var(--color-brand)] overflow-hidden transition-all">
+      <div className="flex items-stretch rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm focus-within:ring-2 focus-within:ring-[var(--color-brand)] focus-within:border-[var(--color-brand)] overflow-hidden transition-all h-11 sm:h-12 w-full">
         {/* Category dropdown */}
-        <div className="relative border-b sm:border-b-0 sm:border-r border-[var(--color-border)] h-11 sm:h-12 flex items-center bg-[var(--glass-bg)] px-3 shrink-0">
+        <div className="relative border-r border-[var(--color-border)] h-full flex items-center bg-[var(--color-bg-secondary)] px-2 sm:px-3 shrink-0 min-w-[80px] sm:min-w-[120px] max-w-[110px] sm:max-w-[180px]">
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="bg-transparent text-xs font-semibold pr-6 py-2 outline-none appearance-none cursor-pointer text-[var(--color-text-primary)] w-full sm:w-auto min-w-[120px]"
+            className="bg-transparent text-[11px] sm:text-xs font-bold pr-6 py-2 outline-none border-0 focus:ring-0 shadow-none appearance-none cursor-pointer text-[var(--color-text-primary)] w-full truncate"
           >
             <option value="">All Categories</option>
             {allCategories.map((cat) => (
@@ -117,11 +117,11 @@ export default function SearchBar({ className, autoFocus = false, onClose }) {
               </option>
             ))}
           </select>
-          <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--color-text-muted)]" />
+          <ChevronDown size={12} className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--color-text-muted)]" />
         </div>
 
         {/* Input field */}
-        <div className="flex flex-1 items-center h-11 sm:h-12 relative">
+        <div className="flex-1 h-full relative flex items-center">
           <input
             ref={inputRef}
             type="text"
@@ -130,7 +130,7 @@ export default function SearchBar({ className, autoFocus = false, onClose }) {
             onFocus={() => setIsFocused(true)}
             onKeyDown={handleKeyDown}
             placeholder="Search products, vehicles, homes..."
-            className="w-full h-full bg-transparent pl-4 pr-10 text-sm outline-none text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)]"
+            className="w-full h-full bg-transparent pl-3 pr-8 text-xs sm:text-sm outline-none border-0 focus:ring-0 shadow-none text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)]"
             autoComplete="off"
           />
           {localQuery && (
@@ -139,9 +139,9 @@ export default function SearchBar({ className, autoFocus = false, onClose }) {
                 setLocalQuery('');
                 inputRef.current?.focus();
               }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded transition-colors text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded transition-colors text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             >
-              <X size={14} />
+              <X size={12} />
             </button>
           )}
         </div>
@@ -150,9 +150,10 @@ export default function SearchBar({ className, autoFocus = false, onClose }) {
         <button
           onClick={() => handleSearch()}
           aria-label="Search"
-          className="flex items-center justify-center bg-[var(--color-brand)] hover:brightness-110 text-white h-11 sm:h-12 px-5 transition-all shrink-0 cursor-pointer"
+          className="flex items-center justify-center bg-[var(--color-brand)] hover:brightness-110 text-white h-full px-4 sm:px-5 transition-all shrink-0 cursor-pointer border-0 rounded-none"
         >
-          <Search size={18} />
+          <Search size={16} className="sm:hidden" />
+          <Search size={18} className="hidden sm:block" />
         </button>
       </div>
 

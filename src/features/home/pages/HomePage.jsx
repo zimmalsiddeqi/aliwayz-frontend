@@ -270,13 +270,8 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ═══ BROWSE CATEGORIES ══════════════════════════ */}
+        {/* ═══ 3 MAIN CATEGORIES ══════════════════════════ */}
         <section className="container-app py-4 sm:py-6">
-          <div className="max-w-2xl mx-auto mb-3">
-            <h2 className="text-xs font-bold tracking-wide uppercase text-[var(--color-text-muted)] text-center sm:text-left">
-              Shop by Category
-            </h2>
-          </div>
           <motion.div
             className="grid grid-cols-3 gap-2 sm:gap-4 max-w-2xl mx-auto"
             initial="hidden"
@@ -566,29 +561,46 @@ function CategoryCard({ cat, sellerOnly, onNavigate }) {
   return (
     <motion.div
       variants={{
-        hidden: { opacity: 0, y: 16 },
+        hidden: { opacity: 0, y: 20 },
         visible: {
           opacity: 1, y: 0,
-          transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] },
+          transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
         },
       }}
       className="h-full"
     >
       <motion.div
-        className="relative overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm p-3 sm:p-4 flex items-center gap-3 cursor-pointer hover:border-[var(--color-brand)] hover:shadow-md transition-all h-16 sm:h-20 group"
-        whileHover={{ y: -2 }}
-        whileTap={{ scale: 0.98 }}
+        className="relative overflow-hidden rounded-2xl sm:rounded-[24px] cursor-pointer group flex flex-col justify-between h-24 sm:h-36"
+        style={{
+          background: cat.gradient,
+          boxShadow: `0 8px 32px ${cat.glow}`,
+        }}
+        whileHover={{ y: -4, boxShadow: `0 12px 40px ${cat.glow}` }}
+        whileTap={{ scale: 0.96 }}
         onClick={() => onNavigate(cat.path)}
       >
-        <div 
-          className="absolute inset-0 opacity-0 group-hover:opacity-[0.03] transition-opacity duration-300 pointer-events-none"
-          style={{ background: cat.gradient }}
-        />
-        
-        <div className="text-2xl sm:text-3xl flex-shrink-0">{cat.emoji}</div>
-        <div className="min-w-0 flex-1">
-          <h3 className="text-xs sm:text-sm font-bold truncate text-[var(--color-text-primary)]">{cat.name}</h3>
-          <p className="text-[10px] sm:text-xs text-[var(--color-text-muted)] truncate hidden sm:block mt-0.5">{cat.description}</p>
+        <div className="absolute inset-0 flex flex-wrap gap-2 sm:gap-3 p-2 sm:p-3 opacity-[0.06] text-xl sm:text-2xl pointer-events-none overflow-hidden">
+          {Array.from({ length: 20 }).map((_, i) => (
+            <span key={i} className="select-none hidden sm:inline">
+              {cat.bgPattern.split('').filter((c) => c.trim())[i % 5]}
+            </span>
+          ))}
+        </div>
+
+        <div className="absolute -top-12 -right-12 w-24 sm:w-36 h-24 sm:h-36 rounded-full bg-white/10" />
+        <div className="absolute -bottom-8 -left-8 w-20 sm:w-28 h-20 sm:h-28 rounded-full bg-white/5" />
+
+        <div className="relative z-10 h-full flex flex-col items-center justify-center text-center p-2 sm:p-3">
+          <motion.div
+            className="text-4xl sm:text-5xl mb-2"
+            animate={{ rotate: [0, -3, 3, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            {cat.emoji}
+          </motion.div>
+          <h2 className="text-[14px] sm:text-[18px] font-bold text-white w-full leading-tight truncate px-1">
+            {cat.name}
+          </h2>
         </div>
       </motion.div>
     </motion.div>
