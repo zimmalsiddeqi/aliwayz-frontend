@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, Clock, TrendingUp, ArrowRight } from 'lucide-react';
+import { Search, X, Clock, TrendingUp, ArrowRight, ChevronDown } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import useDebounce from '@hooks/useDebounce';
@@ -8,6 +8,7 @@ import useOnClickOutside from '@hooks/useOnClickOutside';
 import useSearchStore from '@store/search.store';
 import useAuthStore from '@store/auth.store';
 import SearchService from '@api/services/search.service';
+import CategoryService from '@api/services/category.service';
 import { queryKeys } from '@lib/queryClient';
 import { cn } from '@lib/utils';
 
@@ -23,8 +24,16 @@ export default function SearchBar({ className, autoFocus = false, onClose }) {
   } = useSearchStore();
 
   const [localQuery, setLocalQuery] = useState(query);
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [isFocused, setIsFocused]   = useState(false);
   const debouncedQuery = useDebounce(localQuery, 250);
+
+  // Fetch flat categories for the dropdown
+  const { data: allCategories = [] } = useQuery({
+    queryKey: queryKeys.categories.flat(),
+    queryFn: () => CategoryService.getFlat().then((r) => r.data),
+    staleTime: 60 * 60 * 1000,
+  });
 
   const showDropdown = isFocused && (
     debouncedQuery.length > 0 || recentSearches.length > 0
@@ -73,9 +82,15 @@ export default function SearchBar({ className, autoFocus = false, onClose }) {
     addRecentSearch(term.trim());
     setQuery(term.trim());
     setIsFocused(false);
-    navigate(`/search?q=${encodeURIComponent(term.trim())}`);
+    
+    let searchUrl = `/search?q=${encodeURIComponent(term.trim())}`;
+    if (selectedCategory) {
+      searchUrl += `&category_id=${encodeURIComponent(selectedCategory)}`;
+    }
+    navigate(searchUrl);
+    
     if (onClose) onClose();
-  }, [localQuery, navigate, addRecentSearch, setQuery, onClose]);
+  }, [localQuery, navigate, addRecentSearch, setQuery, onClose, selectedCategory]);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') handleSearch();
@@ -87,40 +102,58 @@ export default function SearchBar({ className, autoFocus = false, onClose }) {
 
   return (
     <div ref={containerRef} className={cn('relative w-full', className)}>
-      {/* Input */}
-      <div className="relative">
-        <Search
-          size={16}
-          className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
-          style={{
-            color: isFocused
-              ? 'var(--color-brand)'
-              : 'var(--color-text-muted)',
-          }}
-        />
-        <input
-          ref={inputRef}
-          type="text"
-          value={localQuery}
-          onChange={(e) => setLocalQuery(e.target.value)}
-          onFocus={() => setIsFocused(true)}
-          onKeyDown={handleKeyDown}
-          placeholder="Search products, stores..."
-          className="input-base pl-10 pr-10"
-          autoComplete="off"
-        />
-        {localQuery && (
-          <button
-            onClick={() => {
-              setLocalQuery('');
-              inputRef.current?.focus();
-            }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded transition-colors"
-            style={{ color: 'var(--color-text-muted)' }}
+      <div className="flex flex-col sm:flex-row items-stretch rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm focus-within:ring-2 focus-within:ring-[var(--color-brand)] focus-within:border-[var(--color-brand)] overflow-hidden transition-all">
+        {/* Category dropdown */}
+        <div className="relative border-b sm:border-b-0 sm:border-r border-[var(--color-border)] h-11 sm:h-12 flex items-center bg-[var(--glass-bg)] px-3 shrink-0">
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="bg-transparent text-xs font-semibold pr-6 py-2 outline-none appearance-none cursor-pointer text-[var(--color-text-primary)] w-full sm:w-auto min-w-[120px]"
           >
-            <X size={14} />
-          </button>
-        )}
+            <option value="">All Categories</option>
+            {allCategories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
+          <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--color-text-muted)]" />
+        </div>
+
+        {/* Input field */}
+        <div className="flex flex-1 items-center h-11 sm:h-12 relative">
+          <input
+            ref={inputRef}
+            type="text"
+            value={localQuery}
+            onChange={(e) => setLocalQuery(e.target.value)}
+            onFocus={() => setIsFocused(true)}
+            onKeyDown={handleKeyDown}
+            placeholder="Search products, vehicles, homes..."
+            className="w-full h-full bg-transparent pl-4 pr-10 text-sm outline-none text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)]"
+            autoComplete="off"
+          />
+          {localQuery && (
+            <button
+              onClick={() => {
+                setLocalQuery('');
+                inputRef.current?.focus();
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded transition-colors text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+
+        {/* Unified Search button */}
+        <button
+          onClick={() => handleSearch()}
+          aria-label="Search"
+          className="flex items-center justify-center bg-[var(--color-brand)] hover:brightness-110 text-white h-11 sm:h-12 px-5 transition-all shrink-0 cursor-pointer"
+        >
+          <Search size={18} />
+        </button>
       </div>
 
       {/* Dropdown */}
