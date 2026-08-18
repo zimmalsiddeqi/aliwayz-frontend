@@ -108,9 +108,17 @@ export default function SearchBar({ className, autoFocus = false, onClose }) {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="bg-transparent text-[11px] sm:text-xs font-bold pr-6 py-2 outline-none border-0 focus:ring-0 shadow-none appearance-none cursor-pointer text-[var(--color-text-primary)] w-full truncate"
+            className="bg-transparent text-[11px] sm:text-xs font-bold pr-5 py-2 outline-none cursor-pointer text-[var(--color-text-primary)] w-full truncate"
+            style={{
+              WebkitAppearance: 'none',
+              MozAppearance: 'none',
+              appearance: 'none',
+              border: 'none',
+              boxShadow: 'none',
+              backgroundImage: 'none',
+            }}
           >
-            <option value="">All Categories</option>
+            <option value="">All</option>
             {allCategories.map((cat) => (
               <option key={cat.id} value={cat.id}>
                 {cat.name}
