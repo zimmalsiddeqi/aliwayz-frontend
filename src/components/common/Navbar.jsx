@@ -61,10 +61,7 @@ export default function Navbar() {
 
   // ── Bottom nav items (mobile) ──────────────────────────
   const getBottomNavItems = () => {
-    const items = [
-      { to: '/', icon: Home, label: 'Home' },
-      { to: '/search', icon: Search, label: 'Search' },
-    ];
+    const items = [];
 
     // Sell button — NOT for admin
     if (isAuthenticated && isSeller(role) && role !== 'admin') {
@@ -91,10 +88,7 @@ export default function Navbar() {
 
   // ── Desktop nav items ──────────────────────────────────
   const getDesktopNavItems = () => {
-    const items = [
-      { to: '/', icon: Home, label: 'Home' },
-      { to: '/search', icon: Search, label: 'Search' },
-    ];
+    const items = [];
 
     // Sell — for sellers and both ONLY, NOT admin
     if (isAuthenticated && isSeller(role) && role !== 'admin') {
