@@ -51,6 +51,24 @@ import {
   AdminBroadcastPage,
   AdminFeedbackPage,
   FAQPage,
+  
+  LegalIndexPage,
+  PrivacyPolicyPage,
+  TermsPage,
+  CookiePolicyPage,
+  SellerPolicyPage,
+  BuyerPolicyPage,
+  CommunityGuidelinesPage,
+  ProhibitedItemsPage,
+  AccountDeletionPage,
+  DataDeletionPage,
+  ReportAbusePage,
+  IntellectualPropertyPage,
+  CopyrightPage,
+  DisclaimerPage,
+  SafetyGuidelinesPage,
+  ContactUsPage,
+  AboutPage,
 } from './routes';
 
 const router = createBrowserRouter(
@@ -134,6 +152,25 @@ const router = createBrowserRouter(
         { path: '/real-estate', element: <PropertyPage /> },
         { path: '/essentials', element: <DailyUsePage /> },
         { path: '/faq', element: <FAQPage /> },
+
+        // Legal Center
+        { path: '/legal',                       element: <LegalIndexPage /> },
+        { path: '/legal/privacy-policy',        element: <PrivacyPolicyPage /> },
+        { path: '/legal/terms',                 element: <TermsPage /> },
+        { path: '/legal/cookie-policy',         element: <CookiePolicyPage /> },
+        { path: '/legal/seller-policy',         element: <SellerPolicyPage /> },
+        { path: '/legal/buyer-policy',          element: <BuyerPolicyPage /> },
+        { path: '/legal/community-guidelines',  element: <CommunityGuidelinesPage /> },
+        { path: '/legal/prohibited-items',      element: <ProhibitedItemsPage /> },
+        { path: '/legal/account-deletion',      element: <AccountDeletionPage /> },
+        { path: '/legal/data-deletion',         element: <DataDeletionPage /> },
+        { path: '/legal/report-abuse',          element: <ReportAbusePage /> },
+        { path: '/legal/intellectual-property', element: <IntellectualPropertyPage /> },
+        { path: '/legal/copyright',             element: <CopyrightPage /> },
+        { path: '/legal/disclaimer',            element: <DisclaimerPage /> },
+        { path: '/legal/safety-guidelines',     element: <SafetyGuidelinesPage /> },
+        { path: '/legal/contact',               element: <ContactUsPage /> },
+        { path: '/legal/about',                 element: <AboutPage /> },
 
         // Public
         { path: '/marketplace', element: <MarketplacePage /> },

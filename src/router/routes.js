@@ -64,6 +64,25 @@ const AdminLogsPage      = lazy(() => import('@features/admin/pages/AdminLogsPag
 const AdminBroadcastPage = lazy(() => import('@features/admin/pages/AdminBroadcastPage'));
 const AdminFeedbackPage = lazy(() => import('@features/admin/pages/AdminFeedbackPage'));
 
+// Legal
+const LegalIndexPage           = lazy(() => import('@features/legal/pages/LegalIndexPage'));
+const PrivacyPolicyPage        = lazy(() => import('@features/legal/pages/PrivacyPolicyPage'));
+const TermsPage                = lazy(() => import('@features/legal/pages/TermsPage'));
+const CookiePolicyPage         = lazy(() => import('@features/legal/pages/CookiePolicyPage'));
+const SellerPolicyPage         = lazy(() => import('@features/legal/pages/SellerPolicyPage'));
+const BuyerPolicyPage          = lazy(() => import('@features/legal/pages/BuyerPolicyPage'));
+const CommunityGuidelinesPage  = lazy(() => import('@features/legal/pages/CommunityGuidelinesPage'));
+const ProhibitedItemsPage      = lazy(() => import('@features/legal/pages/ProhibitedItemsPage'));
+const AccountDeletionPage      = lazy(() => import('@features/legal/pages/AccountDeletionPage'));
+const DataDeletionPage         = lazy(() => import('@features/legal/pages/DataDeletionPage'));
+const ReportAbusePage          = lazy(() => import('@features/legal/pages/ReportAbusePage'));
+const IntellectualPropertyPage = lazy(() => import('@features/legal/pages/IntellectualPropertyPage'));
+const CopyrightPage            = lazy(() => import('@features/legal/pages/CopyrightPage'));
+const DisclaimerPage           = lazy(() => import('@features/legal/pages/DisclaimerPage'));
+const SafetyGuidelinesPage     = lazy(() => import('@features/legal/pages/SafetyGuidelinesPage'));
+const ContactUsPage            = lazy(() => import('@features/legal/pages/ContactUsPage'));
+const AboutPage                = lazy(() => import('@features/legal/pages/AboutPage'));
+
 export {
   LoginPage, RegisterPage, VerifyEmailPage, ForgotPasswordPage,
   ResetPasswordPage, CompleteProfilePage,
@@ -81,4 +100,10 @@ export {
   AdminProductsPage, AdminReportsPage, AdminLogsPage,
   AdminBroadcastPage, AdminFeedbackPage,
   CarsPage, PropertyPage, DailyUsePage, FAQPage,
+  
+  LegalIndexPage, PrivacyPolicyPage, TermsPage, CookiePolicyPage,
+  SellerPolicyPage, BuyerPolicyPage, CommunityGuidelinesPage,
+  ProhibitedItemsPage, AccountDeletionPage, DataDeletionPage,
+  ReportAbusePage, IntellectualPropertyPage, CopyrightPage,
+  DisclaimerPage, SafetyGuidelinesPage, ContactUsPage, AboutPage,
 };
