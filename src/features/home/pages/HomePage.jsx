@@ -3,12 +3,10 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, SlidersHorizontal, ChevronDown, X, Sparkles } from 'lucide-react';
+import { Search, SlidersHorizontal, ChevronDown, X } from 'lucide-react';
 import useAuthStore from '@store/auth.store';
 import useLocationStore from '@store/location.store';
 import SearchBar from '@components/common/SearchBar';
-import LocationSelector from '@components/common/LocationSelector';
-import RecommendedProducts from '../components/RecommendedProducts';
 import { isSeller, cn } from '@lib/utils';
 import ProductService from '@api/services/product.service';
 import CategoryService from '@api/services/category.service';
@@ -57,14 +55,6 @@ const CATEGORY_ICONS = {
 const stagger = {
   hidden:  { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.12 } },
-};
-
-const fadeUp = {
-  hidden:  { opacity: 0, y: 28 },
-  visible: {
-    opacity: 1, y: 0,
-    transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] },
-  },
 };
 
 const CATEGORIES = [
@@ -116,14 +106,6 @@ export default function HomePage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [searchCategoriesOpen, setSearchCategoriesOpen] = useState(false);
   const { lat, lng, isLocated, radiusMiles } = useLocationStore();
-
-  const greeting = isAuthenticated
-    ? `Welcome back, ${user?.full_name?.split(' ')[0] || user?.username}! 👋`
-    : 'Buy & Sell Locally';
-
-  const subtitle = sellerOnly
-    ? 'Select a category to list your items'
-    : 'Vehicles · Real Estate · Everyday Essentials — all verified with QR';
 
   const filters = {
     category_id: searchParams.get('category_id') || undefined,
@@ -199,76 +181,14 @@ export default function HomePage() {
       </Helmet>
 
       <div className="min-h-screen pb-24 md:pb-10">
-        <section className="relative overflow-hidden">
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <motion.div
-              className="absolute -top-20 -left-20 w-96 h-96 rounded-full opacity-10 blur-[80px]"
-              style={{ background: '#3B82F6' }}
-              animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
-              transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
-            />
-            <motion.div
-              className="absolute top-10 right-0 w-80 h-80 rounded-full opacity-8 blur-[80px]"
-              style={{ background: '#10B981' }}
-              animate={{ x: [0, -20, 0], y: [0, 30, 0] }}
-              transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
-            />
-            <motion.div
-              className="absolute bottom-0 left-1/2 w-72 h-72 rounded-full opacity-8 blur-[80px]"
-              style={{ background: '#7C3AED' }}
-              animate={{ x: [0, 20, 0], y: [0, -15, 0] }}
-              transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-            />
-          </div>
-
-          <div className="container-app relative pt-10 pb-8 sm:pt-16 sm:pb-12">
-            <motion.div
-              className="max-w-3xl mx-auto text-center space-y-6"
-              initial="hidden"
-              animate="visible"
-              variants={stagger}
-            >
-              <motion.div variants={fadeUp}>
-                <span
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold"
-                  style={{
-                    backgroundColor: 'var(--color-brand-glow)',
-                    color: 'var(--color-brand-light)',
-                    border: '1px solid rgba(91,110,245,0.25)',
-                  }}
-                >
-                  <Sparkles size={13} />
-                  {sellerOnly ? 'Seller Marketplace' : 'QR Verified Marketplace'}
-                </span>
-              </motion.div>
-
-              <motion.h1
-                variants={fadeUp}
-                className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
-                {greeting}
-              </motion.h1>
-
-              <motion.p
-                variants={fadeUp}
-                className="text-base sm:text-xl max-w-xl mx-auto leading-relaxed"
-                style={{ color: 'var(--color-text-secondary)' }}
-              >
-                {subtitle}
-              </motion.p>
-
-              {!sellerOnly && (
-                <motion.div variants={fadeUp} className="max-w-xl mx-auto space-y-4">
-                  <SearchBar />
-                  <div className="flex justify-center">
-                    <LocationSelector compact={true} />
-                  </div>
-                </motion.div>
-              )}
-            </motion.div>
-          </div>
-        </section>
+        {/* ═══ SEARCH BAR ══════════════════════════════════ */}
+        {!sellerOnly && (
+          <section className="container-app pt-4 pb-2 sm:pt-6 sm:pb-3">
+            <div className="max-w-2xl mx-auto">
+              <SearchBar />
+            </div>
+          </section>
+        )}
 
         {/* ═══ 3 MAIN CATEGORIES ══════════════════════════ */}
         <section className="container-app py-4 sm:py-6">
@@ -456,8 +376,6 @@ export default function HomePage() {
 
           </div>
         </section>
-
-        <RecommendedProducts />
       </div>
 
       <AnimatePresence>
