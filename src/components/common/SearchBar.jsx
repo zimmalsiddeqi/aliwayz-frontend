@@ -116,6 +116,7 @@ export default function SearchBar({ className, autoFocus = false, onClose }) {
               border: 'none',
               boxShadow: 'none',
               backgroundImage: 'none',
+              fontFamily: 'inherit',
             }}
           >
             <option value="">All</option>
