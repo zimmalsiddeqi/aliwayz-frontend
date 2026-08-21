@@ -50,6 +50,8 @@ import {
   DailyUsePage,
   AdminBroadcastPage,
   AdminFeedbackPage,
+  AdminVerificationsPage,
+  VerificationPage,
   FAQPage,
   
   LegalIndexPage,
@@ -120,6 +122,7 @@ const router = createBrowserRouter(
         { path: '/sell/my-listings', element: <MyListingsPage /> },
         { path: '/my-store/edit', element: <EditStorePage /> },
         { path: '/my-store/analytics', element: <StoreAnalyticsPage /> },
+        { path: '/my-store/verification', element: <VerificationPage /> },
       ],
     },
 
@@ -139,6 +142,7 @@ const router = createBrowserRouter(
         { path: '/admin/logs', element: <AdminLogsPage /> },
         { path: '/admin/broadcast', element: <AdminBroadcastPage /> },
         { path: '/admin/feedback', element: <AdminFeedbackPage /> },
+        { path: '/admin/verifications', element: <AdminVerificationsPage /> },
       ],
     },
 

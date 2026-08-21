@@ -28,6 +28,13 @@ import {
 } from '@utils/helpers';
 import toast from '@lib/toast';
 import ConfirmDeleteModal from '@components/modals/ConfirmDeleteModal';
+import { CATEGORY_IDS } from '@utils/constants';
+
+const STORE_CATEGORIES = [
+  { value: CATEGORY_IDS.AUTOMOTIVE, label: 'Automotive' },
+  { value: CATEGORY_IDS.PROPERTY, label: 'Real Estate' },
+  { value: CATEGORY_IDS.OTHER, label: 'Marketplace' },
+];
 
 export default function EditStorePage() {
   const navigate = useNavigate();
@@ -41,11 +48,6 @@ export default function EditStorePage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
-
-  const { data: categories = [] } = useQuery({
-    queryKey: queryKeys.categories.flat(),
-    queryFn: () => CategoryService.getFlat().then((r) => r.data),
-  });
 
   // Set initial previews from store data
   useEffect(() => {
@@ -344,7 +346,7 @@ export default function EditStorePage() {
           <Select
             label="Category"
             placeholder="Select category"
-            options={categories.map((c) => ({ value: c.id, label: c.name }))}
+            options={STORE_CATEGORIES}
             error={errors.category_id?.message}
             {...register('category_id')}
           />

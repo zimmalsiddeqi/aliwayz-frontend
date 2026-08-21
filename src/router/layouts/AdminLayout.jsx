@@ -21,6 +21,7 @@ import {
   Moon,
   Sun,
   MessageSquare,
+  ShieldCheck,
 } from 'lucide-react';
 import useAuthStore from '@store/auth.store';
 import useUIStore from '@store/ui.store';
@@ -52,6 +53,12 @@ const NAV_SECTIONS = [
   {
     title: 'Moderation',
     items: [
+      {
+        to:    '/admin/verifications',
+        icon:  ShieldCheck,
+        label: 'Verifications',
+        badge: true,
+      },
       {
         to:    '/admin/reports',
         icon:  Flag,

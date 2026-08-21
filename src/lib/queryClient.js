@@ -126,6 +126,11 @@ export const queryKeys = {
     progress: ()       => ['badges', 'progress'],
   },
 
+  // Verification
+  verification: {
+    status: () => ['verification', 'status'],
+  },
+
   // Admin
   admin: {
     dashboard: () => ['admin', 'dashboard'],
@@ -134,5 +139,6 @@ export const queryKeys = {
     products:  (filters) => ['admin', 'products', filters],
     reports:   (filters) => ['admin', 'reports', filters],
     logs:      (filters) => ['admin', 'logs', filters],
+    verifications: (filters) => ['admin', 'verifications', filters],
   },
 };

@@ -120,7 +120,7 @@ export default function SearchPage() {
           <EmptyState
             icon="🔎"
             title="Search for anything"
-            description="Find vehicles, real estate, and everyday essentials on Aliwayz"
+            description="Find automotive, real estate, and marketplace items on Aliwayz"
           />
         )}
       </div>

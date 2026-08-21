@@ -70,8 +70,8 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   const QUICK_LINKS = [
-    { label: 'Everyday Essentials', to: '/essentials' },
-    { label: 'Vehicles', to: '/vehicles' },
+    { label: 'Marketplace', to: '/essentials' },
+    { label: 'Automotive', to: '/vehicles' },
     { label: 'Real Estate', to: '/real-estate' },
     { label: 'All Listings', to: '/marketplace' },
   ];

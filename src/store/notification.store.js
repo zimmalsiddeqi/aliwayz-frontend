@@ -2,71 +2,67 @@ import { create } from 'zustand';
 
 const useNotificationStore = create((set, get) => ({
   notifications: [],
-  unreadCount:   0,
+  unreadCount: 0,
 
   setNotifications: (notifications, unreadCount) => {
+    const list = Array.isArray(notifications) ? notifications : [];
     set({
-      notifications,
+      notifications: list,
       unreadCount:
         unreadCount !== undefined
           ? unreadCount
-          : notifications.filter((n) => !n.is_read)
-              .length,
+          : list.filter((n) => !n.is_read).length,
     });
   },
 
   addNotification: (notification) => {
-    set((state) => ({
-      notifications: [
-        notification,
-        ...state.notifications,
-      ],
-      unreadCount:
-        state.unreadCount +
-        (notification.is_read ? 0 : 1),
-    }));
+    if (!notification) return;
+    set((state) => {
+      const list = Array.isArray(state.notifications) ? state.notifications : [];
+      return {
+        notifications: [notification, ...list],
+        unreadCount: (state.unreadCount || 0) + (notification.is_read ? 0 : 1),
+      };
+    });
   },
 
   markAsRead: (notificationId) => {
     set((state) => {
-      const notifications =
-        state.notifications.map((n) =>
-          n.id === notificationId
-            ? {
-                ...n,
-                is_read: true,
-                read_at:
-                  new Date().toISOString(),
-              }
-            : n
-        );
+      const list = Array.isArray(state.notifications) ? state.notifications : [];
+      const notifications = list.map((n) =>
+        n.id === notificationId
+          ? {
+              ...n,
+              is_read: true,
+              read_at: new Date().toISOString(),
+            }
+          : n
+      );
       return {
         notifications,
-        unreadCount: notifications.filter(
-          (n) => !n.is_read
-        ).length,
+        unreadCount: notifications.filter((n) => !n.is_read).length,
       };
     });
   },
 
   markAllAsRead: () => {
-    set((state) => ({
-      notifications: state.notifications.map(
-        (n) => ({
-          ...n,
-          is_read: true,
-          read_at: new Date().toISOString(),
-        })
-      ),
-      unreadCount: 0,
-    }));
+    set((state) => {
+      const list = Array.isArray(state.notifications) ? state.notifications : [];
+      const notifications = list.map((n) => ({
+        ...n,
+        is_read: true,
+        read_at: new Date().toISOString(),
+      }));
+      return {
+        notifications,
+        unreadCount: 0,
+      };
+    });
   },
 
-  setUnreadCount: (count) =>
-    set({ unreadCount: count }),
+  setUnreadCount: (count) => set({ unreadCount: count || 0 }),
 
-  reset: () =>
-    set({ notifications: [], unreadCount: 0 }),
+  reset: () => set({ notifications: [], unreadCount: 0 }),
 }));
 
 export default useNotificationStore;

@@ -6,7 +6,7 @@ import {
   Users, Package, Store, ShoppingBag,
   Flag, UserCheck, TrendingUp, Shield,
   ChevronRight, AlertTriangle, Eye,
-  DollarSign, Clock, Activity,
+  DollarSign, Clock, Activity, ShieldCheck,
 } from 'lucide-react';
 import AdminService from '@api/services/admin.service';
 import { queryKeys } from '@lib/queryClient';
@@ -47,6 +47,12 @@ export default function AdminDashboardPage() {
     queryFn:  () => AdminService.getReports({ status: 'pending', page: 1, limit: 5 }),
   });
 
+  // Pending verifications
+  const { data: verificationsData } = useQuery({
+    queryKey: queryKeys.admin.verifications({ page: 1, limit: 1 }),
+    queryFn:  () => AdminService.getVerifications({ page: 1, limit: 1 }),
+  });
+
   // Recent users
   const { data: usersData } = useQuery({
     queryKey: queryKeys.admin.users({ page: 1, limit: 5 }),
@@ -56,6 +62,7 @@ export default function AdminDashboardPage() {
   const logs    = logsData?.data || [];
   const reports = reportsData?.data || [];
   const users   = usersData?.data || [];
+  const pendingVerificationsCount = verificationsData?.pagination?.total || verificationsData?.data?.length || 0;
 
   if (isLoading) {
     return (
@@ -101,6 +108,14 @@ export default function AdminDashboardPage() {
   ];
 
   const secondaryStats = [
+    {
+      label: 'Seller Verifications',
+      value: pendingVerificationsCount,
+      icon:  ShieldCheck,
+      color: '#10B981',
+      to:    '/admin/verifications',
+      urgent: pendingVerificationsCount > 0,
+    },
     {
       label: 'Pending Reports',
       value: stats?.pending_reports || 0,

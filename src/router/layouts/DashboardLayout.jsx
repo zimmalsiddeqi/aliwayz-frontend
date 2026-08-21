@@ -11,6 +11,7 @@ import {
   X,
   ChevronRight,
   AlertCircle,
+  ShieldCheck,
 } from 'lucide-react';
 import Navbar from '@components/common/Navbar';
 import LoadingScreen from '@components/common/LoadingScreen';
@@ -22,6 +23,7 @@ const sellerLinks = [
   { to: '/sell/my-listings', icon: Package, label: 'My Listings' },
   { to: '/sell/create', icon: PlusCircle, label: 'New Listing' },
   { to: '/my-store/analytics', icon: BarChart3, label: 'Analytics' },
+  { to: '/my-store/verification', icon: ShieldCheck, label: 'Verification' },
   { to: '/my-store/edit', icon: Settings, label: 'Seller Settings' },
 ];
 
@@ -172,7 +174,7 @@ function SellerSidebar({ store, hasStore, onNavigate }) {
         </p>
 
         {sellerLinks.map(({ to, icon: Icon, label }) => {
-          const isDisabled = !hasStore && to !== '/store/create';
+          const isDisabled = !hasStore && to !== '/store/create' && to !== '/my-store/verification';
 
           return (
             <NavLink

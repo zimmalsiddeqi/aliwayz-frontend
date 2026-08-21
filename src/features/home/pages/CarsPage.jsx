@@ -125,7 +125,7 @@ export default function CarsPage() {
   return (
     <>
       <Helmet>
-        <title>Vehicles — Aliwayz</title>
+        <title>Automotive — Aliwayz</title>
       </Helmet>
       <div className="pb-24 md:pb-10">
         <div
@@ -156,9 +156,9 @@ export default function CarsPage() {
             </Link>
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
               <div>
-                <h1 className="mb-1 text-3xl font-bold text-white sm:text-4xl">🚗 Vehicles</h1>
+                <h1 className="mb-1 text-3xl font-bold text-white sm:text-4xl">🚗 Automotive</h1>
                 <p className="text-sm text-white/70">
-                  {total} vehicle{total !== 1 ? 's' : ''} listed
+                  {total} listing{total !== 1 ? 's' : ''} listed
                 </p>
               </div>
               {canSell && (
@@ -168,7 +168,7 @@ export default function CarsPage() {
                     leftIcon={<PlusCircle size={16} />}
                     className="!border-white/30 !bg-white/20 !text-white backdrop-blur-md hover:!bg-white/30"
                   >
-                    Sell Your Vehicle
+                    Sell Automotive
                   </Button>
                 </Link>
               )}
@@ -254,7 +254,7 @@ export default function CarsPage() {
 
         <div className="container-app py-2">
           {carSubcategories.length > 0 && (
-            <div className="-mx-4 sm:mx-0 mb-4 flex items-center justify-start gap-1.5 sm:gap-2 px-4 sm:px-0 flex-nowrap w-full overflow-hidden pb-1 sm:pb-0">
+            <div className="-mx-4 sm:mx-0 mb-4 flex items-center justify-start gap-1.5 sm:gap-2 px-4 sm:px-0 overflow-x-auto pb-2 flex-nowrap w-full scrollbar-none">
               <button
                 onClick={() => setSelectedSubCat('')}
                 className="flex flex-shrink-0 items-center gap-1 sm:gap-1.5 whitespace-nowrap rounded-xl px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium transition-all"
@@ -264,16 +264,13 @@ export default function CarsPage() {
                   border: `1px solid ${!selectedSubCat ? '#2563EB' : 'var(--color-border)'}`,
                 }}
               >
-                <span className="text-[12px] sm:text-sm">🌟</span> All Vehicles
+                <span className="text-[12px] sm:text-sm">🌟</span> All Automotive
               </button>
-              {carSubcategories.slice(0, 5).map((sub, index) => (
+              {carSubcategories.map((sub) => (
                 <button
                   key={sub.id}
                   onClick={() => setSelectedSubCat(selectedSubCat === sub.id ? '' : sub.id)}
-                  className={cn(
-                    "flex-shrink-0 items-center gap-1 sm:gap-1.5 whitespace-nowrap rounded-xl px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium transition-all",
-                    index > 1 ? "hidden sm:flex" : "flex"
-                  )}
+                  className="flex flex-shrink-0 items-center gap-1 sm:gap-1.5 whitespace-nowrap rounded-xl px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium transition-all"
                   style={{
                     backgroundColor: selectedSubCat === sub.id ? '#2563EB' : 'var(--color-surface)',
                     color: selectedSubCat === sub.id ? 'white' : 'var(--color-text-secondary)',
@@ -301,7 +298,7 @@ export default function CarsPage() {
             <p className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>
               {isLoading
                 ? 'Loading...'
-                : `${filteredProducts.length} vehicle${filteredProducts.length !== 1 ? 's' : ''}`}
+                : `${filteredProducts.length} listing${filteredProducts.length !== 1 ? 's' : ''}`}
             </p>
             {isLocated && radiusMiles !== 9999 && (
               <p className="mt-0.5 text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
@@ -375,10 +372,10 @@ export default function CarsPage() {
             <EmptyState
               icon="🚗"
               title={
-                searchQuery ? `No vehicles matching "${searchQuery}"` : 'No vehicles listed yet'
+                searchQuery ? `No listings matching "${searchQuery}"` : 'No automotive listings yet'
               }
-              description={canSell ? 'Be the first to list your vehicle!' : 'Check back later.'}
-              actionLabel={canSell ? 'Sell Your Vehicle' : undefined}
+              description={canSell ? 'Be the first to list yours!' : 'Check back later.'}
+              actionLabel={canSell ? 'Sell Automotive' : undefined}
               actionTo={canSell ? '/sell/create?category=vehicles' : undefined}
             />
           ) : (
@@ -396,7 +393,7 @@ export default function CarsPage() {
                     onClick={() => fetchNextPage()}
                     leftIcon={<ChevronDown size={16} />}
                   >
-                    Load More Vehicles
+                    Load More Listings
                   </Button>
                 </div>
               )}

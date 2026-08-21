@@ -165,6 +165,11 @@ export const API = {
     EVALUATE: (userId) => `/badges/evaluate/${userId}`,
   },
 
+  VERIFICATION: {
+    STATUS: '/verification/status',
+    SUBMIT: '/verification/submit',
+  },
+
   // ── Admin ─────────────────────────────────────────────────────
   ADMIN: {
     DASHBOARD: '/admin/dashboard',
@@ -181,5 +186,7 @@ export const API = {
     RESOLVE_REPORT: (id) => `/reports/${id}`,
     BROADCAST: '/admin/notifications/push',
     LOGS: '/admin/logs',
+    VERIFICATIONS: '/admin/verifications',
+    REVIEW_VERIFICATION: (id) => `/admin/verifications/${id}`,
   },
 };

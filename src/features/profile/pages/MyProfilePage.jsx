@@ -22,6 +22,7 @@ import Button from '@components/ui/Button';
 import { Card } from '@components/ui/Card';
 import Spinner from '@components/ui/Spinner';
 import PageHeader from '@components/common/PageHeader';
+import SellerVerifiedBadge from '@components/common/SellerVerifiedBadge';
 import {
   cn,
   isSeller,
@@ -158,7 +159,7 @@ export default function MyProfilePage() {
 
               {/* Name */}
               <h1
-                className="text-xl sm:text-2xl font-bold"
+                className="text-xl sm:text-2xl font-bold flex items-center gap-2"
                 style={{
                   color:
                     'var(--color-text-primary)',
@@ -166,6 +167,9 @@ export default function MyProfilePage() {
               >
                 {profile?.full_name ||
                   profile?.username}
+                {profile?.seller_verification_status === 'identity_verified' && (
+                  <SellerVerifiedBadge />
+                )}
               </h1>
               <p
                 className="text-sm"

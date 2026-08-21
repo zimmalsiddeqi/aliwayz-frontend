@@ -43,6 +43,12 @@ const AdminService = {
 
   getLogs: (params) =>
     api.get(API.ADMIN.LOGS, { params }).then((r) => r.data),
+
+  getVerifications: (params) =>
+    api.get(API.ADMIN.VERIFICATIONS, { params }).then((r) => r.data),
+
+  reviewVerification: (id, data) =>
+    api.put(API.ADMIN.REVIEW_VERIFICATION(id), data).then((r) => r.data),
 };
 
 export default AdminService;

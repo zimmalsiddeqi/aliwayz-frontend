@@ -140,11 +140,11 @@ function NoShopPrompt({ category, isCreating, onQuickStart, onCreateShop, onBack
       case 'vehicles':
         return {
           emoji: '🚗',
-          title: 'Ready to sell your vehicle?',
-          quickLabel: 'List My Vehicle Now',
-          quickDesc: 'Post your vehicle listing right away — no shop needed',
+          title: 'Ready to sell automotive?',
+          quickLabel: 'List Now',
+          quickDesc: 'Post your automotive listing right away — no shop needed',
           shopLabel: 'Set Up a Dealership Profile',
-          shopDesc: 'Create a dealer profile for multiple vehicle listings',
+          shopDesc: 'Create a dealer profile for multiple automotive listings',
         };
       case 'real-estate':
         return {
@@ -342,7 +342,7 @@ function CategorySelector({ onSelect }) {
   const SELL_CATEGORIES = [
     {
       id: MAIN_CATEGORIES.ESSENTIALS,
-      name: 'Item',
+      label: 'Sell an Item',
       emoji: '🛒',
       desc: 'Electronics, fashion, home goods & more',
       gradient: 'linear-gradient(135deg, #4C1D95 0%, #7C3AED 100%)',
@@ -350,7 +350,7 @@ function CategorySelector({ onSelect }) {
     },
     {
       id: MAIN_CATEGORIES.VEHICLES,
-      name: 'Vehicle',
+      label: 'Sell Automotive',
       emoji: '🚗',
       desc: 'Cars, trucks, motorcycles & powersports',
       gradient: 'linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)',
@@ -358,7 +358,7 @@ function CategorySelector({ onSelect }) {
     },
     {
       id: MAIN_CATEGORIES.REAL_ESTATE,
-      name: 'Real Estate',
+      label: 'Sell Real Estate',
       emoji: '🏠',
       desc: 'Homes, apartments, land & commercial',
       gradient: 'linear-gradient(135deg, #065F46 0%, #10B981 100%)',
@@ -419,7 +419,7 @@ function CategorySelector({ onSelect }) {
                   color: 'var(--color-text-primary)',
                 }}
               >
-                Sell a {cat.name}
+                {cat.label}
               </h3>
               <p
                 className="mt-0.5 text-xs"

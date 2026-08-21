@@ -111,7 +111,7 @@ const FAQ_SECTIONS = [
     faqs: [
       {
         q: 'How do I sell my car on Aliwayz?',
-        a: 'Click "Sell," choose "Vehicle," then fill in the details including make, model, year, mileage, transmission, and condition. Add photos of the exterior, interior, engine, and dashboard for the best results.',
+        a: 'Click "Sell," choose "Automotive," then fill in the details including make, model, year, mileage, transmission, and condition. Add photos of the exterior, interior, engine, and dashboard for the best results.',
       },
       {
         q: 'What information should I include in my car listing?',

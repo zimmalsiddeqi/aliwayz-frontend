@@ -1,11 +1,13 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { ImagePlus, X } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import ProductService from '@api/services/product.service';
 import CategoryService from '@api/services/category.service';
+import CategorySelector from './CategorySelector';
+import LocationOptionSelector from './LocationOptionSelector';
 import { queryKeys } from '@lib/queryClient';
 import Input from '@components/ui/Input';
 import Textarea from '@components/ui/Textarea';
@@ -14,7 +16,7 @@ import Button from '@components/ui/Button';
 import PageHeader from '@components/common/PageHeader';
 import { getErrorMessage } from '@lib/utils';
 import useLocationStore from '@store/location.store';
-import { validateImageFile, createFilePreview, revokeFilePreview } from '@utils/helpers';
+import { validateImageFile, createFilePreview, revokeFilePreview, getProductListingLocation } from '@utils/helpers';
 import {
   REAL_ESTATE_TYPES,
   REAL_ESTATE_PURPOSE,
@@ -31,27 +33,16 @@ import {
 import toast from '@lib/toast';
 
 export default function PropertyListingForm({ store }) {
-  const { lat: userLat, lng: userLng } = useLocationStore();
+  const { lat: userLat, lng: userLng, city: userCity, state: userState } = useLocationStore();
   const navigate = useNavigate();
   const [images, setImages] = useState([]);
   const [selectedFeatures, setSelectedFeatures] = useState([]);
-
-  const { data: allCategories = [] } = useQuery({
-    queryKey: queryKeys.categories.flat(),
-    queryFn: () => CategoryService.getFlat().then((r) => r.data),
-    staleTime: 60 * 60 * 1000,
-  });
-
-  const realEstateCategories = allCategories.filter((c) => {
-    if (c.id === CATEGORY_IDS.PROPERTY) return true;
-    if (c.parent_id === CATEGORY_IDS.PROPERTY) return true;
-    return false;
-  });
 
   const {
     register,
     handleSubmit,
     watch,
+    control,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -76,6 +67,7 @@ export default function PropertyListingForm({ store }) {
       zip_code: '',
       price: '',
       description: '',
+      location_type: store?.description === 'Personal listings' ? 'approximate' : (store?.location_city ? 'store' : 'approximate'),
       property_category: CATEGORY_IDS.PROPERTY,
     },
   });
@@ -156,7 +148,20 @@ export default function PropertyListingForm({ store }) {
         .filter(Boolean)
         .join('\n');
 
-      const locationParts = [formData.city, formData.state].filter(Boolean).join(', ');
+      const locType = formData.location_type || (store?.description === 'Personal listings' ? 'approximate' : (store?.location_city ? 'store' : 'approximate'));
+      let finalLat = userLat;
+      let finalLng = userLng;
+      let finalCity = [userCity, userState].filter(Boolean).join(', ') || '';
+
+      if (locType === 'approximate') {
+        const approx = getProductListingLocation({ store: { description: 'Personal listings' }, userLat, userLng });
+        finalLat = approx.lat;
+        finalLng = approx.lng;
+      } else if (locType === 'store') {
+        finalLat = store?.location_lat || userLat;
+        finalLng = store?.location_lng || userLng;
+        finalCity = store?.location_city || '';
+      }
 
       const productData = {
         title,
@@ -164,9 +169,9 @@ export default function PropertyListingForm({ store }) {
         price: Number(formData.price),
         condition: 'good',
         category_id: formData.property_category || CATEGORY_IDS.PROPERTY,
-        location_city: locationParts || formData.city,
-        location_lat: userLat || undefined,
-        location_lng: userLng || undefined,
+        location_city: finalCity,
+        location_lat: finalLat || undefined,
+        location_lng: finalLng || undefined,
         quantity: 1,
         status: 'available',
         currency: 'USD',
@@ -194,7 +199,7 @@ export default function PropertyListingForm({ store }) {
 
   return (
     <div>
-      <PageHeader title="List Real Estate" subtitle="Homes, apartments & commercial" />
+      <PageHeader title="Sell Real Estate" subtitle="Homes, apartments & commercial" />
 
       <form onSubmit={handleSubmit((d) => createMutation.mutate(d))} className="space-y-6">
         {/* Photos */}
@@ -249,12 +254,18 @@ export default function PropertyListingForm({ store }) {
             🏠 Property Details
           </h3>
 
-          <Select
-            label="Property Category *"
-            placeholder="Select category"
-            options={realEstateCategories.map((c) => ({ value: c.id, label: c.name }))}
-            error={errors.property_category?.message}
-            {...register('property_category', { required: 'Select a category' })}
+          <Controller
+            name="property_category"
+            control={control}
+            rules={{ required: 'Select a category' }}
+            render={({ field }) => (
+              <CategorySelector
+                value={field.value}
+                onChange={field.onChange}
+                rootCategoryId={CATEGORY_IDS.REAL_ESTATE}
+                error={errors.property_category?.message}
+              />
+            )}
           />
 
           <div className="grid grid-cols-2 gap-3">
@@ -402,17 +413,17 @@ export default function PropertyListingForm({ store }) {
             error={errors.price?.message}
             {...register('price', { required: 'Required' })}
           />
-          <Input label="Street Address" placeholder="123 Main Street" {...register('address')} />
-          <div className="grid grid-cols-3 gap-3">
-            <Input
-              label="City *"
-              placeholder="Austin"
-              error={errors.city?.message}
-              {...register('city', { required: 'Required' })}
-            />
-            <Input label="State" placeholder="TX" {...register('state')} />
-            <Input label="ZIP Code" placeholder="73301" {...register('zip_code')} />
-          </div>
+          <Controller
+            name="location_type"
+            control={control}
+            render={({ field }) => (
+              <LocationOptionSelector
+                value={field.value}
+                onChange={field.onChange}
+                store={store}
+              />
+            )}
+          />
         </div>
 
         <Textarea

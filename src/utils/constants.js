@@ -31,10 +31,10 @@ export const PRODUCT_STATUS = {
 
 // ── ITEM Conditions ─────────────────────────────────────────
 export const ITEM_CONDITIONS = [
-  { value: 'new',       label: 'Brand New (Unopened / In Box)' },
-  { value: 'like_new',  label: 'Like New (Lightly Used)' },
-  { value: 'good',      label: 'Good (Fully Functional)' },
-  { value: 'fair',      label: 'Fair (Visible Wear)' },
+  { value: 'new',       label: 'Brand New' },
+  { value: 'like_new',  label: 'Like New' },
+  { value: 'good',      label: 'Good' },
+  { value: 'fair',      label: 'Fair' },
   { value: 'poor',      label: 'For Parts / Not Working' },
 ];
 
@@ -144,7 +144,7 @@ export const MAIN_CATEGORIES = {
 export const MAIN_CATEGORY_CONFIG = [
   {
     id:          MAIN_CATEGORIES.ESSENTIALS,
-    name:        'Everyday Essentials',
+    name:        'Marketplace',
     emoji:       '🛒',
     gradient:    'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)',
     description: 'Electronics, fashion, home goods & everything else',
@@ -152,7 +152,7 @@ export const MAIN_CATEGORY_CONFIG = [
   },
   {
     id:          MAIN_CATEGORIES.VEHICLES,
-    name:        'Vehicles',
+    name:        'Automotive',
     emoji:       '🚗',
     gradient:    'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)',
     description: 'Cars, trucks, motorcycles & powersports',
@@ -365,71 +365,62 @@ export const BATHROOM_OPTIONS = [
 // ═══════════════════════════════════════════════════════════════
 
 export const CATEGORY_IDS = {
-  // Main categories
-  AUTOMOTIVE: 'b97e0e52-0c29-431d-85c7-2ccddc9ebb42',
-  PROPERTY:   'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-
-  // Automotive children
-  AUTOMOTIVE_PARTS:  '00990569-026a-44ac-815a-158390296c8e',
-  MOTORCYCLE_PARTS:  '33de6166-82a6-4f98-885a-8d3fe5ffb35a',
-
-  // Daily Use — all IDs
-  ELECTRONICS:      '61ad497c-fca7-4614-8c44-5bbad8396048',
-  PHONES:           'c10bf79f-cba5-449a-841e-cbc127f20462',
-  LAPTOPS:          '33aa09bd-032f-47c6-bae4-5dedb7118d6c',
-  GAMING:           '5fff04c6-4486-4c0c-b0d9-a3aa587ebf82',
-  FASHION:          '367c3135-ea38-4fbf-a661-0253052b3aa4',
-  SHOES:            'bdd0dbff-395b-4808-9693-69edbf2cd2ab',
-  BAGS:             '348d03b9-486f-4f73-b499-d425c801136b',
-  JEWELRY:          '2104847e-6e78-4e20-bcbc-313605f1db37',
-  BEAUTY:           'aae77266-a512-4134-97a4-ecd1ca15bd05',
-  HOME:             '5f1bb35e-c0d0-4516-9661-1127161f67b1',
-  KITCHEN:          '106ea184-65b2-44c0-873d-bbe2515098a6',
-  FURNITURE:        '8942d610-73f1-4bd6-84e9-df2cfc0a1b79',
-  APPLIANCES:       '0c2e41ec-ab1b-484c-b273-4d82c850cdb1',
-  SPORTS:           '7cc3f036-78d0-4036-b61c-bb96395ec5ca',
-  FITNESS:          'f2965630-9869-439f-bc08-f0a81269cb0a',
-  BOOKS:            '6a110d8a-f8bd-44bd-ae7d-4c261c0b62dc',
-  TOYS:             'e9bcb859-7ae0-4cf2-b6dc-e0c6faab8e72',
-  BABY:             'a810198e-7356-418d-bc31-e4235a22e717',
-  PETS:             '50c4a132-5253-48e6-81b8-7cc1e2a5ba9b',
-  GARDEN:           '1f73b2eb-2a98-49d8-bcf1-33809ba2894c',
-  TOOLS:            '7071e708-507b-490e-b430-17b14f316f92',
-  OFFICE:           '96432295-f4b5-425a-8ffb-3c48dd650a5f',
-  MUSIC:            '060c8858-fa3e-47c3-882c-89d22dc39ac9',
-  COLLECTIBLES:     'eb392584-1d02-42f3-bd00-39059460144a',
-  PHOTOGRAPHY:      'e43122be-dbdf-4cfd-98ca-741e8ce720df',
-  DRONES:           '6642d96e-3120-4461-a476-97bb764613fe',
-  ART:              'a07be76a-4c1d-4f80-a616-85530e6b47d9',
-  HANDMADE:         '540cfd93-ba81-4f0e-a53f-22ec6ab00cb9',
-  DIGITAL_PRODUCTS: '5dd7db21-c0a7-44c3-b033-2cc2880f2675',
-  OTHER:            '84bcf437-ce26-4d0d-9d23-e434db31893d',
+  // New Main categories
+  ELECTRONICS:              '287694ab-257a-553d-adbc-a75df1715d7d',
+  VEHICLES:                 'eb4a3db3-bde6-55f3-b018-5533831eed3e',
+  AUTOMOTIVE:               'eb4a3db3-bde6-55f3-b018-5533831eed3e', // Alias for Vehicles
+  AUTO_PARTS_ACCESSORIES:   '9d4d190c-3f8d-539f-9c11-5754fa54a6d0',
+  HOME_FURNITURE:           'a8c368d7-585d-50c6-980b-7421018c4d3d',
+  FASHION:                  '5306363d-6580-5c73-ba72-4e64b31088f0',
+  SHOES:                    'd2c45247-5679-5de4-9a71-8c88d364bf42',
+  JEWELRY_WATCHES:          '4698c01b-e055-591a-a325-f0e4142df7b5',
+  BEAUTY_PERSONAL_CARE:     '789f749b-ab2e-53d0-a913-aa4d572b77d7',
+  BABY_KIDS:                'a1a5a10a-5c35-5d9b-b193-ab7f6b007683',
+  TOYS_GAMES:               '42132243-e6bb-5f03-b0c0-7e40bec480e6',
+  SPORTS_OUTDOORS:          'c1bc1b6e-fa80-55e6-87f1-293d2004ca8b',
+  COLLECTIBLES_MEMORABILIA: 'ecc38186-251f-5139-b5e7-21ddbb01f980',
+  BOOKS_MOVIES_MUSIC:       '3168c560-910f-5140-bfeb-cb6fefb22122',
+  HOBBIES_CRAFTS:           '94c3f3a1-fb11-5f7d-b08f-fd10c975a8eb',
+  MUSICAL_INSTRUMENTS:      '25fef732-bb26-539b-af6d-0c174872ba1d',
+  PET_SUPPLIES:             'e7633c00-d1d6-5ef1-9bf5-cf51b978234a',
+  TOOLS_EQUIPMENT:          '6658eeed-8ef5-597e-a241-99415dfb0377',
+  APPLIANCES:               '7a0a1bde-076c-552e-a879-14f099379be3',
+  GARDEN_OUTDOOR:           'b02e7a5a-ffd5-5193-b9ab-55b59ff16d97',
+  COMPUTERS_OFFICE:         'fb4d57ce-b69c-5bf7-a426-b161d11cc2fd',
+  HANDMADE:                 '20443dfd-5668-5ed0-95cf-fca7f51c539b',
+  ANTIQUES_VINTAGE:         '8a446257-f0f0-5da2-b3b6-cdc666c0012b',
+  BUSINESS_COMMERCIAL:      '6046a237-9184-5533-a51f-ff690d9adf2b',
+  REAL_ESTATE:              '74a77684-6cca-52dd-acbd-05d08d9ffa67',
+  PROPERTY:                 '74a77684-6cca-52dd-acbd-05d08d9ffa67', // Alias for Real Estate
+  FREE_GIVEAWAY:            'f8e19fbc-6ab0-5d96-8dcb-7683128bce35',
+  OTHER:                    'd0db777f-e58b-5ff4-84ba-af70aae4a2e4',
 };
 
 // Which category IDs belong to DAILY USE
 export const DAILY_USE_CATEGORY_IDS = [
-  'b97e0e52-0c29-431d-85c7-2ccddc9ebb42', // Keep automotive OUT (cars)
-  'a1b2c3d4-e5f6-7890-abcd-ef1234567890', // Keep property OUT
-].includes.length === 0 ? [] : [
-  '61ad497c-fca7-4614-8c44-5bbad8396048', // Electronics
-  '367c3135-ea38-4fbf-a661-0253052b3aa4', // Fashion
-  '5f1bb35e-c0d0-4516-9661-1127161f67b1', // Home
-  '7cc3f036-78d0-4036-b61c-bb96395ec5ca', // Sports
-  '6a110d8a-f8bd-44bd-ae7d-4c261c0b62dc', // Books
-  'e9bcb859-7ae0-4cf2-b6dc-e0c6faab8e72', // Toys
-  'a810198e-7356-418d-bc31-e4235a22e717', // Baby
-  '50c4a132-5253-48e6-81b8-7cc1e2a5ba9b', // Pets
-  '1f73b2eb-2a98-49d8-bcf1-33809ba2894c', // Garden
-  '7071e708-507b-490e-b430-17b14f316f92', // Tools
-  '96432295-f4b5-425a-8ffb-3c48dd650a5f', // Office
-  '060c8858-fa3e-47c3-882c-89d22dc39ac9', // Music
-  'eb392584-1d02-42f3-bd00-39059460144a', // Collectibles
-  'e43122be-dbdf-4cfd-98ca-741e8ce720df', // Photography
-  '6642d96e-3120-4461-a476-97bb764613fe', // Drones
-  'a07be76a-4c1d-4f80-a616-85530e6b47d9', // Art
-  '540cfd93-ba81-4f0e-a53f-22ec6ab00cb9', // Handmade
-  '5dd7db21-c0a7-44c3-b033-2cc2880f2675', // Digital Products
-  '84bcf437-ce26-4d0d-9d23-e434db31893d', // Other
+  '287694ab-257a-553d-adbc-a75df1715d7d', // Electronics
+  '9d4d190c-3f8d-539f-9c11-5754fa54a6d0', // Auto Parts & Accessories
+  'a8c368d7-585d-50c6-980b-7421018c4d3d', // Home & Furniture
+  '5306363d-6580-5c73-ba72-4e64b31088f0', // Fashion
+  'd2c45247-5679-5de4-9a71-8c88d364bf42', // Shoes
+  '4698c01b-e055-591a-a325-f0e4142df7b5', // Jewelry & Watches
+  '789f749b-ab2e-53d0-a913-aa4d572b77d7', // Beauty & Personal Care
+  'a1a5a10a-5c35-5d9b-b193-ab7f6b007683', // Baby & Kids
+  '42132243-e6bb-5f03-b0c0-7e40bec480e6', // Toys & Games
+  'c1bc1b6e-fa80-55e6-87f1-293d2004ca8b', // Sports & Outdoors
+  'ecc38186-251f-5139-b5e7-21ddbb01f980', // Collectibles & Memorabilia
+  '3168c560-910f-5140-bfeb-cb6fefb22122', // Books, Movies & Music
+  '94c3f3a1-fb11-5f7d-b08f-fd10c975a8eb', // Hobbies & Crafts
+  '25fef732-bb26-539b-af6d-0c174872ba1d', // Musical Instruments
+  'e7633c00-d1d6-5ef1-9bf5-cf51b978234a', // Pet Supplies
+  '6658eeed-8ef5-597e-a241-99415dfb0377', // Tools & Equipment
+  '7a0a1bde-076c-552e-a879-14f099379be3', // Appliances
+  'b02e7a5a-ffd5-5193-b9ab-55b59ff16d97', // Garden & Outdoor
+  'fb4d57ce-b69c-5bf7-a426-b161d11cc2fd', // Computers & Office
+  '20443dfd-5668-5ed0-95cf-fca7f51c539b', // Handmade
+  '8a446257-f0f0-5da2-b3b6-cdc666c0012b', // Antiques & Vintage
+  '6046a237-9184-5533-a51f-ff690d9adf2b', // Business & Commercial
+  'd0db777f-e58b-5ff4-84ba-af70aae4a2e4', // Other
 ];
 
 // ═══════════════════════════════════════════════════════════════

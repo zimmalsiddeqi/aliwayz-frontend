@@ -49,12 +49,12 @@ export default function AboutPage() {
         </p>
         <ul className="list-disc pl-5 space-y-2">
           <li>
-            <strong>Everyday Essentials:</strong> Furniture, electronics, tools, clothing, and household goods. 
-            Browse listings on our <Link to="/essentials" className="underline text-[var(--color-brand)]">Essentials</Link> page.
+            <strong>Marketplace:</strong> Furniture, electronics, tools, clothing, and household goods. 
+            Browse listings on our <Link to="/essentials" className="underline text-[var(--color-brand)]">Marketplace</Link> page.
           </li>
           <li>
-            <strong>Vehicles:</strong> Local cars, trucks, motorcycles, and auto accessories. 
-            Browse listings on our <Link to="/vehicles" className="underline text-[var(--color-brand)]">Vehicles</Link> page.
+            <strong>Automotive:</strong> Local cars, trucks, motorcycles, and auto accessories. 
+            Browse listings on our <Link to="/vehicles" className="underline text-[var(--color-brand)]">Automotive</Link> page.
           </li>
           <li>
             <strong>Real Estate:</strong> Properties for sale or rent, apartments, and land. 

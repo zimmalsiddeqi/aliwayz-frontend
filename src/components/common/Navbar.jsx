@@ -21,6 +21,7 @@ import {
   Moon,
   Sun,
   HelpCircle,
+  LayoutGrid,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useAuthStore from '@store/auth.store';
@@ -30,6 +31,7 @@ import useUIStore from '@store/ui.store';
 import Avatar from '@components/ui/Avatar';
 import { cn, isSeller, isBuyer, isAdmin } from '@lib/utils';
 import LocationSelector from './LocationSelector';
+import CategoryDrawer from './CategoryDrawer';
 
 export default function Navbar() {
   const { user, isAuthenticated } = useAuthStore();
@@ -41,6 +43,7 @@ export default function Navbar() {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [categoryDrawerOpen, setCategoryDrawerOpen] = useState(false);
 
   const role = user?.role || 'guest';
   const isDark = theme === 'dark';
@@ -49,6 +52,7 @@ export default function Navbar() {
   useEffect(() => {
     setMenuOpen(false);
     setMobileMenuOpen(false);
+    setCategoryDrawerOpen(false);
   }, [location.pathname]);
 
   // Lock body scroll when mobile menu open
@@ -147,8 +151,8 @@ export default function Navbar() {
       sections.push({
         title: 'Browse',
         items: [
-          { to: '/essentials', icon: Compass, label: '🛒 Everyday Essentials' },
-          { to: '/vehicles', icon: Compass, label: '🚗 Vehicles' },
+          { to: '/essentials', icon: Compass, label: '🛒 Marketplace' },
+          { to: '/vehicles', icon: Compass, label: '🚗 Automotive' },
           { to: '/real-estate', icon: Compass, label: '🏠 Real Estate' },
           { to: '/marketplace', icon: Compass, label: 'All Listings' },
           { to: '/faq', icon: HelpCircle, label: 'FAQ & Help' },
@@ -169,9 +173,25 @@ export default function Navbar() {
     return sections;
   };
 
+  const getDesktopDropdownSections = () => {
+    const sections = getMobileMenuSections();
+    return sections.map(sec => {
+      if (sec.title === 'Browse') {
+        return {
+          ...sec,
+          items: sec.items.filter(item => 
+            !['/essentials', '/vehicles', '/real-estate'].includes(item.to)
+          )
+        };
+      }
+      return sec;
+    });
+  };
+
   const bottomNavItems = getBottomNavItems();
   const desktopNavItems = getDesktopNavItems();
   const menuSections = getMobileMenuSections();
+  const desktopDropdownSections = getDesktopDropdownSections();
 
   return (
     <>
@@ -188,19 +208,17 @@ export default function Navbar() {
         }}
       >
         <div className="container-app flex h-full items-center justify-between gap-2 sm:gap-4">
-          {/* ── Left: Hamburger (mobile) + Logo ───────────── */}
+          {/* ── Left: Categories Menu Icon + Logo ───────────── */}
           <div className="flex items-center gap-2">
-            {/* Mobile hamburger */}
-            {isAuthenticated && (
-              <button
-                onClick={() => setMobileMenuOpen(true)}
-                className="rounded-xl p-2 transition-colors hover:bg-[var(--glass-bg-strong)] sm:hidden"
-                style={{ color: 'var(--color-text-secondary)' }}
-                aria-label="Open menu"
-              >
-                <Menu size={20} />
-              </button>
-            )}
+            {/* Leftmost: Categories menu button (Hamburger Menu Icon) */}
+            <button
+              onClick={() => setCategoryDrawerOpen(true)}
+              className="rounded-xl p-2 transition-colors hover:bg-[var(--glass-bg-strong)]"
+              style={{ color: 'var(--color-text-secondary)' }}
+              aria-label="Browse categories"
+            >
+              <Menu size={20} />
+            </button>
 
             {/* Logo */}
             <Link to="/" className="flex flex-shrink-0 items-center gap-2">
@@ -284,24 +302,14 @@ export default function Navbar() {
 
             {/* Auth buttons or Avatar */}
             {!isAuthenticated ? (
-              <div className="flex items-center gap-1.5">
-                <Link
-                  to="/login"
-                  className="hidden rounded-xl px-3 py-1.5 text-sm font-medium transition-colors hover:bg-[var(--glass-bg-strong)] sm:inline-flex"
-                  style={{ color: 'var(--color-text-secondary)' }}
-                >
-                  Log in
-                </Link>
-                <Link
-                  to="/register"
-                  className="rounded-xl px-3 py-1.5 text-sm font-semibold text-white"
-                  style={{
-                    background: 'linear-gradient(135deg, var(--color-brand), #8B5CF6)',
-                  }}
-                >
-                  Sign up
-                </Link>
-              </div>
+              <Link
+                to="/login"
+                className="rounded-xl p-2 transition-colors hover:bg-[var(--glass-bg-strong)]"
+                style={{ color: 'var(--color-text-secondary)' }}
+                aria-label="Log in"
+              >
+                <User size={18} />
+              </Link>
             ) : (
               /* Desktop avatar dropdown trigger */
               <button
@@ -371,7 +379,7 @@ export default function Navbar() {
 
                 {/* Menu items */}
                 <div className="max-h-[60vh] overflow-y-auto p-2">
-                  {getMobileMenuSections().map((section, sIdx) => (
+                  {desktopDropdownSections.map((section, sIdx) => (
                     <div key={sIdx} className="mb-2">
                       <p
                         className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider"
@@ -672,6 +680,12 @@ export default function Navbar() {
           })}
         </div>
       </nav>
+
+      {/* Categories sliding drawer */}
+      <CategoryDrawer
+        isOpen={categoryDrawerOpen}
+        onClose={() => setCategoryDrawerOpen(false)}
+      />
 
       {/* ── Spacers ────────────────────────────────────────── */}
       {/* Top spacer — prevents content from hiding behind fixed navbar */}

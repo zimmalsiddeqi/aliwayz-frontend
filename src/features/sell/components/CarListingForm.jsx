@@ -1,11 +1,13 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { ImagePlus, X } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import ProductService from '@api/services/product.service';
 import CategoryService from '@api/services/category.service';
+import CategorySelector from './CategorySelector';
+import LocationOptionSelector from './LocationOptionSelector';
 import { queryKeys } from '@lib/queryClient';
 import Input from '@components/ui/Input';
 import Textarea from '@components/ui/Textarea';
@@ -14,7 +16,7 @@ import Button from '@components/ui/Button';
 import PageHeader from '@components/common/PageHeader';
 import { getErrorMessage } from '@lib/utils';
 import useLocationStore from '@store/location.store';
-import { validateImageFile, createFilePreview, revokeFilePreview } from '@utils/helpers';
+import { validateImageFile, createFilePreview, revokeFilePreview, getProductListingLocation } from '@utils/helpers';
 import {
   VEHICLE_MAKES,
   VEHICLE_BODY_TYPES,
@@ -33,25 +35,14 @@ import toast from '@lib/toast';
 
 export default function CarListingForm({ store }) {
   const navigate = useNavigate();
-  const { lat: userLat, lng: userLng } = useLocationStore();
+  const { lat: userLat, lng: userLng, city: userCity, state: userState } = useLocationStore();
   const [images, setImages] = useState([]);
   const [selectedFeatures, setSelectedFeatures] = useState([]);
-
-  const { data: allCategories = [] } = useQuery({
-    queryKey: queryKeys.categories.flat(),
-    queryFn: () => CategoryService.getFlat().then((r) => r.data),
-    staleTime: 60 * 60 * 1000,
-  });
-
-  const vehicleCategories = allCategories.filter((c) => {
-    if (c.id === CATEGORY_IDS.AUTOMOTIVE) return true;
-    if (c.parent_id === CATEGORY_IDS.AUTOMOTIVE) return true;
-    return false;
-  });
 
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -74,6 +65,7 @@ export default function CarListingForm({ store }) {
       price: '',
       description: '',
       location_city: store?.location_city || '',
+      location_type: store?.description === 'Personal listings' ? 'approximate' : (store?.location_city ? 'store' : 'approximate'),
       vehicle_category: CATEGORY_IDS.AUTOMOTIVE,
     },
   });
@@ -143,6 +135,21 @@ export default function CarListingForm({ store }) {
         .filter(Boolean)
         .join('\n');
 
+      const locType = formData.location_type || (store?.description === 'Personal listings' ? 'approximate' : (store?.location_city ? 'store' : 'approximate'));
+      let finalLat = userLat;
+      let finalLng = userLng;
+      let finalCity = [userCity, userState].filter(Boolean).join(', ') || '';
+
+      if (locType === 'approximate') {
+        const approx = getProductListingLocation({ store: { description: 'Personal listings' }, userLat, userLng });
+        finalLat = approx.lat;
+        finalLng = approx.lng;
+      } else if (locType === 'store') {
+        finalLat = store?.location_lat || userLat;
+        finalLng = store?.location_lng || userLng;
+        finalCity = store?.location_city || '';
+      }
+
       const productData = {
         title,
         description: details,
@@ -157,9 +164,9 @@ export default function CarListingForm({ store }) {
         brand: formData.make,
         color: formData.color || undefined,
         quantity: 1,
-        location_city: formData.location_city,
-        location_lat: userLat || undefined,
-        location_lng: userLng || undefined,
+        location_city: finalCity,
+        location_lat: finalLat || undefined,
+        location_lng: finalLng || undefined,
         status: 'available',
         currency: 'USD',
       };
@@ -171,7 +178,7 @@ export default function CarListingForm({ store }) {
         const fd = new FormData();
         images.forEach((img) => fd.append('file', img.file, img.file.name));
         await ProductService.uploadImages(product.id, fd).catch(() =>
-          toast.error('Vehicle listed but some images failed to upload')
+          toast.error('Listed but some images failed to upload')
         );
       }
 
@@ -179,7 +186,7 @@ export default function CarListingForm({ store }) {
     },
     onSuccess: (product) => {
       images.forEach((img) => revokeFilePreview(img.preview));
-      toast.success('Vehicle listed! 🚗');
+      toast.success('Listing published! 🚗');
       navigate(`/product/${product.id}`);
     },
     onError: (err) => toast.error(getErrorMessage(err)),
@@ -187,7 +194,7 @@ export default function CarListingForm({ store }) {
 
   return (
     <div>
-      <PageHeader title="Sell a Vehicle" subtitle="Detailed vehicle listing" />
+      <PageHeader title="Sell Automotive" subtitle="Detailed vehicle listing" />
 
       <form onSubmit={handleSubmit((d) => createMutation.mutate(d))} className="space-y-6">
         {/* Photos */}
@@ -239,21 +246,27 @@ export default function CarListingForm({ store }) {
           </p>
         </div>
 
-        {/* Vehicle Details */}
+        {/* Automotive Details */}
         <div className="glass-card space-y-4 p-5">
           <h3
             className="flex items-center gap-2 text-sm font-semibold"
             style={{ color: 'var(--color-text-primary)' }}
           >
-            🚗 Vehicle Details
+            🚗 Automotive Details
           </h3>
 
-          <Select
-            label="Vehicle Category *"
-            placeholder="Select category"
-            options={vehicleCategories.map((c) => ({ value: c.id, label: c.name }))}
-            error={errors.vehicle_category?.message}
-            {...register('vehicle_category', { required: 'Select a category' })}
+          <Controller
+            name="vehicle_category"
+            control={control}
+            rules={{ required: 'Select a category' }}
+            render={({ field }) => (
+              <CategorySelector
+                value={field.value}
+                onChange={field.onChange}
+                rootCategoryId={CATEGORY_IDS.VEHICLES}
+                error={errors.vehicle_category?.message}
+              />
+            )}
           />
 
           <div className="grid grid-cols-2 gap-3">
@@ -415,10 +428,16 @@ export default function CarListingForm({ store }) {
               {...register('registration_state')}
             />
           </div>
-          <Input
-            label="Your Location"
-            placeholder="Los Angeles, CA"
-            {...register('location_city')}
+          <Controller
+            name="location_type"
+            control={control}
+            render={({ field }) => (
+              <LocationOptionSelector
+                value={field.value}
+                onChange={field.onChange}
+                store={store}
+              />
+            )}
           />
         </div>
 
@@ -435,9 +454,9 @@ export default function CarListingForm({ store }) {
           fullWidth
           size="lg"
           isLoading={createMutation.isPending}
-          loadingText="Listing vehicle..."
+          loadingText="Publishing listing..."
         >
-          Publish Vehicle Listing
+          Publish Automotive Listing
         </Button>
       </form>
     </div>

@@ -1,21 +1,24 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { Store, Camera, X, Loader2 } from 'lucide-react';
+import { Store, Camera, X, Loader2, ShieldCheck, AlertCircle } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { createStoreSchema } from '@lib/validators';
 import StoreService from '@api/services/store.service';
 import CategoryService from '@api/services/category.service';
+import VerificationService from '@api/services/verification.service';
 import { queryKeys } from '@lib/queryClient';
 import Input from '@components/ui/Input';
 import Textarea from '@components/ui/Textarea';
 import Select from '@components/ui/Select';
 import Button from '@components/ui/Button';
+import Modal from '@components/ui/Modal';
 import PageHeader from '@components/common/PageHeader';
+import Spinner from '@components/ui/Spinner';
 import { cn, getErrorMessage } from '@lib/utils';
 import {
   setFormErrors,
@@ -24,6 +27,13 @@ import {
   revokeFilePreview,
 } from '@utils/helpers';
 import toast from '@lib/toast';
+import { CATEGORY_IDS } from '@utils/constants';
+
+const STORE_CATEGORIES = [
+  { value: CATEGORY_IDS.AUTOMOTIVE, label: 'Automotive' },
+  { value: CATEGORY_IDS.PROPERTY, label: 'Real Estate' },
+  { value: CATEGORY_IDS.OTHER, label: 'Marketplace' },
+];
 
 export default function CreateStorePage() {
   const navigate = useNavigate();
@@ -34,15 +44,17 @@ export default function CreateStorePage() {
   const [bannerFile, setBannerFile] = useState(null);
   const [bannerPreview, setBannerPreview] = useState(null);
 
-  const { data: categories = [] } = useQuery({
-    queryKey: queryKeys.categories.flat(),
-    queryFn: () => CategoryService.getFlat().then((r) => r.data),
+  // Check identity verification status
+  const { data: verificationData, isLoading: isLoadingVerification } = useQuery({
+    queryKey: ['verification', 'status'],
+    queryFn: VerificationService.getStatus,
   });
 
   const {
     register,
     handleSubmit,
     setError,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(createStoreSchema),
@@ -56,6 +68,23 @@ export default function CreateStorePage() {
       social_tiktok: '',
     },
   });
+
+  useEffect(() => {
+    const draftStore = verificationData?.data?.latest_submission?.verification_metadata?.draft_store;
+    if (draftStore) {
+      reset({
+        store_name: draftStore.store_name || '',
+        description: draftStore.description || '',
+        category_id: draftStore.category_id || '',
+        location_city: draftStore.location_city || '',
+        social_instagram: draftStore.social_instagram || '',
+        social_facebook: draftStore.social_facebook || '',
+        social_tiktok: draftStore.social_tiktok || '',
+      });
+      if (draftStore.logo_url) setLogoPreview(draftStore.logo_url);
+      if (draftStore.banner_url) setBannerPreview(draftStore.banner_url);
+    }
+  }, [verificationData, reset]);
 
   // ── Logo dropzone ──────────────────────────────────────
   const onLogoDrop = useCallback(
@@ -154,6 +183,46 @@ export default function CreateStorePage() {
       setFormErrors(err, setError);
     },
   });
+
+  if (isLoadingVerification) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  const isVerified = verificationData?.data?.status === 'identity_verified';
+
+  if (!isVerified) {
+    return (
+      <Modal
+        isOpen={true}
+        onClose={() => navigate('/sell/my-listings')}
+        title="Identity Verification Required"
+      >
+        <div className="space-y-4 text-center p-4">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500">
+            <AlertCircle size={28} />
+          </div>
+          <div>
+            <h4 className="text-base font-bold text-theme-primary">Identity Check Required</h4>
+            <p className="text-sm text-theme-secondary mt-1.5 leading-relaxed">
+              Setting up a professional Store requires identity verification. Casual sellers utilizing Quick Listing can sell immediately without checks.
+            </p>
+          </div>
+          <div className="flex flex-col gap-2 pt-2">
+            <Button onClick={() => navigate('/my-store/verification')} fullWidth>
+              Verify Identity Now
+            </Button>
+            <Button variant="ghost" onClick={() => navigate('/sell/my-listings')} fullWidth>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <>
@@ -273,10 +342,7 @@ export default function CreateStorePage() {
               <Select
                 label="Category (optional)"
                 placeholder="Select a category"
-                options={categories.map((c) => ({
-                  value: c.id,
-                  label: c.name,
-                }))}
+                options={STORE_CATEGORIES}
                 error={errors.category_id?.message}
                 {...register('category_id')}
               />
@@ -306,20 +372,24 @@ export default function CreateStorePage() {
                 {...register('social_tiktok')}
               />
 
-              <Button
-                type="submit"
-                fullWidth
-                size="lg"
-                isLoading={mutation.isPending}
-                loadingText="Creating store..."
-              >
-                <p
-                  className="mb-6 text-center text-sm"
-                  style={{ color: 'var(--color-text-secondary)' }}
+              <div className="space-y-3 pt-2">
+                <Button
+                  type="submit"
+                  fullWidth
+                  size="lg"
+                  isLoading={mutation.isPending}
+                  loadingText="Launching Storefront..."
+                  leftIcon={<Store size={18} />}
                 >
-                  Create your seller profile to start listing items. You can update it anytime.
+                  Create Storefront & Start Listing
+                </Button>
+                <p
+                  className="text-center text-xs"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
+                  You can update your store profile, logo, and social links anytime.
                 </p>
-              </Button>
+              </div>
             </form>
           </motion.div>
         </div>

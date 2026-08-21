@@ -122,7 +122,7 @@ export default function StoreProfilePage() {
 
   const reviews = reviewsData?.data || [];
 
-  // ── Admin: Verify store ────────────────────────────────
+  // ── Admin: Verify seller profile ────────────────────────
   const adminVerifyMutation = useMutation({
     mutationFn: () =>
       AdminService.verifyStore(store.id, {
@@ -132,16 +132,16 @@ export default function StoreProfilePage() {
       qc.invalidateQueries({
         queryKey: queryKeys.stores.bySlug(slug),
       });
-      toast.success(store.is_verified ? 'Verification removed' : 'Store verified ✅');
+      toast.success(store.is_verified ? 'Verification removed' : 'Seller profile verified ✅');
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });
 
-  // ── Admin: Delete store ────────────────────────────────
+  // ── Admin: Delete seller profile ────────────────────────
   const adminDeleteMutation = useMutation({
     mutationFn: () => StoreService.delete(store.id),
     onSuccess: () => {
-      toast.success('Store deleted');
+      toast.success('Seller profile deleted');
       navigate('/admin/stores');
     },
     onError: (err) => toast.error(getErrorMessage(err)),
@@ -187,8 +187,8 @@ export default function StoreProfilePage() {
       <div className="container-app py-12">
         <EmptyState
           icon="🏪"
-          title="Store not found"
-          description="This store doesn't exist or has been removed."
+          title="Seller Profile not found"
+          description="This seller profile doesn't exist or has been removed."
           actionLabel="Go Home"
           actionTo="/"
         />
@@ -218,7 +218,7 @@ export default function StoreProfilePage() {
         </div>
 
         <div className="container-app relative z-10 -mt-16 space-y-5">
-          {/* ═══ STORE HEADER ═════════════════════════════ */}
+          {/* ═══ PROFILE HEADER ═════════════════════════════ */}
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-end">
             {/* Store avatar */}
             <div
@@ -241,7 +241,7 @@ export default function StoreProfilePage() {
                 >
                   {store.store_name}
                 </h1>
-                {store.is_verified && <span title="Verified Store">✅</span>}
+                {store.is_verified && <span title="Verified Seller">✅</span>}
               </div>
 
               {store.description && (
@@ -327,7 +327,7 @@ export default function StoreProfilePage() {
                   variant="outline"
                   size="icon"
                   onClick={() => setShowReport(true)}
-                  title="Report store"
+                  title="Report seller"
                   style={{
                     color: 'var(--color-text-muted)',
                   }}
@@ -345,7 +345,7 @@ export default function StoreProfilePage() {
                     size="icon"
                     onClick={() => adminVerifyMutation.mutate()}
                     isLoading={adminVerifyMutation.isPending}
-                    title={store.is_verified ? 'Remove verification' : 'Verify store'}
+                    title={store.is_verified ? 'Remove verification' : 'Verify seller profile'}
                     style={{
                       color: store.is_verified ? 'var(--color-warning)' : 'var(--color-success)',
                     }}
@@ -371,7 +371,7 @@ export default function StoreProfilePage() {
                     variant="outline"
                     size="icon"
                     onClick={() => setShowAdminDelete(true)}
-                    title="Delete store"
+                    title="Delete seller profile"
                     style={{
                       color: 'var(--color-error)',
                     }}
@@ -455,7 +455,7 @@ export default function StoreProfilePage() {
                   color: activeTab === tab ? 'white' : 'var(--color-text-secondary)',
                 }}
               >
-                {tab}
+                {tab === 'products' ? 'listings' : tab}
               </button>
             ))}
           </div>
@@ -473,8 +473,8 @@ export default function StoreProfilePage() {
             ) : products.length === 0 ? (
               <EmptyState
                 icon="📦"
-                title="No products yet"
-                description="This store hasn't listed any products."
+                title="No listings yet"
+                description="This seller hasn't published any listings."
               />
             ) : (
               <>
@@ -556,7 +556,7 @@ export default function StoreProfilePage() {
                       color: 'var(--color-text-primary)',
                     }}
                   >
-                    Store Owner
+                    Profile Owner
                   </h4>
                   <Link
                     to={`/user/${owner.username}`}
@@ -706,16 +706,16 @@ export default function StoreProfilePage() {
         targetName={store?.store_name}
       />
 
-      {/* Admin Delete Store */}
+      {/* Admin Delete Seller Profile */}
       <ConfirmDeleteModal
         isOpen={showAdminDelete}
         onClose={() => setShowAdminDelete(false)}
         onConfirm={() => adminDeleteMutation.mutate()}
         isLoading={adminDeleteMutation.isPending}
-        title="Delete this store?"
-        description="This will permanently delete this store, all its product listings, images, and associated data. The owner's account will remain active but they will lose all store data."
+        title="Delete this seller profile?"
+        description="This will permanently delete this seller profile, all their product listings, images, and associated data. The owner's account will remain active but they will lose all profile data."
         itemName={store?.store_name}
-        itemType="Store"
+        itemType="Seller Profile"
         countdownSeconds={10}
       />
     </>

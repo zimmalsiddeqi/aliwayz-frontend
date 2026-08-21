@@ -172,3 +172,47 @@ export function createFilePreview(file) {
 export function revokeFilePreview(url) {
   if (url && url.startsWith('blob:')) URL.revokeObjectURL(url);
 }
+
+/**
+ * Compute listing location based on Quick List vs Permanent Store rules.
+ * Quick List: Approximate location (randomized within a 10-mile radius of the user's current GPS location)
+ * Permanent Store: Exact store location coordinates (fall back to user current location if store coordinates aren't set)
+ */
+export function getProductListingLocation({ store, userLat, userLng }) {
+  const isQuickList = store?.description === 'Personal listings';
+
+  if (isQuickList) {
+    if (!userLat || !userLng) {
+      return {
+        lat: undefined,
+        lng: undefined,
+        isApproximate: true,
+      };
+    }
+
+    // Offset coordinates randomly within a 10-mile radius (approx 0.145 degrees)
+    const r = 10 / 69.172; 
+    const u = Math.random();
+    const v = Math.random();
+    const w = r * Math.sqrt(u);
+    const t = 2 * Math.PI * v;
+    const x = w * Math.cos(t);
+    const y = w * Math.sin(t);
+    
+    // Adjust x-coordinate for latitude skew
+    const xp = x / Math.cos((userLat * Math.PI) / 180);
+
+    return {
+      lat: userLat + y,
+      lng: userLng + xp,
+      isApproximate: true,
+    };
+  }
+
+  // Permanent store: use shop exact location
+  return {
+    lat: store?.location_lat ?? userLat ?? undefined,
+    lng: store?.location_lng ?? userLng ?? undefined,
+    isApproximate: false,
+  };
+}

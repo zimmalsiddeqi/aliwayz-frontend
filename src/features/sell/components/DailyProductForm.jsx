@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { ImagePlus, X } from 'lucide-react';
@@ -8,6 +8,8 @@ import { useDropzone } from 'react-dropzone';
 import { createProductSchema } from '@lib/validators';
 import ProductService from '@api/services/product.service';
 import CategoryService from '@api/services/category.service';
+import CategorySelector from './CategorySelector';
+import LocationOptionSelector from './LocationOptionSelector';
 import { queryKeys } from '@lib/queryClient';
 import Input from '@components/ui/Input';
 import Textarea from '@components/ui/Textarea';
@@ -21,33 +23,21 @@ import {
   validateImageFile,
   createFilePreview,
   revokeFilePreview,
+  getProductListingLocation,
 } from '@utils/helpers';
 import { ITEM_CONDITIONS, MAX_PRODUCT_IMAGES, CATEGORY_IDS } from '@utils/constants';
 import toast from '@lib/toast';
 
 export default function DailyProductForm({ store }) {
-  const { lat: userLat, lng: userLng } = useLocationStore();
+  const { lat: userLat, lng: userLng, city: userCity, state: userState } = useLocationStore();
   const navigate = useNavigate();
   const [images, setImages] = useState([]);
-
-  const { data: allCategories = [] } = useQuery({
-    queryKey: queryKeys.categories.flat(),
-    queryFn: () => CategoryService.getFlat().then((r) => r.data),
-    staleTime: 60 * 60 * 1000,
-  });
-
-  const essentialCategories = allCategories.filter((c) => {
-    if (c.id === CATEGORY_IDS.AUTOMOTIVE) return false;
-    if (c.parent_id === CATEGORY_IDS.AUTOMOTIVE) return false;
-    if (c.id === CATEGORY_IDS.PROPERTY) return false;
-    if (c.parent_id === CATEGORY_IDS.PROPERTY) return false;
-    return true;
-  });
 
   const {
     register,
     handleSubmit,
     setError,
+    control,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(createProductSchema),
@@ -61,6 +51,7 @@ export default function DailyProductForm({ store }) {
       color: '',
       quantity: 1,
       location_city: store?.location_city || '',
+      location_type: store?.description === 'Personal listings' ? 'approximate' : (store?.location_city ? 'store' : 'approximate'),
       status: 'available',
     },
   });
@@ -93,11 +84,40 @@ export default function DailyProductForm({ store }) {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      // Add coordinates to the data
+      // If price is 0, auto-classify under Free & Giveaway category
+      let finalCategoryId = data.category_id;
+      if (Number(data.price) === 0) {
+        finalCategoryId = CATEGORY_IDS.FREE_GIVEAWAY;
+      }
+
+      const locType = data.location_type || (store?.description === 'Personal listings' ? 'approximate' : (store?.location_city ? 'store' : 'approximate'));
+      let finalLat = userLat;
+      let finalLng = userLng;
+      let finalCity = [userCity, userState].filter(Boolean).join(', ') || '';
+
+      if (locType === 'approximate') {
+        const approx = getProductListingLocation({ store: { description: 'Personal listings' }, userLat, userLng });
+        finalLat = approx.lat;
+        finalLng = approx.lng;
+      } else if (locType === 'store') {
+        finalLat = store?.location_lat || userLat;
+        finalLng = store?.location_lng || userLng;
+        finalCity = store?.location_city || '';
+      }
+
       const productData = {
-        ...data,
-        location_lat: userLat || undefined,
-        location_lng: userLng || undefined,
+        title: data.title,
+        description: data.description,
+        price: Number(data.price),
+        condition: data.condition,
+        category_id: finalCategoryId,
+        brand: data.brand || undefined,
+        color: data.color || undefined,
+        quantity: 1,
+        location_city: finalCity,
+        location_lat: finalLat || undefined,
+        location_lng: finalLng || undefined,
+        status: 'available',
       };
 
       const response = await ProductService.create(productData);
@@ -125,7 +145,7 @@ export default function DailyProductForm({ store }) {
 
   return (
     <div>
-      <PageHeader title="List an Item" subtitle="Electronics, fashion, home goods & more" />
+      <PageHeader title="Sell an Item" subtitle="Electronics, fashion, home goods & more" />
 
       <form onSubmit={handleSubmit((d) => createMutation.mutate(d))} className="space-y-6">
         {/* Photos */}
@@ -207,12 +227,18 @@ export default function DailyProductForm({ store }) {
           />
         </div>
 
-        <Select
-          label="Category *"
-          placeholder="Select a category"
-          options={essentialCategories.map((c) => ({ value: c.id, label: c.name }))}
-          error={errors.category_id?.message}
-          {...register('category_id')}
+        <Controller
+          name="category_id"
+          control={control}
+          rules={{ required: 'Select a category' }}
+          render={({ field }) => (
+            <CategorySelector
+              value={field.value}
+              onChange={field.onChange}
+              excludeCategoryIds={[CATEGORY_IDS.VEHICLES, CATEGORY_IDS.REAL_ESTATE]}
+              error={errors.category_id?.message}
+            />
+          )}
         />
 
         <div className="grid grid-cols-2 gap-3">
@@ -220,7 +246,17 @@ export default function DailyProductForm({ store }) {
           <Input label="Color (Optional)" placeholder="Black, White..." {...register('color')} />
         </div>
 
-        <Input label="Your Location" placeholder="City, State" {...register('location_city')} />
+        <Controller
+          name="location_type"
+          control={control}
+          render={({ field }) => (
+            <LocationOptionSelector
+              value={field.value}
+              onChange={field.onChange}
+              store={store}
+            />
+          )}
+        />
 
         <Button
           type="submit"

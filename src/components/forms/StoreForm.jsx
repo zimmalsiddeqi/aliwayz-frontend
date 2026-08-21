@@ -1,20 +1,19 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQuery } from '@tanstack/react-query';
 import { createStoreSchema } from '@lib/validators';
-import CategoryService from '@api/services/category.service';
-import { queryKeys } from '@lib/queryClient';
+import { CATEGORY_IDS } from '@utils/constants';
 import Input from '@components/ui/Input';
 import Textarea from '@components/ui/Textarea';
 import Select from '@components/ui/Select';
 import Button from '@components/ui/Button';
 
-export default function StoreForm({ defaultValues, onSubmit, isLoading, submitLabel = 'Save' }) {
-  const { data: categories = [] } = useQuery({
-    queryKey: queryKeys.categories.flat(),
-    queryFn:  () => CategoryService.getFlat().then((r) => r.data),
-  });
+const STORE_CATEGORIES = [
+  { value: CATEGORY_IDS.AUTOMOTIVE, label: 'Automotive' },
+  { value: CATEGORY_IDS.PROPERTY, label: 'Real Estate' },
+  { value: CATEGORY_IDS.OTHER, label: 'Marketplace' },
+];
 
+export default function StoreForm({ defaultValues, onSubmit, isLoading, submitLabel = 'Save' }) {
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver:     zodResolver(createStoreSchema),
     defaultValues,
@@ -27,7 +26,7 @@ export default function StoreForm({ defaultValues, onSubmit, isLoading, submitLa
       <Select
         label="Category"
         placeholder="Select category"
-        options={categories.map((c) => ({ value: c.id, label: c.name }))}
+        options={STORE_CATEGORIES}
         error={errors.category_id?.message}
         {...register('category_id')}
       />

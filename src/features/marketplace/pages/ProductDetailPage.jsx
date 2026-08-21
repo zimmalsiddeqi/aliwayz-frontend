@@ -350,7 +350,7 @@ export default function ProductDetailPage() {
                     leftIcon={<MessageCircle size={18} />}
                     onClick={() => {
                       if (!isAuthenticated) {
-                        toast.error('Sign in to message seller');
+                        navigate('/login');
                         return;
                       }
                       setShowMessageModal(true);

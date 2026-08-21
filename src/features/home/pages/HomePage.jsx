@@ -23,32 +23,30 @@ import SearchCategoriesModal from '../components/SearchCategoriesModal';
 
 const CATEGORY_ICONS = {
   Electronics: '📱',
-  Phones: '📱',
+  Vehicles: '🚗',
   Fashion: '👗',
+  'Home & Furniture': '🛋️',
   Shoes: '👟',
-  Bags: '👜',
-  Home: '🏠',
-  House: '🏠',
-  Apartment: '🏢',
-  Property: '🏡',
-  Kitchen: '🍳',
-  Sports: '⚽',
-  Fitness: '🏋️',
-  Books: '📚',
-  Toys: '🧸',
-  Baby: '👶',
-  Pets: '🐾',
-  Garden: '🌱',
-  Tools: '🔧',
-  Office: '💼',
-  Music: '🎵',
-  Collectibles: '🏆',
-  Photography: '📷',
-  Drones: '🚁',
-  Art: '🎨',
+  'Beauty & Personal Care': '💄',
+  'Baby & Kids': '👶',
+  'Sports & Outdoors': '⚽',
+  'Toys & Games': '🧸',
+  'Computers & Office': '💻',
+  'Auto Parts & Accessories': '⚙️',
+  'Jewelry & Watches': '⌚',
+  'Books, Movies & Music': '📚',
+  Appliances: '📺',
+  'Tools & Equipment': '🔧',
+  'Garden & Outdoor': '🏡',
+  'Pet Supplies': '🐾',
+  'Musical Instruments': '🎸',
+  'Hobbies & Crafts': '🎨',
+  'Collectibles & Memorabilia': '🏆',
   Handmade: '🤝',
-  'Automotive Parts': '⚙️',
-  'Digital Products': '💻',
+  'Antiques & Vintage': '🏺',
+  'Business & Commercial': '💼',
+  'Real Estate': '🏢',
+  'Free & Giveaway': '🎁',
   Other: '📦',
 };
 
@@ -72,7 +70,7 @@ const CATEGORIES = [
   },
   {
     id:          'vehicles',
-    name:        'Vehicles',
+    name:        'Automotive',
     emoji:       '🚗',
     description: 'Cars, trucks, motorcycles & powersports',
     gradient:    'linear-gradient(135deg, #1D4ED8 0%, #3B82F6 60%, #60A5FA 100%)',
@@ -170,7 +168,40 @@ export default function HomePage() {
   };
 
   const quickCategories = useMemo(() => {
-    return allCategories.slice(0, 5);
+    const PREFERRED_ORDER = [
+      'electronics',
+      'vehicles',
+      'fashion',
+      'home-furniture',
+      'shoes',
+      'beauty-personal-care',
+      'baby-kids',
+      'sports-outdoors',
+      'toys-games',
+      'computers-office',
+      'auto-parts-accessories',
+      'jewelry-watches',
+      'books-movies-music',
+      'appliances',
+      'tools-equipment',
+      'garden-outdoor',
+      'pet-supplies',
+      'musical-instruments',
+      'hobbies-crafts',
+      'collectibles-memorabilia',
+      'handmade',
+      'antiques-vintage',
+      'business-commercial',
+      'real-estate',
+      'free-giveaway',
+      'other',
+    ];
+    const rootCats = allCategories.filter((c) => !c.parent_id);
+    return [...rootCats].sort((a, b) => {
+      const ai = PREFERRED_ORDER.indexOf(a.slug);
+      const bi = PREFERRED_ORDER.indexOf(b.slug);
+      return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    });
   }, [allCategories]);
 
   return (
@@ -182,13 +213,11 @@ export default function HomePage() {
 
       <div className="min-h-screen pb-24 md:pb-10">
         {/* ═══ SEARCH BAR ══════════════════════════════════ */}
-        {!sellerOnly && (
-          <section className="container-app pt-4 pb-2 sm:pt-6 sm:pb-3">
-            <div className="max-w-2xl mx-auto">
-              <SearchBar />
-            </div>
-          </section>
-        )}
+        <section className="container-app pt-4 pb-2 sm:pt-6 sm:pb-3">
+          <div className="max-w-2xl mx-auto">
+            <SearchBar />
+          </div>
+        </section>
 
         {/* ═══ 3 MAIN CATEGORIES ══════════════════════════ */}
         <section className="container-app py-4 sm:py-6">
@@ -238,7 +267,7 @@ export default function HomePage() {
               </div>
 
               {/* Inline Categories */}
-              <div className="flex items-center justify-start gap-1.5 sm:gap-2 mb-6 flex-nowrap w-full overflow-hidden">
+              <div className="flex items-center justify-start gap-1.5 sm:gap-2 mb-6 overflow-x-auto pb-2 flex-nowrap w-full scrollbar-none">
                  <button
                    onClick={() => updateFilter('category_id', undefined)}
                    className="flex flex-shrink-0 items-center gap-1 sm:gap-1.5 whitespace-nowrap rounded-xl px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium transition-all"
@@ -250,14 +279,11 @@ export default function HomePage() {
                  >
                    <span className="text-[12px] sm:text-sm">🌟</span> All
                  </button>
-                 {quickCategories.map((cat, index) => (
+                 {quickCategories.map((cat) => (
                    <button
                      key={cat.id}
                      onClick={() => updateFilter('category_id', cat.id)}
-                     className={cn(
-                       "flex-shrink-0 items-center gap-1 sm:gap-1.5 whitespace-nowrap rounded-xl px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium transition-all",
-                       index > 1 ? "hidden sm:flex" : "flex"
-                     )}
+                     className="flex flex-shrink-0 items-center gap-1 sm:gap-1.5 whitespace-nowrap rounded-xl px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium transition-all"
                      style={{
                        backgroundColor: filters.category_id === cat.id ? '#7C3AED' : 'var(--color-surface)',
                        color: filters.category_id === cat.id ? 'white' : 'var(--color-text-secondary)',
@@ -337,13 +363,7 @@ export default function HomePage() {
                     </div>
                     
                     <div className="space-y-4">
-                      <Select
-                        label="Category"
-                        placeholder="All Categories"
-                        value={filters.category_id || ''}
-                        onChange={(e) => updateFilter('category_id', e.target.value)}
-                        options={allCategories.map((c) => ({ value: c.id, label: c.name }))}
-                      />
+
                       <div className="space-y-1">
                         <label className="text-xs font-medium">Price Range</label>
                         <div className="flex gap-2">

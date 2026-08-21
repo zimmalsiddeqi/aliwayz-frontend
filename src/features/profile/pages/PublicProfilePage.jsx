@@ -32,6 +32,7 @@ import Input from '@components/ui/Input';
 import Spinner from '@components/ui/Spinner';
 import EmptyState from '@components/common/EmptyState';
 import PageHeader from '@components/common/PageHeader';
+import SellerVerifiedBadge from '@components/common/SellerVerifiedBadge';
 import ReportModal from '@components/modals/ReportModal';
 import ConfirmDeleteModal from '@components/modals/ConfirmDeleteModal';
 import UserReviewsSection from '@features/profile/components/UserReviewsSection';
@@ -260,8 +261,11 @@ export default function PublicProfilePage() {
               className="mx-auto"
             />
 
-            <h1 className="mt-4 text-xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
+            <h1 className="mt-4 text-xl font-bold flex items-center justify-center gap-1.5" style={{ color: 'var(--color-text-primary)' }}>
               {profile.full_name || profile.username}
+              {profile.seller_verification_status === 'identity_verified' && (
+                <SellerVerifiedBadge />
+              )}
             </h1>
             <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
               @{profile.username}
