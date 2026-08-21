@@ -511,14 +511,19 @@ export default function ProductDetailPage() {
                         color: 'var(--color-text-muted)',
                       }}
                     >
-                      {store.average_rating > 0 && store.total_reviews > 0 ? (
+                      {(store.average_rating > 0 && store.total_reviews > 0) ||
+                      (seller?.seller_stats?.average_rating > 0 && seller?.seller_stats?.total_reviews > 0) ? (
                         <span className="flex items-center gap-0.5">
                           <Star
                             size={11}
                             fill="var(--color-warning)"
                             style={{ color: 'var(--color-warning)' }}
                           />
-                          {formatRating(store.average_rating)}
+                          {formatRating(
+                            store.average_rating > 0
+                              ? store.average_rating
+                              : seller.seller_stats.average_rating
+                          )}
                         </span>
                       ) : (
                         <span
