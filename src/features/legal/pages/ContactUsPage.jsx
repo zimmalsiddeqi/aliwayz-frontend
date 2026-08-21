@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import toast from '@lib/toast';
 import { SUPPORT_EMAILS } from '../data/legalPages';
 import LegalLayout from '../components/LegalLayout';
 import LegalSection from '../components/LegalSection';
@@ -8,6 +9,11 @@ import LegalSection from '../components/LegalSection';
  * for Aliwayz.
  */
 export default function ContactUsPage() {
+  const handleEmailClick = (e, email) => {
+    navigator.clipboard.writeText(email);
+    toast.success(`Copied "${email}" to clipboard!`);
+  };
+
   return (
     <LegalLayout slug="contact">
       <div className="mb-6 p-4 rounded-xl border print:border-none" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
@@ -26,7 +32,7 @@ export default function ContactUsPage() {
         </p>
         <div className="p-4 rounded-xl border mb-4" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
           <p className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-            Email: <a href={`mailto:${SUPPORT_EMAILS.general}`} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.general}</a>
+            Email: <a href={`mailto:${SUPPORT_EMAILS.general}`} onClick={(e) => handleEmailClick(e, SUPPORT_EMAILS.general)} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.general}</a>
           </p>
           <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>
             Typical Response Time: 1–2 business days.
@@ -41,7 +47,7 @@ export default function ContactUsPage() {
         </p>
         <div className="p-4 rounded-xl border mb-4" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
           <p className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-            Email: <a href={`mailto:${SUPPORT_EMAILS.privacy}`} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.privacy}</a>
+            Email: <a href={`mailto:${SUPPORT_EMAILS.privacy}`} onClick={(e) => handleEmailClick(e, SUPPORT_EMAILS.privacy)} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.privacy}</a>
           </p>
           <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>
             Typical Response Time: 2–3 business days.
@@ -59,7 +65,7 @@ export default function ContactUsPage() {
         </p>
         <div className="p-4 rounded-xl border mb-4" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
           <p className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-            Email: <a href={`mailto:${SUPPORT_EMAILS.legal}`} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.legal}</a>
+            Email: <a href={`mailto:${SUPPORT_EMAILS.legal}`} onClick={(e) => handleEmailClick(e, SUPPORT_EMAILS.legal)} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.legal}</a>
           </p>
           <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>
             Typical Response Time: 2–3 business days.

@@ -16,6 +16,7 @@ import {
   BookOpen,
 } from 'lucide-react';
 import Card, { CardContent } from '@components/ui/Card';
+import toast from '@lib/toast';
 import {
   LEGAL_PAGES,
   LEGAL_CATEGORIES,
@@ -28,6 +29,11 @@ import {
 export default function LegalIndexPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+
+  const handleEmailClick = (e, email) => {
+    navigator.clipboard.writeText(email);
+    toast.success(`Copied "${email}" to clipboard!`);
+  };
 
   // Breadcrumb Schema markup
   const breadcrumbSchema = {
@@ -437,6 +443,7 @@ export default function LegalIndexPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
               <a 
                 href={`mailto:${SUPPORT_EMAILS.general}`}
+                onClick={(e) => handleEmailClick(e, SUPPORT_EMAILS.general)}
                 className="flex flex-col items-center gap-1.5 p-4 rounded-2xl border hover:border-[var(--color-brand)] transition-all bg-[var(--color-surface)] hover:-translate-y-0.5"
                 style={{ borderColor: 'var(--color-border)' }}
               >
@@ -447,6 +454,7 @@ export default function LegalIndexPage() {
               
               <a 
                 href={`mailto:${SUPPORT_EMAILS.privacy}`}
+                onClick={(e) => handleEmailClick(e, SUPPORT_EMAILS.privacy)}
                 className="flex flex-col items-center gap-1.5 p-4 rounded-2xl border hover:border-[var(--color-brand)] transition-all bg-[var(--color-surface)] hover:-translate-y-0.5"
                 style={{ borderColor: 'var(--color-border)' }}
               >
@@ -457,6 +465,7 @@ export default function LegalIndexPage() {
               
               <a 
                 href={`mailto:${SUPPORT_EMAILS.legal}`}
+                onClick={(e) => handleEmailClick(e, SUPPORT_EMAILS.legal)}
                 className="flex flex-col items-center gap-1.5 p-4 rounded-2xl border hover:border-[var(--color-brand)] transition-all bg-[var(--color-surface)] hover:-translate-y-0.5"
                 style={{ borderColor: 'var(--color-border)' }}
               >

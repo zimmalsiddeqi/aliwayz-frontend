@@ -60,6 +60,11 @@ export default function LegalLayout({ slug, children }) {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  const handleEmailClick = (e, email) => {
+    navigator.clipboard.writeText(email);
+    toast.success(`Copied "${email}" to clipboard!`);
+  };
+
   // Fetch page metadata from registry
   const page = useMemo(() => getLegalPageBySlug(slug), [slug]);
   const relatedPages = useMemo(() => getRelatedPages(slug), [slug]);
@@ -435,6 +440,7 @@ export default function LegalLayout({ slug, children }) {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <a 
                   href={`mailto:${SUPPORT_EMAILS.general}`}
+                  onClick={(e) => handleEmailClick(e, SUPPORT_EMAILS.general)}
                   className="flex flex-col items-center gap-1.5 p-3 rounded-xl border hover:border-[var(--color-brand)] transition-colors"
                   style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
                 >
@@ -444,6 +450,7 @@ export default function LegalLayout({ slug, children }) {
                 </a>
                 <a 
                   href={`mailto:${SUPPORT_EMAILS.privacy}`}
+                  onClick={(e) => handleEmailClick(e, SUPPORT_EMAILS.privacy)}
                   className="flex flex-col items-center gap-1.5 p-3 rounded-xl border hover:border-[var(--color-brand)] transition-colors"
                   style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
                 >
@@ -453,6 +460,7 @@ export default function LegalLayout({ slug, children }) {
                 </a>
                 <a 
                   href={`mailto:${SUPPORT_EMAILS.legal}`}
+                  onClick={(e) => handleEmailClick(e, SUPPORT_EMAILS.legal)}
                   className="flex flex-col items-center gap-1.5 p-3 rounded-xl border hover:border-[var(--color-brand)] transition-colors"
                   style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
                 >
