@@ -125,31 +125,23 @@ export default function CategoryDrawer({ isOpen, onClose }) {
       )
     : [];
 
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop Overlay */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.4 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black"
-          />
+  return isOpen ? (
+    <>
+      {/* Backdrop Overlay */}
+      <div
+        className="fixed inset-0 z-50 bg-black/40"
+        onClick={onClose}
+      />
 
-          {/* Drawer Container */}
-          <motion.div
-            ref={drawerRef}
-            initial={{ x: '-100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-            className="fixed bottom-0 left-0 top-0 z-50 flex w-[280px] sm:w-[320px] flex-col border-r shadow-2xl transition-all duration-200"
-            style={{
-              backgroundColor: 'var(--color-surface)',
-              borderColor: 'var(--color-border)',
-            }}
-          >
+      {/* Drawer Container */}
+      <div
+        ref={drawerRef}
+        className="fixed bottom-0 left-0 top-0 z-50 flex w-[280px] sm:w-[320px] flex-col border-r shadow-2xl"
+        style={{
+          backgroundColor: 'var(--color-surface)',
+          borderColor: 'var(--color-border)',
+        }}
+      >
             {/* Drawer Header */}
             <div className="flex items-center justify-between border-b px-4 py-3">
               <div className="flex items-center gap-2">
@@ -286,9 +278,7 @@ export default function CategoryDrawer({ isOpen, onClose }) {
                 </div>
               )}
             </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
-  );
+      </div>
+    </>
+  ) : null;
 }

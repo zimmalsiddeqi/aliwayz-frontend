@@ -51,6 +51,7 @@ import {
   AdminBroadcastPage,
   AdminFeedbackPage,
   AdminVerificationsPage,
+  AdminCategoriesPage,
   VerificationPage,
   FAQPage,
   
@@ -143,6 +144,7 @@ const router = createBrowserRouter(
         { path: '/admin/broadcast', element: <AdminBroadcastPage /> },
         { path: '/admin/feedback', element: <AdminFeedbackPage /> },
         { path: '/admin/verifications', element: <AdminVerificationsPage /> },
+        { path: '/admin/categories', element: <AdminCategoriesPage /> },
       ],
     },
 

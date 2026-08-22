@@ -64,6 +64,7 @@ const AdminLogsPage      = lazy(() => import('@features/admin/pages/AdminLogsPag
 const AdminBroadcastPage = lazy(() => import('@features/admin/pages/AdminBroadcastPage'));
 const AdminFeedbackPage = lazy(() => import('@features/admin/pages/AdminFeedbackPage'));
 const AdminVerificationsPage = lazy(() => import('@features/admin/pages/AdminVerificationsPage'));
+const AdminCategoriesPage = lazy(() => import('@features/admin/pages/AdminCategoriesPage'));
 
 // Verification
 const VerificationPage = lazy(() => import('@features/verification/pages/VerificationPage'));
@@ -103,6 +104,7 @@ export {
   AdminDashboardPage, AdminUsersPage, AdminStoresPage,
   AdminProductsPage, AdminReportsPage, AdminLogsPage,
   AdminBroadcastPage, AdminFeedbackPage, AdminVerificationsPage,
+  AdminCategoriesPage,
   VerificationPage,
   CarsPage, PropertyPage, DailyUsePage, FAQPage,
   
