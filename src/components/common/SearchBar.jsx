@@ -31,7 +31,7 @@ export default function SearchBar({ className, autoFocus = false, onClose }) {
   // Fetch root categories for the dropdown
   const { data: treeData } = useQuery({
     queryKey: queryKeys.categories.tree(),
-    queryFn: () => CategoryService.getTree().then((r) => r.data),
+    queryFn: CategoryService.getTree,
     staleTime: 60 * 60 * 1000,
   });
 
