@@ -28,12 +28,47 @@ export default function SearchBar({ className, autoFocus = false, onClose }) {
   const [isFocused, setIsFocused]   = useState(false);
   const debouncedQuery = useDebounce(localQuery, 250);
 
-  // Fetch flat categories for the dropdown
-  const { data: allCategories = [] } = useQuery({
-    queryKey: queryKeys.categories.flat(),
-    queryFn: () => CategoryService.getFlat().then((r) => r.data),
+  // Fetch root categories for the dropdown
+  const { data: treeData } = useQuery({
+    queryKey: queryKeys.categories.tree(),
+    queryFn: () => CategoryService.getTree().then((r) => r.data),
     staleTime: 60 * 60 * 1000,
   });
+
+  const PREFERRED_ORDER = [
+    'electronics',
+    'vehicles',
+    'fashion',
+    'home-furniture',
+    'shoes',
+    'beauty-personal-care',
+    'baby-kids',
+    'sports-outdoors',
+    'toys-games',
+    'computers-office',
+    'auto-parts-accessories',
+    'jewelry-watches',
+    'books-movies-music',
+    'appliances',
+    'tools-equipment',
+    'garden-outdoor',
+    'pet-supplies',
+    'musical-instruments',
+    'hobbies-crafts',
+    'collectibles-memorabilia',
+    'handmade',
+    'antiques-vintage',
+    'business-commercial',
+    'real-estate',
+    'free-giveaway',
+    'other',
+  ];
+
+  const allCategories = treeData ? [...(treeData.data || [])].sort((a, b) => {
+    const ai = PREFERRED_ORDER.indexOf(a.slug);
+    const bi = PREFERRED_ORDER.indexOf(b.slug);
+    return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+  }) : [];
 
   const showDropdown = isFocused && (
     debouncedQuery.length > 0 || recentSearches.length > 0
