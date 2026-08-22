@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import {
-  LayoutDashboard, Users, Store, Package, Flag, ScrollText, FolderOpen
+  LayoutDashboard, Users, Store, Package, Flag, ScrollText, FolderOpen, ShieldCheck
 } from 'lucide-react';
 import { cn } from '@lib/utils';
 
@@ -12,6 +12,7 @@ const links = [
   { to: '/admin/reports',  icon: Flag,            label: 'Reports' },
   { to: '/admin/logs',     icon: ScrollText,      label: 'Logs' },
   { to: '/admin/categories', icon: FolderOpen,    label: 'Categories' },
+  { to: '/admin/verifications', icon: ShieldCheck, label: 'Verifications' },
 ];
 
 export default function AdminSidebar({ onNavigate }) {

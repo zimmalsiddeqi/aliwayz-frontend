@@ -194,36 +194,6 @@ export default function CreateStorePage() {
 
   const isVerified = verificationData?.data?.status === 'identity_verified';
 
-  if (!isVerified) {
-    return (
-      <Modal
-        isOpen={true}
-        onClose={() => navigate('/sell/my-listings')}
-        title="Identity Verification Required"
-      >
-        <div className="space-y-4 text-center p-4">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500">
-            <AlertCircle size={28} />
-          </div>
-          <div>
-            <h4 className="text-base font-bold text-theme-primary">Identity Check Required</h4>
-            <p className="text-sm text-theme-secondary mt-1.5 leading-relaxed">
-              Setting up a professional Store requires identity verification. Casual sellers utilizing Quick Listing can sell immediately without checks.
-            </p>
-          </div>
-          <div className="flex flex-col gap-2 pt-2">
-            <Button onClick={() => navigate('/my-store/verification')} fullWidth>
-              Verify Identity Now
-            </Button>
-            <Button variant="ghost" onClick={() => navigate('/sell/my-listings')} fullWidth>
-              Cancel
-            </Button>
-          </div>
-        </div>
-      </Modal>
-    );
-  }
-
   return (
     <>
       <Helmet>
