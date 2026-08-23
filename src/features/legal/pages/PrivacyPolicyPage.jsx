@@ -45,49 +45,49 @@ export default function PrivacyPolicyPage() {
                 <td className="px-4 py-2 border-r font-semibold" style={{ borderColor: 'var(--color-border)' }}>Name</td>
                 <td className="px-4 py-2 border-r" style={{ borderColor: 'var(--color-border)' }}>Account personalization, public user profile display.</td>
                 <td className="px-4 py-2 border-r" style={{ borderColor: 'var(--color-border)' }}>Required</td>
-                <td className="px-4 py-2">Permanently deleted immediately upon account deletion.</td>
+                <td className="px-4 py-2">Permanently deleted immediately from database and authentication servers upon account deletion.</td>
               </tr>
               <tr>
                 <td className="px-4 py-2 border-r font-semibold" style={{ borderColor: 'var(--color-border)' }}>Email Address</td>
                 <td className="px-4 py-2 border-r" style={{ borderColor: 'var(--color-border)' }}>Account login, critical system alerts, email verifications.</td>
                 <td className="px-4 py-2 border-r" style={{ borderColor: 'var(--color-border)' }}>Required</td>
-                <td className="px-4 py-2">Permanently deleted immediately upon account deletion.</td>
+                <td className="px-4 py-2">Permanently deleted immediately from database and authentication servers upon account deletion.</td>
               </tr>
               <tr>
                 <td className="px-4 py-2 border-r font-semibold" style={{ borderColor: 'var(--color-border)' }}>Phone Number</td>
                 <td className="px-4 py-2 border-r" style={{ borderColor: 'var(--color-border)' }}>Optional verification and account recovery.</td>
                 <td className="px-4 py-2 border-r" style={{ borderColor: 'var(--color-border)' }}>Optional</td>
-                <td className="px-4 py-2">Permanently deleted immediately upon account deletion.</td>
+                <td className="px-4 py-2">Permanently deleted immediately from database and authentication servers upon account deletion.</td>
               </tr>
               <tr>
                 <td className="px-4 py-2 border-r font-semibold" style={{ borderColor: 'var(--color-border)' }}>Profile Photo</td>
                 <td className="px-4 py-2 border-r" style={{ borderColor: 'var(--color-border)' }}>Customizes your public marketplace profile.</td>
                 <td className="px-4 py-2 border-r" style={{ borderColor: 'var(--color-border)' }}>Optional</td>
-                <td className="px-4 py-2">Permanently deleted immediately upon account deletion.</td>
+                <td className="px-4 py-2">Permanently deleted immediately from database and storage servers upon account deletion.</td>
               </tr>
               <tr>
                 <td className="px-4 py-2 border-r font-semibold" style={{ borderColor: 'var(--color-border)' }}>Marketplace Listings</td>
                 <td className="px-4 py-2 border-r" style={{ borderColor: 'var(--color-border)' }}>Publishing items, vehicles, or properties for local sale.</td>
                 <td className="px-4 py-2 border-r" style={{ borderColor: 'var(--color-border)' }}>Required to sell</td>
-                <td className="px-4 py-2">Removed from public view upon deletion or account closure.</td>
+                <td className="px-4 py-2">Permanently deleted immediately from database servers upon listing or account deletion.</td>
               </tr>
               <tr>
                 <td className="px-4 py-2 border-r font-semibold" style={{ borderColor: 'var(--color-border)' }}>Uploaded Images</td>
                 <td className="px-4 py-2 border-r" style={{ borderColor: 'var(--color-border)' }}>Product display images associated with listings.</td>
                 <td className="px-4 py-2 border-r" style={{ borderColor: 'var(--color-border)' }}>Optional</td>
-                <td className="px-4 py-2">Removed immediately when listing is deleted.</td>
+                <td className="px-4 py-2">Permanently deleted immediately from database and storage servers upon listing or account deletion.</td>
               </tr>
               <tr>
                 <td className="px-4 py-2 border-r font-semibold" style={{ borderColor: 'var(--color-border)' }}>Chat Messages</td>
                 <td className="px-4 py-2 border-r" style={{ borderColor: 'var(--color-border)' }}>Real-time communication between buyers and sellers.</td>
                 <td className="px-4 py-2 border-r" style={{ borderColor: 'var(--color-border)' }}>Optional</td>
-                <td className="px-4 py-2">Retained in inbox of communication partner to preserve integrity.</td>
+                <td className="px-4 py-2">Retained in the inbox of communication partners to preserve transaction records and security history.</td>
               </tr>
               <tr>
                 <td className="px-4 py-2 border-r font-semibold" style={{ borderColor: 'var(--color-border)' }}>Favorites</td>
                 <td className="px-4 py-2 border-r" style={{ borderColor: 'var(--color-border)' }}>Bookmarking items for convenient reference.</td>
                 <td className="px-4 py-2 border-r" style={{ borderColor: 'var(--color-border)' }}>Optional</td>
-                <td className="px-4 py-2">Purged immediately upon account deletion.</td>
+                <td className="px-4 py-2">Permanently deleted immediately upon account deletion.</td>
               </tr>
               <tr>
                 <td className="px-4 py-2 border-r font-semibold" style={{ borderColor: 'var(--color-border)' }}>Reports</td>
@@ -207,11 +207,11 @@ export default function PrivacyPolicyPage() {
           We hold personal information only for the minimum duration required to operate the platform:
         </p>
         <ul className="list-disc pl-5 space-y-1">
-          <li><strong>Account Information:</strong> Deleted immediately upon user account deletion.</li>
-          <li><strong>Product Listings:</strong> Removed immediately from public search feeds when deleted by the user.</li>
+          <li><strong>Account Information:</strong> Permanently hard-deleted from our databases and authentication servers immediately upon user account deletion.</li>
+          <li><strong>Product Listings & Media:</strong> Permanently hard-deleted from all systems immediately when deleted by the user or upon account closure.</li>
           <li><strong>Inbox Chats:</strong> Retained for conversation partners to preserve transaction records and security history.</li>
           <li><strong>Security & Firewall Logs:</strong> Held for up to 90 days to verify safety audits and investigate abuse.</li>
-          <li><strong>Backup Files:</strong> Cleared incrementally according to database backup retention schedules.</li>
+          <li><strong>Backup Files:</strong> Cleared incrementally according to automated database backup retention schedules.</li>
         </ul>
       </LegalSection>
 
@@ -238,7 +238,7 @@ export default function PrivacyPolicyPage() {
         <ul className="list-disc pl-5 space-y-2">
           <li><strong>Access & Copying:</strong> You can request a summary of the personal information stored in your account.</li>
           <li><strong>Updating Details:</strong> You can modify your name, email, phone number, and photo at any time under your profile configuration.</li>
-          <li><strong>Account Deletion:</strong> You can delete your account to purge your information immediately.</li>
+          <li><strong>Account Deletion:</strong> You can permanently delete your account to hard-delete your data immediately from all production and authentication systems.</li>
           <li><strong>Location Controls:</strong> You can decline browser location prompts or modify search coordinates in the location selector.</li>
         </ul>
         <p className="mt-4">
@@ -246,20 +246,20 @@ export default function PrivacyPolicyPage() {
         </p>
       </LegalSection>
 
-      <LegalSection id="california-privacy" title="8. California Privacy Rights">
+      <LegalSection id="california-privacy" title="8. US State Privacy Rights (CCPA/CPRA)">
         <p className="mb-4">
-          Under California state laws (including the California Consumer Privacy Act / CCPA), California residents 
+          Under US state laws, including the California Consumer Privacy Act (CCPA) and the California Privacy Rights Act (CPRA), residents 
           have specific rights regarding their personal information. These include:
         </p>
         <ul className="list-disc pl-5 space-y-2">
           <li><strong>Right to Know:</strong> The right to request disclosure of the categories and specific pieces of personal data collected.</li>
-          <li><strong>Right to Delete:</strong> The right to request deletion of personal information collected from you.</li>
+          <li><strong>Right to Delete:</strong> The right to request the permanent hard-deletion of personal information collected from you across all our systems.</li>
           <li><strong>Right to Opt-Out:</strong> The right to opt out of the sale or sharing of personal data. 
           <em> Note: Aliwayz does not sell your personal data.</em></li>
           <li><strong>Right to Non-Discrimination:</strong> The right to receive equal service regardless of whether you choose to exercise your privacy rights.</li>
         </ul>
         <p className="mt-4">
-          If you are a California resident and wish to submit a privacy request, please contact us at{' '}
+          If you wish to submit a privacy request under these regulations, please contact us at{' '}
           <a href={`mailto:${SUPPORT_EMAILS.privacy}`} className="underline text-[var(--color-brand)]">privacy@aliwayz.com</a>.
         </p>
       </LegalSection>
@@ -277,7 +277,7 @@ export default function PrivacyPolicyPage() {
 
       <LegalSection id="account-deletion" title="10. Account Deletion">
         <p className="mb-4">
-          We provide a self-service option to permanently delete your account directly inside the application:
+          We provide a self-service option to permanently hard-delete your account directly inside the application:
         </p>
         <ol className="list-decimal pl-5 mb-4 space-y-2">
           <li>Log in to your account.</li>
@@ -286,8 +286,8 @@ export default function PrivacyPolicyPage() {
           <li>Click <strong>Delete Account</strong> and confirm the action.</li>
         </ol>
         <p className="mb-4">
-          When you delete your account, your profile is permanently deactivated. Public listings are deleted immediately, 
-          and your personal credentials are removed. To ensure communication history is not broken, your sent chat messages 
+          When you delete your account, your profile and all associated data (including listings, store data, media, and authentication records) 
+          are permanently hard-deleted from our databases and authentication servers immediately. To ensure communication history is not broken, your sent chat messages 
           will remain visible on the screens of users you contacted.
         </p>
         <p>

@@ -42,10 +42,10 @@ export default function AccountDeletionPage() {
           Once you confirm the deletion of your account, the following actions occur immediately:
         </p>
         <ul className="list-disc pl-5 space-y-2">
-          <li>Your profile is deactivated, and you are logged out of all active browser sessions.</li>
-          <li>Your public profile page is disabled, and your username will no longer appear in search queries.</li>
-          <li>All active marketplace listings associated with your account are permanently removed from public feeds.</li>
-          <li>Your profile metadata (such as profile photo, phone number, and location preferences) is marked for immediate purging.</li>
+          <li>Your account, along with all associated credentials and personal information, is permanently hard-deleted from our databases and authentication servers. You are immediately logged out of all active browser sessions.</li>
+          <li>Your public profile page is completely removed, and your username will no longer appear in search queries.</li>
+          <li>All active marketplace listings, store data, uploaded media, and products associated with your account are permanently and irreversibly hard-deleted from our systems.</li>
+          <li>Your profile metadata (such as profile photo, phone number, and location preferences) is permanently purged.</li>
         </ul>
       </LegalSection>
 

@@ -22,12 +22,12 @@ export default function DataDeletionPage() {
       <LegalSection id="your-data-rights" title="1. Your Data Rights">
         <p className="mb-4">
           Aliwayz respects your privacy and provides tools to control how your personal data is handled. 
-          Under US state regulations (including CCPA and general privacy guidelines), you have the right to 
-          request the deletion of any personal data we have collected and retained.
+          Under US state regulations (including CCPA, CPRA, and general privacy guidelines), you have the right to 
+          request the permanent hard-deletion of any personal data we have collected and retained.
         </p>
         <p>
-          This policy details how you can submit a request, the categories of data that are purged, 
-          and the timelines for complete data removal.
+          This policy details how you can submit a request, the categories of data that are permanently hard-deleted, 
+          and the timelines for complete data removal from all our systems.
         </p>
       </LegalSection>
 
@@ -52,14 +52,14 @@ export default function DataDeletionPage() {
       <LegalSection id="what-data-is-deleted" title="3. What Data Is Deleted">
         <p className="mb-4">
           When an account deletion or manual purge request is executed, the following information is permanently 
-          removed from our production databases:
+          hard-deleted from our production databases and authentication servers:
         </p>
         <ul className="list-disc pl-5 space-y-1">
-          <li>Your full name, registered email address, and hashed password.</li>
-          <li>Your verified phone number and profile photo.</li>
-          <li>Your active marketplace listings, pricing details, and uploaded product images.</li>
+          <li>Your full name, registered email address, and hashed password credentials.</li>
+          <li>Your verified phone number, profile photo, and associated media.</li>
+          <li>Your active marketplace listings, store data, pricing details, and uploaded product images.</li>
           <li>Your favorites list and account preferences.</li>
-          <li>Active authentication session tokens.</li>
+          <li>Active authentication session tokens and OAuth links.</li>
         </ul>
       </LegalSection>
 
@@ -89,7 +89,7 @@ export default function DataDeletionPage() {
           We process data deletion requests as quickly as possible:
         </p>
         <ul className="list-disc pl-5 space-y-1">
-          <li><strong>Self-Service Deletion:</strong> Production databases are updated immediately. Public listings are hidden instantly.</li>
+          <li><strong>Self-Service Deletion:</strong> Data is permanently hard-deleted from production databases and authentication servers immediately. All listings, store data, and user profiles are destroyed instantly.</li>
           <li><strong>Manual Deletion Requests:</strong> Manual requests submitted via email are verified and processed within 30 days of receipt.</li>
         </ul>
       </LegalSection>
