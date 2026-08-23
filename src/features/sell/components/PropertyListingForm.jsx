@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
@@ -12,6 +12,7 @@ import Button from '@components/ui/Button';
 import PageHeader from '@components/common/PageHeader';
 import { getErrorMessage } from '@lib/utils';
 import useLocationStore from '@store/location.store';
+import useFormDraft from '@hooks/useFormDraft';
 import { validateImageFile, createFilePreview, revokeFilePreview, getProductListingLocation } from '@utils/helpers';
 import {
   REAL_ESTATE_TYPES,
@@ -31,71 +32,73 @@ export default function PropertyListingForm({ store, intent = 'sale', propertyTy
 
   const isLand = propertyType === 'land';
 
+  const defaultValues = useMemo(() => ({
+    property_type: propertyType,
+    purpose: intent,
+    area_size: '',
+    bedrooms: '',
+    bathrooms: '',
+    furnishing: 'unfurnished',
+    construction_year: '',
+    parking_spaces: '',
+    hoa_fees: '',
+    lease_term: '12_months',
+    pet_policy: 'no_pets',
+    address: '',
+    city: store?.location_city || userCity || '',
+    state: userState || '',
+    zip_code: '',
+    price: '',
+    description: '',
+    location_type: 'approximate',
+    min_stay: '2',
+    max_guests: '4',
+    check_in_time: '3:00 PM',
+    check_out_time: '11:00 AM',
+    security_deposit: '',
+    available_date: '',
+    income_requirement: '',
+    credit_requirement: '',
+    smoking_policy: 'no_smoking',
+    utilities_included: '',
+    application_fee: '',
+    lease_price_type: 'month',
+    min_lease_term: '3',
+    max_lease_term: '10',
+    building_size: '',
+    ceiling_height: '',
+    loading_dock: 'No',
+    zoning: '',
+    hvac: '',
+    utilities: '',
+    restrooms: '1',
+    signage: 'Yes',
+    accessibility: 'Yes',
+    cam_nnn: '',
+    renewal_options: '',
+    tenant_improvements: '',
+    acreage: '',
+    lot_size: '',
+    road_access: 'paved',
+    water: 'available',
+    sewer: 'available',
+    electricity: 'available',
+    agricultural_use: 'No',
+    development_potential: 'Yes',
+  }), [propertyType, intent, store?.location_city, userCity, userState]);
+
   const {
     register,
     handleSubmit,
     control,
+    watch,
+    reset,
     formState: { errors },
   } = useForm({
-    defaultValues: {
-      property_type: propertyType,
-      purpose: intent,
-      area_size: '',
-      bedrooms: '',
-      bathrooms: '',
-      furnishing: 'unfurnished',
-      construction_year: '',
-      parking_spaces: '',
-      hoa_fees: '',
-      lease_term: '12_months',
-      pet_policy: 'no_pets',
-      address: '',
-      city: store?.location_city || userCity || '',
-      state: userState || '',
-      zip_code: '',
-      price: '',
-      description: '',
-      location_type: 'approximate',
-      // Vacation rental fields
-      min_stay: '2',
-      max_guests: '4',
-      check_in_time: '3:00 PM',
-      check_out_time: '11:00 AM',
-      // Rent fields
-      security_deposit: '',
-      available_date: '',
-      income_requirement: '',
-      credit_requirement: '',
-      smoking_policy: 'no_smoking',
-      utilities_included: '',
-      application_fee: '',
-      // Lease fields
-      lease_price_type: 'month', // month, year, sqft_month, sqft_year
-      min_lease_term: '3',
-      max_lease_term: '10',
-      building_size: '',
-      ceiling_height: '',
-      loading_dock: 'No',
-      zoning: '',
-      hvac: '',
-      utilities: '',
-      restrooms: '1',
-      signage: 'Yes',
-      accessibility: 'Yes',
-      cam_nnn: '',
-      renewal_options: '',
-      tenant_improvements: '',
-      // Land fields
-      acreage: '',
-      lot_size: '',
-      road_access: 'paved',
-      water: 'available',
-      sewer: 'available',
-      electricity: 'available',
-      agricultural_use: 'No',
-      development_potential: 'Yes',
-    },
+    defaultValues,
   });
+
+  const { clearDraft } = useFormDraft(`draft-property-${intent}-${propertyType}`, watch, reset, defaultValues);
 
   const onDrop = useCallback(
     (files) => {
@@ -275,6 +278,7 @@ export default function PropertyListingForm({ store, intent = 'sale', propertyTy
     },
     onSuccess: (product) => {
       images.forEach((img) => revokeFilePreview(img.preview));
+      clearDraft();
       toast.success('Property listed successfully! 🏠');
       navigate(`/product/${product.id}`);
     },
@@ -650,21 +654,41 @@ export default function PropertyListingForm({ store, intent = 'sale', propertyTy
             💰 Pricing & Location Visibility
           </h3>
           
-          <Input
-            label={
-              intent === 'rent'
-                ? 'Monthly Rent *'
-                : intent === 'lease'
-                ? 'Lease Rate *'
-                : intent === 'vacation'
-                ? 'Nightly Price *'
-                : 'Asking Price *'
-            }
-            type="number"
-            placeholder="1500"
-            leftIcon={<span className="font-mono text-xs font-bold">$</span>}
-            error={errors.price?.message}
-            {...register('price', { required: 'Required' })}
+          <Controller
+            name="price"
+            control={control}
+            rules={{ required: 'Required' }}
+            render={({ field: { onChange, value, ref } }) => (
+              <Input
+                label={
+                  intent === 'rent'
+                    ? 'Monthly Rent *'
+                    : intent === 'lease'
+                    ? 'Lease Rate *'
+                    : intent === 'vacation'
+                    ? 'Nightly Price *'
+                    : 'Asking Price *'
+                }
+                type="text"
+                placeholder={
+                  intent === 'rent'
+                    ? 'e.g. 1,500'
+                    : intent === 'lease'
+                    ? 'e.g. 5,000'
+                    : intent === 'vacation'
+                    ? 'e.g. 150'
+                    : 'e.g. 500,000'
+                }
+                leftIcon={<span className="font-mono text-xs font-bold">$</span>}
+                error={errors.price?.message}
+                value={value ? new Intl.NumberFormat('en-US').format(value) : ''}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/\D/g, '');
+                  onChange(raw);
+                }}
+                ref={ref}
+              />
+            )}
           />
 
           <div className="border-t pt-4 space-y-4">

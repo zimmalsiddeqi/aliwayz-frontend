@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -16,6 +16,7 @@ import Button from '@components/ui/Button';
 import PageHeader from '@components/common/PageHeader';
 import { getErrorMessage } from '@lib/utils';
 import useLocationStore from '@store/location.store';
+import useFormDraft from '@hooks/useFormDraft';
 import { validateImageFile, createFilePreview, revokeFilePreview, getProductListingLocation } from '@utils/helpers';
 import {
   VEHICLE_MAKES,
@@ -39,36 +40,42 @@ export default function CarListingForm({ store }) {
   const [images, setImages] = useState([]);
   const [selectedFeatures, setSelectedFeatures] = useState([]);
 
+  const defaultValues = useMemo(() => ({
+    make: '',
+    model: '',
+    year: '',
+    mileage: '',
+    fuel_type: '',
+    transmission: '',
+    drivetrain: '',
+    body_type: '',
+    engine_size: '',
+    color: '',
+    num_owners: '1',
+    condition: '',
+    title_status: '',
+    seller_type: '',
+    vin: '',
+    registration_state: '',
+    price: '',
+    description: '',
+    location_city: store?.location_city || userCity || '',
+    location_type: store?.description === 'Personal listings' ? 'approximate' : (store?.location_city ? 'store' : 'approximate'),
+    vehicle_category: CATEGORY_IDS.AUTOMOTIVE,
+  }), [store?.location_city, store?.description, userCity]);
+
   const {
     register,
     handleSubmit,
     control,
+    watch,
+    reset,
     formState: { errors },
   } = useForm({
-    defaultValues: {
-      make: '',
-      model: '',
-      year: '',
-      mileage: '',
-      fuel_type: '',
-      transmission: '',
-      drivetrain: '',
-      body_type: '',
-      engine_size: '',
-      color: '',
-      num_owners: '1',
-      condition: '',
-      title_status: '',
-      seller_type: '',
-      vin: '',
-      registration_state: '',
-      price: '',
-      description: '',
-      location_city: store?.location_city || '',
-      location_type: store?.description === 'Personal listings' ? 'approximate' : (store?.location_city ? 'store' : 'approximate'),
-      vehicle_category: CATEGORY_IDS.AUTOMOTIVE,
-    },
+    defaultValues,
   });
+
+  const { clearDraft } = useFormDraft('draft-car', watch, reset, defaultValues);
 
   const onDrop = useCallback(
     (files) => {
@@ -186,7 +193,8 @@ export default function CarListingForm({ store }) {
     },
     onSuccess: (product) => {
       images.forEach((img) => revokeFilePreview(img.preview));
-      toast.success('Listing published! 🚗');
+      clearDraft();
+      toast.success('Vehicle listed successfully! 🚗');
       navigate(`/product/${product.id}`);
     },
     onError: (err) => toast.error(getErrorMessage(err)),
@@ -414,13 +422,25 @@ export default function CarListingForm({ store }) {
             💰 Price & Location
           </h3>
           <div className="grid grid-cols-2 gap-3">
-            <Input
-              label="Asking Price *"
-              type="number"
-              placeholder="25000"
-              leftIcon={<span className="font-mono text-xs font-bold">$</span>}
-              error={errors.price?.message}
-              {...register('price', { required: 'Required' })}
+            <Controller
+              name="price"
+              control={control}
+              rules={{ required: 'Required' }}
+              render={({ field: { onChange, value, ref } }) => (
+                <Input
+                  label="Asking Price *"
+                  type="text"
+                  placeholder="e.g. 25,000"
+                  leftIcon={<span className="font-mono text-xs font-bold">$</span>}
+                  error={errors.price?.message}
+                  value={value ? new Intl.NumberFormat('en-US').format(value) : ''}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/\D/g, '');
+                    onChange(raw);
+                  }}
+                  ref={ref}
+                />
+              )}
             />
             <Input
               label="Title / Registration State"

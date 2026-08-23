@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Home,
@@ -32,6 +32,7 @@ import Avatar from '@components/ui/Avatar';
 import { cn, isSeller, isBuyer, isAdmin } from '@lib/utils';
 import LocationSelector from './LocationSelector';
 import CategoryDrawer from './CategoryDrawer';
+import useOnClickOutside from '@hooks/useOnClickOutside';
 
 export default function Navbar() {
   const { user, isAuthenticated } = useAuthStore();
@@ -42,6 +43,9 @@ export default function Navbar() {
   const location = useLocation();
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const profileMenuRef = useRef(null);
+  useOnClickOutside(profileMenuRef, () => setMenuOpen(false));
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categoryDrawerOpen, setCategoryDrawerOpen] = useState(false);
 
@@ -337,14 +341,7 @@ export default function Navbar() {
         {/* ── Desktop Dropdown Menu ────────────────────────── */}
         <AnimatePresence>
           {menuOpen && isAuthenticated && (
-            <>
-              <motion.div
-                className="fixed inset-0 z-40"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setMenuOpen(false)}
-              />
+            <div ref={profileMenuRef}>
               <motion.div
                 className="absolute right-4 top-[52px] z-50 w-72 overflow-hidden rounded-2xl sm:top-[60px]"
                 style={{
@@ -426,7 +423,7 @@ export default function Navbar() {
                   </button>
                 </div>
               </motion.div>
-            </>
+            </div>
           )}
         </AnimatePresence>
       </header>

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,6 +18,7 @@ import Button from '@components/ui/Button';
 import PageHeader from '@components/common/PageHeader';
 import { getErrorMessage } from '@lib/utils';
 import useLocationStore from '@store/location.store';
+import useFormDraft from '@hooks/useFormDraft';
 import {
   setFormErrors,
   validateImageFile,
@@ -33,28 +34,34 @@ export default function DailyProductForm({ store }) {
   const navigate = useNavigate();
   const [images, setImages] = useState([]);
 
+  const defaultValues = useMemo(() => ({
+    title: '',
+    description: '',
+    category_id: '',
+    condition: '',
+    price: '',
+    brand: '',
+    color: '',
+    quantity: 1,
+    location_city: store?.location_city || '',
+    location_type: store?.description === 'Personal listings' ? 'approximate' : (store?.location_city ? 'store' : 'approximate'),
+    status: 'available',
+  }), [store?.description, store?.location_city]);
+
   const {
     register,
     handleSubmit,
     setError,
     control,
+    watch,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(createProductSchema),
-    defaultValues: {
-      title: '',
-      description: '',
-      category_id: '',
-      condition: '',
-      price: '',
-      brand: '',
-      color: '',
-      quantity: 1,
-      location_city: store?.location_city || '',
-      location_type: store?.description === 'Personal listings' ? 'approximate' : (store?.location_city ? 'store' : 'approximate'),
-      status: 'available',
-    },
+    defaultValues,
   });
+
+  const { clearDraft } = useFormDraft('draft-daily', watch, reset, defaultValues);
 
   const onDrop = useCallback(
     (files) => {
@@ -134,6 +141,7 @@ export default function DailyProductForm({ store }) {
     },
     onSuccess: (product) => {
       images.forEach((img) => revokeFilePreview(img.preview));
+      clearDraft();
       toast.success('Item listed! 🛒');
       navigate(`/product/${product.id}`);
     },
@@ -210,13 +218,24 @@ export default function DailyProductForm({ store }) {
         />
 
         <div className="grid grid-cols-2 gap-3">
-          <Input
-            label="Price *"
-            type="number"
-            placeholder="0.00"
-            leftIcon={<span className="font-mono text-xs">$</span>}
-            error={errors.price?.message}
-            {...register('price')}
+          <Controller
+            name="price"
+            control={control}
+            render={({ field: { onChange, value, ref } }) => (
+              <Input
+                label="Price *"
+                type="text"
+                placeholder="e.g. 150"
+                leftIcon={<span className="font-mono text-xs font-bold">$</span>}
+                error={errors.price?.message}
+                value={value ? new Intl.NumberFormat('en-US').format(value) : ''}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/\D/g, '');
+                  onChange(raw);
+                }}
+                ref={ref}
+              />
+            )}
           />
           <Select
             label="Condition *"

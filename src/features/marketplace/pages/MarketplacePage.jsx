@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
@@ -17,6 +17,7 @@ import Input from '@components/ui/Input';
 import Select from '@components/ui/Select';
 import EmptyState from '@components/common/EmptyState';
 import useMediaQuery from '@hooks/useMediaQuery';
+import useOnClickOutside from '@hooks/useOnClickOutside';
 import { cn } from '@lib/utils';
 import { ITEM_CONDITIONS, SORT_OPTIONS, DEFAULT_PAGE_SIZE } from '@utils/constants';
 
@@ -24,6 +25,8 @@ export default function MarketplacePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const filtersRef = useRef(null);
+  useOnClickOutside(filtersRef, () => setFiltersOpen(false));
   const [viewMode, setViewMode] = useState('grid');
 
   const { lat, lng, isLocated, radiusMiles } = useLocationStore();
@@ -153,7 +156,7 @@ export default function MarketplacePage() {
         <div className="flex gap-6">
           <AnimatePresence>
             {filtersOpen && (
-              <>
+              <div ref={filtersRef}>
                 {isMobile && (
                   <motion.div
                     className="fixed inset-0 z-40 bg-black/50"
@@ -263,7 +266,7 @@ export default function MarketplacePage() {
                     </Button>
                   )}
                 </motion.aside>
-              </>
+              </div>
             )}
           </AnimatePresence>
 
