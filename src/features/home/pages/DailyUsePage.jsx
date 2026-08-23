@@ -235,7 +235,7 @@ export default function DailyUsePage() {
         <div className="container-app py-3">
           <div className="flex items-center justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <LocationSelector compact={isMobile} />
+              {/* Removed redundant location selector */}
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               <Select

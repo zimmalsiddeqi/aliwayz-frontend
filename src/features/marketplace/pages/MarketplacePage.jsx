@@ -142,10 +142,7 @@ export default function MarketplacePage() {
           }
         />
 
-        {/* Location */}
-        <div className="mb-4">
-          <LocationSelector />
-        </div>
+        {/* Location (Removed redundant selector) */}
 
         {isLocated && radiusMiles !== 9999 && (
           <p className="mb-4 text-[11px]" style={{ color: 'var(--color-text-muted)' }}>

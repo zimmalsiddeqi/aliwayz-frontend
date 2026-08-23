@@ -41,28 +41,28 @@ export default function PropertyListingForm({ store, intent = 'sale', propertyTy
     furnishing: 'unfurnished',
     construction_year: '',
     parking_spaces: '',
+    
+    // Sell fields
     hoa_fees: '',
+    property_taxes: '',
+    special_assessment: '',
+    
+    // Rent fields
     lease_term: '12_months',
     pet_policy: 'no_pets',
-    address: '',
-    city: store?.location_city || userCity || '',
-    state: userState || '',
-    zip_code: '',
-    price: '',
-    description: '',
-    location_type: 'approximate',
-    min_stay: '2',
-    max_guests: '4',
-    check_in_time: '3:00 PM',
-    check_out_time: '11:00 AM',
-    security_deposit: '',
     available_date: '',
+    security_deposit: '',
+    application_fee: '',
+    utilities_included: [], // Array for checkboxes
     income_requirement: '',
     credit_requirement: '',
     smoking_policy: 'no_smoking',
-    utilities_included: '',
-    application_fee: '',
+    
+    // Commercial fields
     lease_price_type: 'month',
+    available_space: '',
+    cam_nnn: '',
+    build_out_allowance: '',
     min_lease_term: '3',
     max_lease_term: '10',
     building_size: '',
@@ -74,9 +74,28 @@ export default function PropertyListingForm({ store, intent = 'sale', propertyTy
     restrooms: '1',
     signage: 'Yes',
     accessibility: 'Yes',
-    cam_nnn: '',
     renewal_options: '',
     tenant_improvements: '',
+    
+    // Vacation fields
+    min_stay: '2',
+    max_guests: '4',
+    check_in_time: '3:00 PM',
+    check_out_time: '11:00 AM',
+    weekend_rate: '',
+    cleaning_fee: '',
+    additional_guest_fee: '',
+
+    // Shared location & base fields
+    address: '',
+    city: store?.location_city || userCity || '',
+    state: userState || '',
+    zip_code: '',
+    price: '',
+    description: '',
+    location_type: intent === 'lease' ? 'exact' : 'approximate', // Commercial default to exact
+    
+    // Land fields
     acreage: '',
     lot_size: '',
     road_access: 'paved',
@@ -175,20 +194,22 @@ export default function PropertyListingForm({ store, intent = 'sale', propertyTy
       } else {
         if (intent === 'rent') {
           if (formData.security_deposit) details.push(`Security Deposit: $${formData.security_deposit}`);
+          if (formData.application_fee) details.push(`Application Fee: $${formData.application_fee}`);
           if (formData.available_date) details.push(`Available Date: ${formData.available_date}`);
           if (formData.lease_term) details.push(`Lease Term: ${formData.lease_term}`);
           if (formData.bedrooms) details.push(`Bedrooms: ${formData.bedrooms}`);
           if (formData.bathrooms) details.push(`Bathrooms: ${formData.bathrooms}`);
           if (formData.area_size) details.push(`Size: ${formData.area_size} sqft`);
           if (formData.income_requirement) details.push(`Income Requirement: ${formData.income_requirement}`);
-          if (formData.description) details.push(`Credit Requirement: ${formData.credit_requirement}`);
+          if (formData.credit_requirement) details.push(`Credit Requirement: ${formData.credit_requirement}`);
           if (formData.pet_policy) details.push(`Pet Policy: ${formData.pet_policy}`);
           if (formData.smoking_policy) details.push(`Smoking: ${formData.smoking_policy}`);
-          if (formData.utilities_included) details.push(`Utilities Included: ${formData.utilities_included}`);
-          if (formData.application_fee) details.push(`Application Fee: $${formData.application_fee}`);
+          if (formData.utilities_included && formData.utilities_included.length > 0) {
+            details.push(`Utilities Included: ${formData.utilities_included.join(', ')}`);
+          }
         } else if (intent === 'lease') {
           if (formData.lease_price_type) details.push(`Pricing Type: ${formData.lease_price_type}`);
-          if (formData.area_size) details.push(`Available Space: ${formData.area_size} sqft`);
+          if (formData.available_space) details.push(`Available Space: ${formData.available_space} sqft`);
           if (formData.min_lease_term) details.push(`Min Lease Term: ${formData.min_lease_term} years`);
           if (formData.max_lease_term) details.push(`Max Lease Term: ${formData.max_lease_term} years`);
           if (formData.available_date) details.push(`Available Date: ${formData.available_date}`);
@@ -203,9 +224,14 @@ export default function PropertyListingForm({ store, intent = 'sale', propertyTy
           if (formData.signage) details.push(`Signage: ${formData.signage}`);
           if (formData.accessibility) details.push(`Accessibility: ${formData.accessibility}`);
           if (formData.cam_nnn) details.push(`CAM/NNN: ${formData.cam_nnn}`);
+          if (formData.build_out_allowance) details.push(`Build-out Allowance: ${formData.build_out_allowance}`);
           if (formData.renewal_options) details.push(`Renewal Options: ${formData.renewal_options}`);
           if (formData.tenant_improvements) details.push(`Tenant Improvements: ${formData.tenant_improvements}`);
         } else if (intent === 'vacation') {
+          if (formData.weekend_rate) details.push(`Weekend Rate: $${formData.weekend_rate}`);
+          if (formData.cleaning_fee) details.push(`Cleaning Fee: $${formData.cleaning_fee}`);
+          if (formData.security_deposit) details.push(`Security Deposit: $${formData.security_deposit}`);
+          if (formData.additional_guest_fee) details.push(`Additional Guest Fee: $${formData.additional_guest_fee}`);
           if (formData.min_stay) details.push(`Min Stay: ${formData.min_stay} nights`);
           if (formData.max_guests) details.push(`Max Guests: ${formData.max_guests}`);
           if (formData.bedrooms) details.push(`Bedrooms: ${formData.bedrooms}`);
@@ -221,6 +247,8 @@ export default function PropertyListingForm({ store, intent = 'sale', propertyTy
           if (formData.construction_year) details.push(`Year Built: ${formData.construction_year}`);
           if (formData.parking_spaces) details.push(`Parking Spaces: ${formData.parking_spaces}`);
           if (formData.hoa_fees) details.push(`HOA Fees: $${formData.hoa_fees}/month`);
+          if (formData.property_taxes) details.push(`Property Taxes: $${formData.property_taxes}/year`);
+          if (formData.special_assessment) details.push(`Special Assessment: $${formData.special_assessment}`);
         }
       }
 
@@ -341,283 +369,211 @@ export default function PropertyListingForm({ store, intent = 'sale', propertyTy
           </div>
         </div>
 
-        {/* Dynamic Detail Cards */}
+        
+        {/* ─────────────────────────────────────────────────────────
+            1. 💰 PRICING ENGINE
+        ────────────────────────────────────────────────────────── */}
         <div className="glass-card space-y-4 p-5">
           <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-            🏠 Specifications
+            💰 Pricing
           </h3>
 
-          {/* 1. LAND FLOW */}
-          {isLand && (
+          {intent === 'sale' && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  label="Acreage *"
-                  type="number"
-                  step="0.01"
-                  placeholder="2.5"
-                  error={errors.acreage?.message}
-                  {...register('acreage', { required: 'Required' })}
-                />
-                <Input
-                  label="Lot Size"
-                  placeholder="e.g. 100 x 250 ft"
-                  {...register('lot_size')}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  label="Zoning"
-                  placeholder="e.g. Residential, Commercial"
-                  {...register('zoning')}
-                />
-                <Select
-                  label="Road Access"
-                  options={[
-                    { value: 'paved', label: 'Paved Road' },
-                    { value: 'dirt', label: 'Dirt Road' },
-                    { value: 'none', label: 'No Access / Landlocked' },
-                  ]}
-                  {...register('road_access')}
-                />
-              </div>
-              <div className="grid grid-cols-3 gap-3">
-                <Select
-                  label="Water"
-                  options={[
-                    { value: 'available', label: 'Available' },
-                    { value: 'none', label: 'None' },
-                  ]}
-                  {...register('water')}
-                />
-                <Select
-                  label="Sewer"
-                  options={[
-                    { value: 'available', label: 'Available' },
-                    { value: 'none', label: 'None' },
-                  ]}
-                  {...register('sewer')}
-                />
-                <Select
-                  label="Electricity"
-                  options={[
-                    { value: 'available', label: 'Available' },
-                    { value: 'none', label: 'None' },
-                  ]}
-                  {...register('electricity')}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Select
-                  label="Agricultural Use"
-                  options={[
-                    { value: 'No', label: 'No' },
-                    { value: 'Yes', label: 'Yes' },
-                  ]}
-                  {...register('agricultural_use')}
-                />
-                <Select
-                  label="Development Potential"
-                  options={[
-                    { value: 'Yes', label: 'Yes' },
-                    { value: 'No', label: 'No' },
-                  ]}
-                  {...register('development_potential')}
-                />
+              <Controller
+                name="price"
+                control={control}
+                rules={{ required: 'Required' }}
+                render={({ field: { onChange, value, ref } }) => (
+                  <Input label="Asking Price *" type="text" placeholder="e.g. 425,000" leftIcon={<span className="font-mono text-xs font-bold">$</span>} error={errors.price?.message} value={value ? new Intl.NumberFormat('en-US').format(value) : ''} onChange={(e) => onChange(e.target.value.replace(/\D/g, ''))} ref={ref} />
+                )}
+              />
+              <div className="grid grid-cols-3 gap-3 border-t border-[var(--color-border)] pt-4 mt-2">
+                <Controller name="hoa_fees" control={control} render={({ field: { onChange, value, ref } }) => (
+                  <Input label="HOA fee (/month)" type="text" placeholder="e.g. 250" leftIcon={<span className="font-mono text-xs font-bold">$</span>} value={value ? new Intl.NumberFormat('en-US').format(value) : ''} onChange={(e) => onChange(e.target.value.replace(/\D/g, ''))} ref={ref} />
+                )} />
+                <Controller name="property_taxes" control={control} render={({ field: { onChange, value, ref } }) => (
+                  <Input label="Property taxes (/year)" type="text" placeholder="e.g. 4,800" leftIcon={<span className="font-mono text-xs font-bold">$</span>} value={value ? new Intl.NumberFormat('en-US').format(value) : ''} onChange={(e) => onChange(e.target.value.replace(/\D/g, ''))} ref={ref} />
+                )} />
+                <Controller name="special_assessment" control={control} render={({ field: { onChange, value, ref } }) => (
+                  <Input label="Special assessment" type="text" placeholder="e.g. 0" leftIcon={<span className="font-mono text-xs font-bold">$</span>} value={value ? new Intl.NumberFormat('en-US').format(value) : ''} onChange={(e) => onChange(e.target.value.replace(/\D/g, ''))} ref={ref} />
+                )} />
               </div>
             </div>
           )}
 
-          {/* 2. FOR SALE FLOW (non-land) */}
-          {!isLand && intent === 'sale' && (
+          {intent === 'rent' && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <Select label="Bedrooms" options={BEDROOM_OPTIONS} {...register('bedrooms')} />
-                <Select label="Bathrooms" options={BATHROOM_OPTIONS} {...register('bathrooms')} />
+              <Controller
+                name="price"
+                control={control}
+                rules={{ required: 'Required' }}
+                render={({ field: { onChange, value, ref } }) => (
+                  <Input label="Monthly Rent *" type="text" placeholder="e.g. 2,400" leftIcon={<span className="font-mono text-xs font-bold">$</span>} error={errors.price?.message} value={value ? new Intl.NumberFormat('en-US').format(value) : ''} onChange={(e) => onChange(e.target.value.replace(/\D/g, ''))} ref={ref} />
+                )}
+              />
+              <div className="grid grid-cols-2 gap-3 border-t border-[var(--color-border)] pt-4 mt-2">
+                <Controller name="security_deposit" control={control} render={({ field: { onChange, value, ref } }) => (
+                  <Input label="Security deposit" type="text" placeholder="e.g. 2,400" leftIcon={<span className="font-mono text-xs font-bold">$</span>} value={value ? new Intl.NumberFormat('en-US').format(value) : ''} onChange={(e) => onChange(e.target.value.replace(/\D/g, ''))} ref={ref} />
+                )} />
+                <Controller name="application_fee" control={control} render={({ field: { onChange, value, ref } }) => (
+                  <Input label="Application fee" type="text" placeholder="e.g. 50" leftIcon={<span className="font-mono text-xs font-bold">$</span>} value={value ? new Intl.NumberFormat('en-US').format(value) : ''} onChange={(e) => onChange(e.target.value.replace(/\D/g, ''))} ref={ref} />
+                )} />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  label="Square Feet *"
-                  type="number"
-                  placeholder="1500"
-                  error={errors.area_size?.message}
-                  {...register('area_size', { required: 'Required' })}
-                />
-                <Input label="Lot Size" placeholder="e.g. 0.25 acres" {...register('lot_size')} />
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                <Input label="Lease term" placeholder="e.g. 12 months" {...register('lease_term')} />
+                <Input label="Available date" type="date" {...register('available_date')} />
               </div>
-              <div className="grid grid-cols-3 gap-3">
-                <Input label="Year Built" type="number" placeholder="2018" {...register('construction_year')} />
-                <Input label="Parking Spaces" type="number" placeholder="2" {...register('parking_spaces')} />
-                <Input label="HOA Fees ($/mo)" type="number" placeholder="0" {...register('hoa_fees')} />
-              </div>
-            </div>
-          )}
-
-          {/* 3. FOR RENT FLOW */}
-          {!isLand && intent === 'rent' && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <Select label="Bedrooms" options={BEDROOM_OPTIONS} {...register('bedrooms')} />
-                <Select label="Bathrooms" options={BATHROOM_OPTIONS} {...register('bathrooms')} />
-              </div>
-              <div className="grid grid-cols-3 gap-3">
-                <Input
-                  label="Square Feet *"
-                  type="number"
-                  placeholder="950"
-                  error={errors.area_size?.message}
-                  {...register('area_size', { required: 'Required' })}
-                />
-                <Input label="Security Deposit" type="number" placeholder="1850" {...register('security_deposit')} />
-                <Input label="Available Date" type="date" {...register('available_date')} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Select
-                  label="Lease Term"
-                  options={[
-                    { value: 'month_to_month', label: 'Month-to-month' },
-                    { value: '3_months', label: '3 months' },
-                    { value: '6_months', label: '6 months' },
-                    { value: '9_months', label: '9 months' },
-                    { value: '12_months', label: '12 months' },
-                    { value: '12_plus_months', label: '12+ months' },
-                    { value: 'flexible', label: 'Flexible' },
-                  ]}
-                  {...register('lease_term')}
-                />
-                <Select
-                  label="Pet Policy"
-                  options={[
-                    { value: 'negotiable', label: 'Negotiable' },
-                    { value: 'dogs_cats', label: 'Dogs & Cats Allowed' },
-                    { value: 'no_pets', label: 'No Pets Allowed' },
-                  ]}
-                  {...register('pet_policy')}
-                />
-              </div>
-
-              <div className="border-t pt-4">
-                <h4 className="text-xs font-semibold mb-3 text-[var(--color-text-secondary)]">Screening & Rental Requirements</h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <Input label="Income Requirement" placeholder="e.g. 3x rent" {...register('income_requirement')} />
-                  <Input label="Credit Requirement" placeholder="e.g. 650+ score" {...register('credit_requirement')} />
-                </div>
-                <div className="grid grid-cols-3 gap-3 mt-3">
-                  <Select
-                    label="Smoking"
-                    options={[
-                      { value: 'no_smoking', label: 'No Smoking' },
-                      { value: 'allowed', label: 'Allowed' },
-                    ]}
-                    {...register('smoking_policy')}
-                  />
-                  <Input label="Utilities Included" placeholder="e.g. Water, Gas" {...register('utilities_included')} />
-                  <Input label="Application Fee ($)" type="number" placeholder="40" {...register('application_fee')} />
+              
+              <div className="space-y-2 mt-4">
+                <label className="text-xs font-semibold text-[var(--color-text-secondary)]">Utilities Included</label>
+                <div className="flex flex-wrap gap-4">
+                  {['Water', 'Electricity', 'Gas', 'Internet', 'Trash'].map((util) => (
+                    <label key={util} className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" value={util} className="rounded border-[var(--color-border)] text-brand-500 focus:ring-brand-500" {...register('utilities_included')} />
+                      <span className="text-sm">{util}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
             </div>
           )}
 
-          {/* 4. COMMERCIAL LEASE FLOW */}
-          {!isLand && intent === 'lease' && (
+          {intent === 'lease' && (
             <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-3">
-                <Input
-                  label="Available Space (SF) *"
-                  type="number"
-                  placeholder="2500"
-                  error={errors.area_size?.message}
-                  {...register('area_size', { required: 'Required' })}
-                />
-                <Input label="Min Lease Term (Yrs)" type="number" placeholder="3" {...register('min_lease_term')} />
-                <Input label="Max Lease Term (Yrs)" type="number" placeholder="10" {...register('max_lease_term')} />
-              </div>
-              <div className="grid grid-cols-3 gap-3">
-                <Select
-                  label="Rate Pricing Format"
-                  options={[
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-[var(--color-text-secondary)]">Lease rate type</label>
+                <div className="flex gap-4">
+                  {[
+                    { value: 'sqft_year', label: '$/SF/year' },
                     { value: 'month', label: '$/month' },
-                    { value: 'year', label: '$/year' },
-                    { value: 'sqft_month', label: '$/sq ft/month' },
-                    { value: 'sqft_year', label: '$/sq ft/year' },
-                  ]}
-                  {...register('lease_price_type')}
-                />
-                <Input label="Available Date" type="date" {...register('available_date')} />
-                <Input label="Security Deposit" type="number" placeholder="5000" {...register('security_deposit')} />
+                    { value: 'contact', label: 'Contact for pricing' }
+                  ].map((opt) => (
+                    <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" value={opt.value} className="text-brand-500 focus:ring-brand-500" {...register('lease_price_type')} />
+                      <span className="text-sm">{opt.label}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
 
-              <div className="border-t pt-4">
-                <h4 className="text-xs font-semibold mb-3 text-[var(--color-text-secondary)]">Commercial Property Details</h4>
-                <div className="grid grid-cols-3 gap-3">
-                  <Input label="Total Building Size (SF)" type="number" placeholder="10000" {...register('building_size')} />
-                  <Input label="Ceiling Height (ft)" type="number" placeholder="18" {...register('ceiling_height')} />
-                  <Select
-                    label="Loading Dock"
-                    options={[
-                      { value: 'No', label: 'No' },
-                      { value: 'Yes', label: 'Yes' },
-                    ]}
-                    {...register('loading_dock')}
-                  />
+              <div className="grid grid-cols-2 gap-3">
+                <Controller
+                  name="price"
+                  control={control}
+                  rules={{ required: 'Required' }}
+                  render={({ field: { onChange, value, ref } }) => (
+                    <Input label="Lease rate *" type="text" placeholder="e.g. 28" leftIcon={<span className="font-mono text-xs font-bold">$</span>} error={errors.price?.message} value={value ? new Intl.NumberFormat('en-US').format(value) : ''} onChange={(e) => onChange(e.target.value.replace(/\D/g, ''))} ref={ref} />
+                  )}
+                />
+                <Input label="Available space (SF) *" type="number" placeholder="2500" error={errors.available_space?.message} {...register('available_space', { required: 'Required' })} />
+              </div>
+              
+              {watch('lease_price_type') === 'sqft_year' && watch('price') && watch('available_space') && (
+                <div className="bg-[var(--color-surface-elevated)] p-3 rounded-xl border border-[var(--color-border)]">
+                  <p className="text-sm text-[var(--color-text-secondary)]">
+                    Estimated monthly rent: <span className="font-bold text-[var(--color-text-primary)]">${new Intl.NumberFormat('en-US').format(Math.round((Number(watch('price')) * Number(watch('available_space'))) / 12))}</span>
+                  </p>
                 </div>
-                <div className="grid grid-cols-3 gap-3 mt-3">
-                  <Input label="Zoning Code" placeholder="e.g. CMX-2" {...register('zoning')} />
-                  <Input label="Parking Spaces" type="number" placeholder="15" {...register('parking_spaces')} />
-                  <Input label="HVAC System" placeholder="e.g. Central Air" {...register('hvac')} />
-                </div>
-                <div className="grid grid-cols-3 gap-3 mt-3">
-                  <Input label="Utilities Available" placeholder="e.g. 3-phase power" {...register('utilities')} />
-                  <Input label="Restrooms count" type="number" placeholder="2" {...register('restrooms')} />
-                  <Select
-                    label="Signage Allowed"
-                    options={[
-                      { value: 'Yes', label: 'Yes' },
-                      { value: 'No', label: 'No' },
-                    ]}
-                    {...register('signage')}
-                  />
-                </div>
-                <div className="grid grid-cols-3 gap-3 mt-3">
-                  <Select
-                    label="Accessibility"
-                    options={[
-                      { value: 'Yes', label: 'ADA Compliant' },
-                      { value: 'No', label: 'Standard' },
-                    ]}
-                    {...register('accessibility')}
-                  />
-                  <Input label="Base Rent Details" placeholder="e.g. NNN Lease" {...register('base_rent')} />
-                  <Input label="CAM / NNN details" placeholder="e.g. $4.50 / SF" {...register('cam_nnn')} />
-                </div>
-                <div className="grid grid-cols-2 gap-3 mt-3">
-                  <Input label="Renewal Options" placeholder="e.g. 5-year option" {...register('renewal_options')} />
-                  <Input label="Tenant Improvements" placeholder="e.g. Negotiable allowance" {...register('tenant_improvements')} />
-                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3 border-t border-[var(--color-border)] pt-4 mt-2">
+                <Input label="CAM charges / NNN" placeholder="e.g. $5 / SF" {...register('cam_nnn')} />
+                <Controller name="build_out_allowance" control={control} render={({ field: { onChange, value, ref } }) => (
+                  <Input label="Build-out allowance" type="text" placeholder="e.g. 10,000" leftIcon={<span className="font-mono text-xs font-bold">$</span>} value={value ? new Intl.NumberFormat('en-US').format(value) : ''} onChange={(e) => onChange(e.target.value.replace(/\D/g, ''))} ref={ref} />
+                )} />
               </div>
             </div>
           )}
 
-          {/* 5. VACATION RENTAL FLOW */}
-          {!isLand && intent === 'vacation' && (
+          {intent === 'vacation' && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <Select label="Bedrooms" options={BEDROOM_OPTIONS} {...register('bedrooms')} />
-                <Select label="Bathrooms" options={BATHROOM_OPTIONS} {...register('bathrooms')} />
+              <Controller
+                name="price"
+                control={control}
+                rules={{ required: 'Required' }}
+                render={({ field: { onChange, value, ref } }) => (
+                  <Input label="Nightly rate *" type="text" placeholder="e.g. 350" leftIcon={<span className="font-mono text-xs font-bold">$</span>} error={errors.price?.message} value={value ? new Intl.NumberFormat('en-US').format(value) : ''} onChange={(e) => onChange(e.target.value.replace(/\D/g, ''))} ref={ref} />
+                )}
+              />
+              <div className="grid grid-cols-2 gap-3 border-t border-[var(--color-border)] pt-4 mt-2">
+                <Controller name="weekend_rate" control={control} render={({ field: { onChange, value, ref } }) => (
+                  <Input label="Weekend rate" type="text" placeholder="e.g. 400" leftIcon={<span className="font-mono text-xs font-bold">$</span>} value={value ? new Intl.NumberFormat('en-US').format(value) : ''} onChange={(e) => onChange(e.target.value.replace(/\D/g, ''))} ref={ref} />
+                )} />
+                <Controller name="cleaning_fee" control={control} render={({ field: { onChange, value, ref } }) => (
+                  <Input label="Cleaning fee" type="text" placeholder="e.g. 100" leftIcon={<span className="font-mono text-xs font-bold">$</span>} value={value ? new Intl.NumberFormat('en-US').format(value) : ''} onChange={(e) => onChange(e.target.value.replace(/\D/g, ''))} ref={ref} />
+                )} />
+                <Controller name="security_deposit" control={control} render={({ field: { onChange, value, ref } }) => (
+                  <Input label="Security deposit" type="text" placeholder="e.g. 250" leftIcon={<span className="font-mono text-xs font-bold">$</span>} value={value ? new Intl.NumberFormat('en-US').format(value) : ''} onChange={(e) => onChange(e.target.value.replace(/\D/g, ''))} ref={ref} />
+                )} />
+                <Controller name="additional_guest_fee" control={control} render={({ field: { onChange, value, ref } }) => (
+                  <Input label="Additional guest fee" type="text" placeholder="e.g. 25" leftIcon={<span className="font-mono text-xs font-bold">$</span>} value={value ? new Intl.NumberFormat('en-US').format(value) : ''} onChange={(e) => onChange(e.target.value.replace(/\D/g, ''))} ref={ref} />
+                )} />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Input label="Minimum Stay (nights)" type="number" placeholder="2" {...register('min_stay')} />
-                <Input label="Maximum Guests" type="number" placeholder="6" {...register('max_guests')} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Input label="Check-In Time" placeholder="3:00 PM" {...register('check_in_time')} />
-                <Input label="Check-Out Time" placeholder="11:00 AM" {...register('check_out_time')} />
+              <div className="grid grid-cols-3 gap-3 mt-2">
+                <Input label="Min stay (nights)" type="number" placeholder="2" {...register('min_stay')} />
+                <Input label="Max stay (nights)" type="number" placeholder="30" {...register('max_guests')} />
+                <Input label="Available from" type="date" {...register('available_date')} />
               </div>
             </div>
           )}
         </div>
 
-        {/* Features & Amenities (non-land categories) */}
+        {/* ─────────────────────────────────────────────────────────
+            2. PROPERTY DETAILS (Non-financial)
+        ────────────────────────────────────────────────────────── */}
+        <div className="glass-card space-y-4 p-5">
+          <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+            🏠 Property Details
+          </h3>
+
+          {isLand ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <Input label="Acreage *" type="number" step="0.01" placeholder="2.5" error={errors.acreage?.message} {...register('acreage', { required: 'Required' })} />
+                <Input label="Lot Size" placeholder="e.g. 100 x 250 ft" {...register('lot_size')} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Input label="Zoning" placeholder="e.g. Residential, Commercial" {...register('zoning')} />
+                <Select label="Road Access" options={[{ value: 'paved', label: 'Paved Road' }, { value: 'dirt', label: 'Dirt Road' }, { value: 'none', label: 'No Access' }]} {...register('road_access')} />
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <Select label="Water" options={[{ value: 'available', label: 'Available' }, { value: 'none', label: 'None' }]} {...register('water')} />
+                <Select label="Sewer" options={[{ value: 'available', label: 'Available' }, { value: 'none', label: 'None' }]} {...register('sewer')} />
+                <Select label="Electricity" options={[{ value: 'available', label: 'Available' }, { value: 'none', label: 'None' }]} {...register('electricity')} />
+              </div>
+            </div>
+          ) : intent === 'lease' ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-3">
+                <Input label="Building Size (SF)" type="number" placeholder="10000" {...register('building_size')} />
+                <Input label="Ceiling Height (ft)" type="number" placeholder="18" {...register('ceiling_height')} />
+                <Select label="Loading Dock" options={[{ value: 'No', label: 'No' }, { value: 'Yes', label: 'Yes' }]} {...register('loading_dock')} />
+              </div>
+              <div className="grid grid-cols-3 gap-3 mt-3">
+                <Input label="Zoning Code" placeholder="e.g. CMX-2" {...register('zoning')} />
+                <Input label="Parking Spaces" type="number" placeholder="15" {...register('parking_spaces')} />
+                <Input label="HVAC System" placeholder="e.g. Central Air" {...register('hvac')} />
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <Select label="Bedrooms" options={BEDROOM_OPTIONS} {...register('bedrooms')} />
+                <Select label="Bathrooms" options={BATHROOM_OPTIONS} {...register('bathrooms')} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Input label="Square Feet" type="number" placeholder="1500" {...register('area_size')} />
+                {intent === 'sale' && <Input label="Year Built" type="number" placeholder="2018" {...register('construction_year')} />}
+                {intent === 'rent' && <Select label="Pet Policy" options={[{ value: 'negotiable', label: 'Negotiable' }, { value: 'dogs_cats', label: 'Dogs & Cats Allowed' }, { value: 'no_pets', label: 'No Pets Allowed' }]} {...register('pet_policy')} />}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ─────────────────────────────────────────────────────────
+            3. FEATURES
+        ────────────────────────────────────────────────────────── */}
         {!isLand && (
           <div className="glass-card space-y-3 p-5">
             <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
@@ -633,9 +589,7 @@ export default function PropertyListingForm({ store, intent = 'sale', propertyTy
                     onClick={() => toggleFeature(f.key)}
                     className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all"
                     style={{
-                      backgroundColor: sel
-                        ? 'rgba(16,185,129,0.15)'
-                        : 'var(--color-surface-elevated)',
+                      backgroundColor: sel ? 'rgba(16,185,129,0.15)' : 'var(--color-surface-elevated)',
                       border: `1px solid ${sel ? '#10B981' : 'var(--color-border)'}`,
                       color: sel ? '#10B981' : 'var(--color-text-secondary)',
                     }}
@@ -648,143 +602,66 @@ export default function PropertyListingForm({ store, intent = 'sale', propertyTy
           </div>
         )}
 
-        {/* Price & Location Privacy Setup */}
+        {/* ─────────────────────────────────────────────────────────
+            4. 📍 PROPERTY LOCATION
+        ────────────────────────────────────────────────────────── */}
         <div className="glass-card space-y-4 p-5">
           <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-            💰 Pricing & Location Visibility
+            📍 Property Location
           </h3>
           
-          <Controller
-            name="price"
-            control={control}
-            rules={{ required: 'Required' }}
-            render={({ field: { onChange, value, ref } }) => (
-              <Input
-                label={
-                  intent === 'rent'
-                    ? 'Monthly Rent *'
-                    : intent === 'lease'
-                    ? 'Lease Rate *'
-                    : intent === 'vacation'
-                    ? 'Nightly Price *'
-                    : 'Asking Price *'
-                }
-                type="text"
-                placeholder={
-                  intent === 'rent'
-                    ? 'e.g. 1,500'
-                    : intent === 'lease'
-                    ? 'e.g. 5,000'
-                    : intent === 'vacation'
-                    ? 'e.g. 150'
-                    : 'e.g. 500,000'
-                }
-                leftIcon={<span className="font-mono text-xs font-bold">$</span>}
-                error={errors.price?.message}
-                value={value ? new Intl.NumberFormat('en-US').format(value) : ''}
-                onChange={(e) => {
-                  const raw = e.target.value.replace(/\D/g, '');
-                  onChange(raw);
-                }}
-                ref={ref}
-              />
-            )}
+          <Input
+            label="Property Address *"
+            placeholder="e.g. 123 Main St, Philadelphia, PA"
+            hint="Your full address is securely stored and used to verify the listing."
+            error={errors.address?.message}
+            {...register('address', { required: 'Required' })}
           />
 
-          <div className="border-t pt-4 space-y-4">
-            <h4 className="text-xs font-semibold text-[var(--color-text-secondary)]">📍 Property Location Setup</h4>
-            
-            <Input
-              label="Property Address *"
-              placeholder="e.g. 123 Main St, Philadelphia, PA"
-              hint="This address is stored privately and will not be displayed publicly."
-              error={errors.address?.message}
-              {...register('address', { required: 'Required' })}
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <Input label="City *" placeholder="Philadelphia" error={errors.city?.message} {...register('city', { required: 'Required' })} />
+            <Input label="State *" placeholder="PA" error={errors.state?.message} {...register('state', { required: 'Required' })} />
+          </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <Input
-                label="City *"
-                placeholder="Philadelphia"
-                error={errors.city?.message}
-                {...register('city', { required: 'Required' })}
-              />
-              <Input
-                label="State *"
-                placeholder="PA"
-                error={errors.state?.message}
-                {...register('state', { required: 'Required' })}
-              />
-            </div>
-
-            <div className="space-y-3">
-              <label className="text-xs font-semibold text-[var(--color-text-secondary)]">Public Location Representation</label>
-              
-              <Controller
-                name="location_type"
-                control={control}
-                render={({ field }) => (
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {/* Approximate */}
-                    <button
-                      type="button"
-                      onClick={() => field.onChange('approximate')}
-                      className={`flex items-start gap-3 rounded-xl border p-4 text-left transition-all duration-200`}
-                      style={{
-                        backgroundColor: field.value === 'approximate' ? 'var(--color-brand-glow)' : 'var(--color-surface)',
-                        borderColor: field.value === 'approximate' ? 'var(--color-brand)' : 'var(--color-border)',
-                      }}
-                    >
-                      <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: field.value === 'approximate' ? 'var(--color-brand)' : 'var(--color-surface-elevated)', color: field.value === 'approximate' ? '#fff' : 'var(--color-text-secondary)' }}>
-                        <Compass size={16} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-[var(--color-text-primary)]">Approximate location</p>
-                        <p className="mt-0.5 text-xs text-[var(--color-text-muted)]">Show buyers the neighborhood/area only</p>
-                      </div>
-                    </button>
-
-                    {/* Exact */}
-                    <button
-                      type="button"
-                      onClick={() => field.onChange('exact')}
-                      className={`flex items-start gap-3 rounded-xl border p-4 text-left transition-all duration-200`}
-                      style={{
-                        backgroundColor: field.value === 'exact' ? 'var(--color-brand-glow)' : 'var(--color-surface)',
-                        borderColor: field.value === 'exact' ? 'var(--color-brand)' : 'var(--color-border)',
-                      }}
-                    >
-                      <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: field.value === 'exact' ? 'var(--color-brand)' : 'var(--color-surface-elevated)', color: field.value === 'exact' ? '#fff' : 'var(--color-text-secondary)' }}>
-                        <MapPin size={16} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-[var(--color-text-primary)]">Exact location</p>
-                        <p className="mt-0.5 text-xs text-[var(--color-text-muted)]">Show the property’s exact location</p>
-                      </div>
-                    </button>
-                  </div>
-                )}
-              />
+          <div className="space-y-3 pt-4 border-t border-[var(--color-border)] mt-2">
+            <label className="text-xs font-semibold text-[var(--color-text-secondary)]">What should buyers see?</label>
+            <div className="flex flex-col gap-3">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="radio"
+                  value="approximate"
+                  className="mt-1 text-brand-500 focus:ring-brand-500"
+                  {...register('location_type')}
+                />
+                <div>
+                  <p className="text-sm font-medium text-[var(--color-text-primary)]">Approximate location</p>
+                  <p className="text-xs text-[var(--color-text-secondary)]">Show neighborhood/area only</p>
+                </div>
+              </label>
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="radio"
+                  value="exact"
+                  className="mt-1 text-brand-500 focus:ring-brand-500"
+                  {...register('location_type')}
+                />
+                <div>
+                  <p className="text-sm font-medium text-[var(--color-text-primary)]">Exact location</p>
+                  <p className="text-xs text-[var(--color-text-secondary)]">Show the property’s exact location</p>
+                </div>
+              </label>
             </div>
           </div>
         </div>
 
-        <Textarea
-          label="Additional Details & Description"
-          placeholder="Include features, updates, school district, or utilities info..."
-          maxLength={5000}
-          {...register('description')}
-        />
-
-        <Button
-          type="submit"
-          fullWidth
-          size="lg"
-          isLoading={createMutation.isPending}
-          loadingText="Publishing Listing..."
-        >
-          Publish Listing
-        </Button>
+        {/* ─────────────────────────────────────────────────────────
+            SUBMIT
+        ────────────────────────────────────────────────────────── */}
+        <div className="pt-4 flex gap-3">
+          <Button type="submit" className="w-full" isLoading={createMutation.isPending}>
+            Publish Listing
+          </Button>
+        </div>
       </form>
     </div>
   );

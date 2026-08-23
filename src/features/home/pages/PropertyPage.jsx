@@ -252,10 +252,8 @@ export default function PropertyPage() {
         {/* Filters Controls Row */}
         <div className="container-app py-3">
           <div className="flex items-center justify-between gap-3 border-b pb-3" style={{ borderColor: 'var(--color-border)' }}>
-            {/* Location selector */}
             <div className="flex items-center gap-1 text-sm font-semibold truncate text-[var(--color-text-primary)]">
-              <MapPin size={16} className="text-emerald-600 shrink-0" />
-              <LocationSelector compact />
+              {/* Removed redundant location selector, keeping header one */}
             </div>
 
             <div className="flex items-center gap-2 shrink-0">

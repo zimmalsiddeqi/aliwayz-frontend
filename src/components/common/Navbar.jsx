@@ -72,8 +72,9 @@ export default function Navbar() {
     const items = [];
 
     // Sell button — NOT for admin
-    if (isAuthenticated && isSeller(role) && role !== 'admin') {
-      items.push({ to: '/sell/create', icon: PlusCircle, label: 'Sell', highlight: true });
+    if (isAuthenticated && role !== 'admin') {
+      const sellLink = isSeller(role) ? '/sell/create' : '/profile/edit';
+      items.push({ to: sellLink, icon: PlusCircle, label: 'Sell', highlight: true });
     }
 
     if (isAuthenticated) {
@@ -98,9 +99,10 @@ export default function Navbar() {
   const getDesktopNavItems = () => {
     const items = [];
 
-    // Sell — for sellers and both ONLY, NOT admin
-    if (isAuthenticated && isSeller(role) && role !== 'admin') {
-      items.push({ to: '/sell/create', icon: PlusCircle, label: 'Sell' });
+    // Sell — NOT for admin
+    if (isAuthenticated && role !== 'admin') {
+      const sellLink = isSeller(role) ? '/sell/create' : '/profile/edit';
+      items.push({ to: sellLink, icon: PlusCircle, label: 'Sell' });
     }
 
     if (isAuthenticated) {

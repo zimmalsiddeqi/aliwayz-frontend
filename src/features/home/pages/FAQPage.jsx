@@ -78,8 +78,12 @@ const FAQ_SECTIONS = [
     color: '#8B5CF6',
     faqs: [
       {
-        q: 'How do I list an item for sale?',
-        a: 'Click "Sell" in the navigation, choose your category (Daily Use, Cars, or Property), fill in the details, add photos, and publish. Your listing will be visible to buyers immediately.',
+        q: 'How do I post a product or list an item for sale?',
+        a: '1) Click "Sell" in the top navigation. 2) Choose your category (Daily Essentials, Automotive, or Real Estate). 3) Select the specific sub-category (e.g., Furniture, SUV, House for Rent). 4) Fill out the required details like pricing, location, and condition. 5) Upload high-quality photos. 6) Hit "Publish Listing". Your item will instantly be live on Aliwayz!',
+      },
+      {
+        q: 'How do I switch between being a Buyer and a Seller?',
+        a: 'If you signed up as a Buyer but want to start selling, simply click the "Sell" button in the navigation or go to your Profile Settings. Under "Account Role", you can switch your role to "Seller" or "Both". Once updated, you will have full access to the Seller Dashboard.',
       },
       {
         q: 'How many items can I list?',
@@ -134,8 +138,12 @@ const FAQ_SECTIONS = [
     color: 'var(--color-success)',
     faqs: [
       {
-        q: 'Can I list property for rent on Aliwayz?',
-        a: 'Yes! When creating a property listing, you can choose "For Sale" or "For Rent" as the purpose. Rental listings work great for apartments, rooms, and houses.',
+        q: 'Can I list property for rent or commercial lease?',
+        a: 'Yes! Our Real Estate wizard handles four main transaction types: Sell a Property, Rent a Property, Commercial Lease, and Vacation Rental. The form will dynamically update to show relevant pricing fields like Monthly Rent, HOA fees, NNN charges, or Nightly Rates based on what you select.',
+      },
+      {
+        q: 'Do I have to show the exact address of my property?',
+        a: 'No. In the Property Location section, you can explicitly choose between "Exact location" (shows a pin on the map) and "Approximate location" (shows only the general neighborhood/radius). Approximate location is the default for residential properties.',
       },
       {
         q: 'What types of property can I list?',

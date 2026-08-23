@@ -17,12 +17,12 @@ import { cn, getErrorMessage } from '@lib/utils';
 import toast from '@lib/toast';
 
 export default function CreateListingPage() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
 
-  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || null);
+  const selectedCategory = searchParams.get('category');
 
   const { store, hasStore, isLoading: storeLoading, refetch: refetchStore } = useMyStore();
 
@@ -89,7 +89,7 @@ export default function CreateListingPage() {
 
       <div className="mx-auto max-w-2xl">
         {/* Category Selector */}
-        {!selectedCategory && <CategorySelector onSelect={setSelectedCategory} />}
+        {!selectedCategory && <CategorySelector onSelect={(cat) => setSearchParams({ category: cat })} />}
 
         {/* Category-Specific Form */}
         <AnimatePresence mode="wait">
@@ -103,14 +103,14 @@ export default function CreateListingPage() {
             >
               <div className="mb-4">
                 <button
-                  onClick={() => setSelectedCategory(null)}
+                  onClick={() => navigate(-1)}
                   className="flex items-center gap-1.5 text-sm font-medium transition-colors hover:underline"
                   style={{
                     color: 'var(--color-text-muted)',
                   }}
                 >
                   <ArrowLeft size={16} />
-                  Change category
+                  Back
                 </button>
               </div>
 
@@ -119,7 +119,6 @@ export default function CreateListingPage() {
               {selectedCategory === MAIN_CATEGORIES.REAL_ESTATE && (
                 <RealEstateWizard
                   store={store}
-                  onBackToCategory={() => setSelectedCategory(null)}
                 />
               )}
 
@@ -205,7 +204,7 @@ function NoShopPrompt({ category, isCreating, onQuickStart, onCreateShop, onBack
             color: 'var(--color-text-secondary)',
           }}
         >
-          Choose how you'd like to get started
+          Choose how you&apos;d like to get started
         </p>
       </div>
 
@@ -456,10 +455,13 @@ function CategorySelector({ onSelect }) {
   );
 }
 
-function RealEstateWizard({ store, onBackToCategory }) {
-  const [step, setStep] = useState(0);
-  const [intent, setIntent] = useState('');
-  const [propertyType, setPropertyType] = useState('');
+function RealEstateWizard({ store }) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const stepStr = searchParams.get('step');
+  const step = stepStr ? parseInt(stepStr, 10) : 0;
+  const intent = searchParams.get('intent') || '';
+  const propertyType = searchParams.get('type') || '';
 
   const INTENTS = [
     {
@@ -545,27 +547,16 @@ function RealEstateWizard({ store, onBackToCategory }) {
   };
 
   const handleSelectIntent = (id) => {
-    setIntent(id);
-    setStep(1);
+    setSearchParams({ category: 'real-estate', intent: id, step: 1 });
   };
 
   const handleSelectType = (val) => {
-    setPropertyType(val);
-    setStep(2);
+    setSearchParams({ category: 'real-estate', intent, type: val, step: 2 });
   };
 
   if (step === 0) {
     return (
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-        <div className="mb-4">
-          <button
-            onClick={onBackToCategory}
-            className="flex items-center gap-1.5 text-sm font-medium transition-colors hover:underline text-[var(--color-text-muted)]"
-          >
-            <ArrowLeft size={16} />
-            Back to categories
-          </button>
-        </div>
         <div className="space-y-2 text-center">
           <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">What do you want to do?</h2>
           <p className="text-sm text-[var(--color-text-secondary)]">Select the transaction type for your property</p>
@@ -605,15 +596,6 @@ function RealEstateWizard({ store, onBackToCategory }) {
     const intentLabel = INTENTS.find((i) => i.id === intent)?.label || '';
     return (
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-        <div className="mb-4">
-          <button
-            onClick={() => setStep(0)}
-            className="flex items-center gap-1.5 text-sm font-medium transition-colors hover:underline text-[var(--color-text-muted)]"
-          >
-            <ArrowLeft size={16} />
-            Back to transaction type
-          </button>
-        </div>
         <div className="space-y-2 text-center">
           <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">
             {intent === 'rent' ? 'What are you renting?' : intent === 'lease' ? 'What type of commercial space?' : 'What are you selling?'}
@@ -645,7 +627,6 @@ function RealEstateWizard({ store, onBackToCategory }) {
       store={store}
       intent={intent}
       propertyType={propertyType}
-      onBack={() => setStep(1)}
     />
   );
 }
