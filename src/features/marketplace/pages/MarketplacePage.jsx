@@ -129,7 +129,7 @@ export default function MarketplacePage() {
                 size="sm"
                 leftIcon={<SlidersHorizontal size={14} />}
                 onClick={() => setFiltersOpen(!filtersOpen)}
-                className="relative"
+                className="relative ignore-click-outside"
               >
                 Filters
                 {activeFilterCount > 0 && (

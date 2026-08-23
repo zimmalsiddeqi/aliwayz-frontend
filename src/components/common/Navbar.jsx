@@ -319,7 +319,7 @@ export default function Navbar() {
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
                 className={cn(
-                  'hidden h-9 w-9 overflow-hidden rounded-xl border-2 transition-all duration-200 sm:flex'
+                  'hidden h-9 w-9 overflow-hidden rounded-xl border-2 transition-all duration-200 sm:flex ignore-click-outside'
                 )}
                 style={{
                   borderColor: menuOpen ? 'var(--color-brand)' : 'var(--color-border)',

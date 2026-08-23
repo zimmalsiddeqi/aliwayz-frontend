@@ -5,6 +5,7 @@ export default function useOnClickOutside(ref, handler) {
   useEffect(() => {
     const listener = (event) => {
       if (!ref.current || ref.current.contains(event.target)) return;
+      if (event.target.closest && event.target.closest('.ignore-click-outside')) return;
       handler(event);
     };
 
