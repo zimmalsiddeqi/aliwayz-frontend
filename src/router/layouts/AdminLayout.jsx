@@ -22,6 +22,7 @@ import {
   Sun,
   MessageSquare,
   ShieldCheck,
+  FolderOpen,
 } from 'lucide-react';
 import useAuthStore from '@store/auth.store';
 import useUIStore from '@store/ui.store';
@@ -45,9 +46,10 @@ const NAV_SECTIONS = [
   {
     title: 'Management',
     items: [
-      { to: '/admin/users',    icon: Users,   label: 'Users' },
-      { to: '/admin/stores',   icon: Store,   label: 'Stores' },
-      { to: '/admin/products', icon: Package, label: 'Products' },
+      { to: '/admin/users',      icon: Users,      label: 'Users' },
+      { to: '/admin/stores',     icon: Store,      label: 'Stores' },
+      { to: '/admin/products',    icon: Package,    label: 'Products' },
+      { to: '/admin/categories',  icon: FolderOpen, label: 'Categories' },
     ],
   },
   {

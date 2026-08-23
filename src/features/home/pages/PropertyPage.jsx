@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, SlidersHorizontal, PlusCircle, ChevronDown, ArrowLeft, X } from 'lucide-react';
+import { Search, SlidersHorizontal, PlusCircle, ChevronDown, ArrowLeft, X, MapPin } from 'lucide-react';
 import ProductService from '@api/services/product.service';
 import CategoryService from '@api/services/category.service';
 import { queryKeys } from '@lib/queryClient';
@@ -19,32 +19,29 @@ import LocationSelector from '@components/common/LocationSelector';
 import { isSeller, cn } from '@lib/utils';
 import {
   REAL_ESTATE_TYPES,
-  REAL_ESTATE_PURPOSE,
   BEDROOM_OPTIONS,
+  BATHROOM_OPTIONS,
   CATEGORY_IDS,
 } from '@utils/constants';
-import { getCategoryIdsForMain, getSubcategories } from '@utils/categoryHelpers';
+import { getCategoryIdsForMain, parsePropertyDescription } from '@utils/categoryHelpers';
 import useMediaQuery from '@hooks/useMediaQuery';
-import SearchCategoriesModal from '../components/SearchCategoriesModal';
 
 export default function PropertyPage() {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthStore();
-  const { lat, lng, isLocated, radiusMiles } = useLocationStore();
+  const { lat, lng, isLocated, radiusMiles, city: locationCity, state: locationState } = useLocationStore();
   const canSell = isAuthenticated && isSeller(user?.role);
   const isMobile = useMediaQuery('(max-width: 768px)');
 
-  const [searchCategoriesOpen, setSearchCategoriesOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSubCat, setSelectedSubCat] = useState('');
-  const [filters, setFilters] = useState({
-    min_price: '',
-    max_price: '',
-    sort: 'newest',
-    city: '',
-  });
-  const setFilter = (key, val) => setFilters((p) => ({ ...p, [key]: val }));
+  const [selectedIntent, setSelectedIntent] = useState('all'); // all, sale, rent, lease, vacation
+  const [selectedType, setSelectedType] = useState('');
+  const [beds, setBeds] = useState('');
+  const [baths, setBaths] = useState('');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
 
   const { data: allCategories = [] } = useQuery({
     queryKey: queryKeys.categories.flat(),
@@ -53,7 +50,6 @@ export default function PropertyPage() {
   });
 
   const propertyCategoryIds = getCategoryIdsForMain('property', allCategories);
-  const propertySubcategories = getSubcategories('property', allCategories);
 
   const locationParams =
     isLocated && lat && lng && radiusMiles !== 9999
@@ -61,61 +57,104 @@ export default function PropertyPage() {
       : {};
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteQuery({
-    queryKey: ['property-products', selectedSubCat, filters, searchQuery, lat, lng, radiusMiles],
+    queryKey: ['property-products', sortBy, lat, lng, radiusMiles],
     queryFn: async ({ pageParam = 1 }) => {
-      if (!selectedSubCat && propertyCategoryIds.length > 0) {
+      if (propertyCategoryIds.length > 0) {
         const results = await Promise.all(
           propertyCategoryIds.map((catId) =>
             ProductService.browse({
               category_id: catId,
               page: pageParam,
               limit: 50,
-              sort: filters.sort,
+              sort: sortBy,
               ...locationParams,
-              ...(filters.min_price && { min_price: filters.min_price }),
-              ...(filters.max_price && { max_price: filters.max_price }),
-              ...(filters.city && { city: filters.city }),
             }).catch(() => ({ data: [], pagination: { total: 0 } }))
           )
         );
         const allProducts = results.flatMap((r) => r.data || []);
         const totalCount = results.reduce((s, r) => s + (r.pagination?.total || 0), 0);
-        allProducts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        
+        if (sortBy === 'price_asc') {
+          allProducts.sort((a, b) => a.price - b.price);
+        } else if (sortBy === 'price_desc') {
+          allProducts.sort((a, b) => b.price - a.price);
+        } else {
+          allProducts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        }
+
         return {
-          data: allProducts.slice(0, 12),
+          data: allProducts,
           pagination: {
             page: pageParam,
-            limit: 12,
+            limit: 50,
             total: totalCount,
-            has_next: allProducts.length > 12,
-            total_pages: Math.ceil(totalCount / 12),
+            has_next: allProducts.length > 50,
           },
         };
       }
-      return ProductService.browse({
-        category_id: selectedSubCat || CATEGORY_IDS.PROPERTY,
-        page: pageParam,
-        limit: 12,
-        sort: filters.sort,
-        ...locationParams,
-        ...(filters.min_price && { min_price: filters.min_price }),
-        ...(filters.max_price && { max_price: filters.max_price }),
-        ...(filters.city && { city: filters.city }),
-      });
+      return { data: [], pagination: { total: 0 } };
     },
     getNextPageParam: (last) => (last.pagination?.has_next ? last.pagination.page + 1 : undefined),
     enabled: propertyCategoryIds.length > 0,
   });
 
   const products = data?.pages.flatMap((p) => p.data) || [];
-  const total = data?.pages?.[0]?.pagination?.total || 0;
-  const filteredProducts = searchQuery
-    ? products.filter(
-        (p) =>
-          p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()))
-      )
-    : products;
+
+  // Local/client filters application
+  const filteredProducts = products.filter((p) => {
+    // Search filter
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const matchTitle = p.title.toLowerCase().includes(q);
+      const matchDesc = p.description && p.description.toLowerCase().includes(q);
+      if (!matchTitle && !matchDesc) return false;
+    }
+
+    const attrs = parsePropertyDescription(p.description);
+
+    // Intent/Transaction Type Filter
+    if (selectedIntent !== 'all' && attrs.intent !== selectedIntent) return false;
+
+    // Property Type Filter
+    if (selectedType && attrs.propertyType !== selectedType) return false;
+
+    // Beds Filter
+    if (beds) {
+      if (beds === 'studio') {
+        if (attrs.bedrooms !== 'studio') return false;
+      } else {
+        const prodBeds = parseInt(attrs.bedrooms, 10);
+        const filterBeds = parseInt(beds, 10);
+        if (isNaN(prodBeds) || prodBeds < filterBeds) return false;
+      }
+    }
+
+    // Baths Filter
+    if (baths) {
+      const prodBaths = parseFloat(attrs.bathrooms);
+      const filterBaths = parseFloat(baths);
+      if (isNaN(prodBaths) || prodBaths < filterBaths) return false;
+    }
+
+    // Price Filter
+    const price = Number(p.price);
+    if (minPrice && price < Number(minPrice)) return false;
+    if (maxPrice && price > Number(maxPrice)) return false;
+
+    return true;
+  });
+
+  const displayLocation = [locationCity, locationState].filter(Boolean).join(', ') || 'Near me';
+
+  const clearAllFilters = () => {
+    setSearchQuery('');
+    setSelectedIntent('all');
+    setSelectedType('');
+    setBeds('');
+    setBaths('');
+    setMinPrice('');
+    setMaxPrice('');
+  };
 
   return (
     <>
@@ -123,124 +162,116 @@ export default function PropertyPage() {
         <title>Real Estate — Aliwayz</title>
       </Helmet>
       <div className="pb-24 md:pb-10">
+        {/* Simplified tall green header */}
         <div
           className="relative overflow-hidden"
-          style={{ background: 'linear-gradient(135deg, #064E3B 0%, #059669 50%, #10B981 100%)' }}
+          style={{ background: 'linear-gradient(135deg, #064E3B 0%, #059669 100%)' }}
         >
-          <div className="absolute inset-0 opacity-[0.07]">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <span
-                key={i}
-                className="absolute select-none text-6xl"
-                style={{
-                  top: `${Math.random() * 100}%`,
-                  left: `${Math.random() * 100}%`,
-                  transform: `rotate(${Math.random() * 40 - 20}deg)`,
-                }}
+          <div className="container-app relative py-5 sm:py-6">
+            <div className="flex items-center justify-between">
+              <Link
+                to="/"
+                className="inline-flex items-center gap-1 text-xs text-white/80 hover:text-white"
               >
-                {['🏠', '🏢', '🏡', '🏗️', '🌍', '🏢', '🏪', '🚪'][i]}
-              </span>
-            ))}
-          </div>
-          <div className="container-app relative py-8 sm:py-12">
-            <Link
-              to="/"
-              className="mb-4 inline-flex items-center gap-1.5 text-sm text-white/70 transition-colors hover:text-white"
-            >
-              <ArrowLeft size={16} /> Home
-            </Link>
-            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-              <div>
-                <h1 className="mb-1 text-3xl font-bold text-white sm:text-4xl">🏠 Real Estate</h1>
-                <p className="text-sm text-white/70">
-                  {total} listing{total !== 1 ? 's' : ''} available
-                </p>
-              </div>
+                <ArrowLeft size={14} /> Home
+              </Link>
               {canSell && (
                 <Link to="/sell/create?category=real-estate">
                   <Button
-                    size="md"
-                    leftIcon={<PlusCircle size={16} />}
-                    className="!border-white/30 !bg-white/20 !text-white backdrop-blur-md hover:!bg-white/30"
+                    size="xs"
+                    leftIcon={<PlusCircle size={14} />}
+                    className="!border-white/35 !bg-white/20 !text-white backdrop-blur-md hover:!bg-white/30"
                   >
                     List Property
                   </Button>
                 </Link>
               )}
             </div>
-            <div className="mt-5 max-w-xl">
-              <div className="relative">
-                <Search
-                  size={16}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/50"
-                />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by location, type..."
-                  className="w-full rounded-xl py-3 pl-10 pr-10 text-sm text-white placeholder-white/50 outline-none"
-                  style={{
-                    backgroundColor: 'rgba(255,255,255,0.15)',
-                    border: '1px solid rgba(255,255,255,0.25)',
-                    backdropFilter: 'blur(8px)',
-                  }}
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60"
-                  >
-                    <X size={14} />
-                  </button>
-                )}
-              </div>
+
+            <div className="mt-2.5">
+              <h1 className="text-xl font-bold text-white flex items-center gap-1.5 sm:text-2xl">
+                🏠 Real Estate
+              </h1>
+              <p className="text-xs text-white/70">Find homes, land & commercial space near you</p>
             </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {['All', 'For Sale', 'For Rent', 'Home', 'Apartment', 'Land'].map((item) => (
+
+            {/* Combined Search City/ZIP Bar */}
+            <div className="mt-4 max-w-xl relative flex items-center">
+              <Search
+                size={16}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/50 pointer-events-none"
+              />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search city, ZIP, neighborhood..."
+                className="w-full rounded-xl py-2.5 pl-10 pr-10 text-xs text-white placeholder-white/50 outline-none"
+                style={{
+                  backgroundColor: 'rgba(255,255,255,0.15)',
+                  border: '1px solid rgba(255,255,255,0.25)',
+                  backdropFilter: 'blur(8px)',
+                }}
+              />
+              {searchQuery && (
                 <button
-                  key={item}
-                  onClick={() => (item === 'All' ? setSearchQuery('') : setSearchQuery(item))}
-                  className="rounded-full px-3 py-1.5 text-xs font-medium transition-all"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/60 hover:text-white"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+
+            {/* Segment Toggle: Intent */}
+            <div className="mt-4 flex gap-1.5 overflow-x-auto pb-1">
+              {[
+                { id: 'all', label: 'All Listings' },
+                { id: 'sale', label: 'For Sale' },
+                { id: 'rent', label: 'For Rent' },
+                { id: 'lease', label: 'Commercial Lease' },
+                { id: 'vacation', label: 'Vacation Rental' },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => setSelectedIntent(item.id)}
+                  className="rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all border"
                   style={{
-                    backgroundColor:
-                      (item === 'All' && !searchQuery) || searchQuery === item
-                        ? 'white'
-                        : 'rgba(255,255,255,0.15)',
-                    color:
-                      (item === 'All' && !searchQuery) || searchQuery === item
-                        ? '#064E3B'
-                        : 'white',
-                    border: '1px solid rgba(255,255,255,0.25)',
+                    backgroundColor: selectedIntent === item.id ? 'white' : 'rgba(255,255,255,0.1)',
+                    color: selectedIntent === item.id ? '#064E3B' : 'white',
+                    borderColor: selectedIntent === item.id ? 'white' : 'rgba(255,255,255,0.2)',
                   }}
                 >
-                  {item}
+                  {item.label}
                 </button>
               ))}
             </div>
           </div>
         </div>
 
+        {/* Filters Controls Row */}
         <div className="container-app py-3">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex-1 min-w-0">
-              <LocationSelector compact={isMobile} />
+          <div className="flex items-center justify-between gap-3 border-b pb-3" style={{ borderColor: 'var(--color-border)' }}>
+            {/* Location selector */}
+            <div className="flex items-center gap-1 text-sm font-semibold truncate text-[var(--color-text-primary)]">
+              <MapPin size={16} className="text-emerald-600 shrink-0" />
+              <LocationSelector compact />
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
+
+            <div className="flex items-center gap-2 shrink-0">
               <Select
-                value={filters.sort}
-                onChange={(e) => setFilter('sort', e.target.value)}
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
                 options={[
                   { value: 'newest', label: 'Newest' },
                   { value: 'price_asc', label: 'Price ↑' },
                   { value: 'price_desc', label: 'Price ↓' },
-                  { value: 'popular', label: 'Popular' },
                 ]}
                 containerClassName="!space-y-0"
                 className="!rounded-xl !py-2 text-xs"
               />
               <Button
-                variant="outline"
+                variant={showFilters ? "brand" : "outline"}
                 size="sm"
                 leftIcon={<SlidersHorizontal size={14} />}
                 onClick={() => setShowFilters(!showFilters)}
@@ -251,107 +282,102 @@ export default function PropertyPage() {
           </div>
         </div>
 
-        <div className="container-app py-2">
-          {propertySubcategories.length > 0 && (
-            <div className="-mx-4 sm:mx-0 mb-4 flex items-center justify-start gap-1.5 sm:gap-2 px-4 sm:px-0 flex-nowrap w-full overflow-hidden pb-1 sm:pb-0">
-              <button
-                onClick={() => setSelectedSubCat('')}
-                className="flex flex-shrink-0 items-center gap-1 sm:gap-1.5 whitespace-nowrap rounded-xl px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium transition-all"
-                style={{
-                  backgroundColor: !selectedSubCat ? '#059669' : 'var(--color-surface)',
-                  color: !selectedSubCat ? 'white' : 'var(--color-text-secondary)',
-                  border: `1px solid ${!selectedSubCat ? '#059669' : 'var(--color-border)'}`,
-                }}
-              >
-                <span className="text-[12px] sm:text-sm">🌟</span> All Listings
-              </button>
-              {propertySubcategories.slice(0, 5).map((sub, index) => (
-                <button
-                  key={sub.id}
-                  onClick={() => setSelectedSubCat(selectedSubCat === sub.id ? '' : sub.id)}
-                  className={cn(
-                    "flex-shrink-0 items-center gap-1 sm:gap-1.5 whitespace-nowrap rounded-xl px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium transition-all",
-                    index > 1 ? "hidden sm:flex" : "flex"
-                  )}
-                  style={{
-                    backgroundColor: selectedSubCat === sub.id ? '#059669' : 'var(--color-surface)',
-                    color: selectedSubCat === sub.id ? 'white' : 'var(--color-text-secondary)',
-                    border: `1px solid ${selectedSubCat === sub.id ? '#059669' : 'var(--color-border)'}`,
-                  }}
-                >
-                  {sub.name}
-                </button>
-              ))}
-              <button
-                onClick={() => setSearchCategoriesOpen(true)}
-                className="flex flex-shrink-0 items-center gap-1 sm:gap-1.5 whitespace-nowrap rounded-xl px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium transition-all hover:bg-[var(--glass-bg-strong)]"
-                style={{
-                  backgroundColor: 'var(--color-surface)',
-                  color: 'var(--color-text-secondary)',
-                  border: '1px solid var(--color-border)',
-                }}
-              >
-                <span className="text-[12px] sm:text-sm">🔍</span> All Categories
-              </button>
-            </div>
-          )}
-
-          <div className="mb-4">
-            <p className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>
-              {isLoading ? 'Loading...' : `${filteredProducts.length} items`}
-            </p>
-            {isLocated && radiusMiles !== 9999 && (
-              <p className="mt-0.5 text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
-                📍 Within {radiusMiles} miles of your location
-              </p>
-            )}
-          </div>
-
+        {/* Dynamic Filter Bottom Drawer/Sheet */}
+        <div className="container-app">
           <AnimatePresence>
             {showFilters && (
               <motion.div
-                className="mb-6 grid grid-cols-2 gap-3 rounded-2xl p-4 sm:grid-cols-4"
+                className="mb-6 rounded-2xl p-5 border space-y-4"
                 style={{
                   backgroundColor: 'var(--color-surface)',
-                  border: '1px solid var(--color-border)',
+                  borderColor: 'var(--color-border)',
                 }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
               >
-                <Select
-                  label="Type"
-                  placeholder="All Types"
-                  options={REAL_ESTATE_TYPES}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <Select
-                  label="Listing"
-                  placeholder="Buy or Rent"
-                  options={REAL_ESTATE_PURPOSE}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <Input
-                  label="Min Price"
-                  type="number"
-                  placeholder="$0"
-                  onChange={(e) => setFilter('min_price', e.target.value)}
-                />
-                <Input
-                  label="Max Price"
-                  type="number"
-                  placeholder="Any"
-                  onChange={(e) => setFilter('max_price', e.target.value)}
-                />
-                <Select label="Beds" placeholder="Any" options={BEDROOM_OPTIONS} />
-                <Input
-                  label="City"
-                  placeholder="Filter by city"
-                  onChange={(e) => setFilter('city', e.target.value)}
-                />
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <Select
+                    label="Property type"
+                    placeholder="All Types"
+                    options={[
+                      { value: 'single_family', label: 'Single-Family Home' },
+                      { value: 'townhome', label: 'Townhouse' },
+                      { value: 'condo', label: 'Condo / Co-op' },
+                      { value: 'multi_family', label: 'Multi-Family' },
+                      { value: 'apartment', label: 'Apartment' },
+                      { value: 'room', label: 'Room / Sublet' },
+                      { value: 'land', label: 'Land / Lot' },
+                      { value: 'commercial', label: 'Commercial' },
+                      { value: 'office', label: 'Office' },
+                      { value: 'industrial', label: 'Industrial / Warehouse' },
+                      { value: 'vacation', label: 'Vacation rental' },
+                    ]}
+                    value={selectedType}
+                    onChange={(e) => setSelectedType(e.target.value)}
+                  />
+                  <Select
+                    label="Bedrooms"
+                    placeholder="Any"
+                    options={[
+                      { value: 'studio', label: 'Studio' },
+                      { value: '1', label: '1+ Bed' },
+                      { value: '2', label: '2+ Bed' },
+                      { value: '3', label: '3+ Bed' },
+                      { value: '4', label: '4+ Bed' },
+                    ]}
+                    value={beds}
+                    onChange={(e) => setBeds(e.target.value)}
+                  />
+                  <Select
+                    label="Bathrooms"
+                    placeholder="Any"
+                    options={[
+                      { value: '1', label: '1+ Bath' },
+                      { value: '2', label: '2+ Bath' },
+                      { value: '3', label: '3+ Bath' },
+                    ]}
+                    value={baths}
+                    onChange={(e) => setBaths(e.target.value)}
+                  />
+                  <div className="flex gap-2 items-end">
+                    <Input
+                      label="Min Price"
+                      type="number"
+                      placeholder="$ Min"
+                      value={minPrice}
+                      onChange={(e) => setMinPrice(e.target.value)}
+                      containerClassName="w-1/2"
+                    />
+                    <Input
+                      label="Max Price"
+                      type="number"
+                      placeholder="$ Max"
+                      value={maxPrice}
+                      onChange={(e) => setMaxPrice(e.target.value)}
+                      containerClassName="w-1/2"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 border-t pt-3" style={{ borderColor: 'var(--color-border)' }}>
+                  <Button variant="ghost" size="sm" onClick={clearAllFilters}>
+                    Clear Filters
+                  </Button>
+                  <Button size="sm" onClick={() => setShowFilters(false)}>
+                    Apply Filters
+                  </Button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Results section */}
+          <div className="mb-4">
+            <p className="text-xs font-semibold" style={{ color: 'var(--color-text-secondary)' }}>
+              {isLoading ? 'Searching properties...' : `${filteredProducts.length} properties matching criteria`}
+            </p>
+          </div>
 
           {isLoading ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
@@ -362,12 +388,10 @@ export default function PropertyPage() {
           ) : filteredProducts.length === 0 ? (
             <EmptyState
               icon="🏠"
-              title={
-                searchQuery ? `No listings matching "${searchQuery}"` : 'No real estate listed yet'
-              }
-              description={canSell ? 'List your first property!' : 'Check back later.'}
-              actionLabel={canSell ? 'List Property' : undefined}
-              actionTo={canSell ? '/sell/create?category=real-estate' : undefined}
+              title="No properties found"
+              description="Try expanding your location or adjusting your filters to see more results."
+              actionLabel="Clear Filters"
+              onClick={clearAllFilters}
             />
           ) : (
             <>
@@ -392,15 +416,6 @@ export default function PropertyPage() {
           )}
         </div>
       </div>
-      <SearchCategoriesModal
-        isOpen={searchCategoriesOpen}
-        onClose={() => setSearchCategoriesOpen(false)}
-        categories={propertySubcategories}
-        onSelect={(cat) => {
-          setSelectedSubCat(cat.id);
-          setSearchCategoriesOpen(false);
-        }}
-      />
     </>
   );
 }

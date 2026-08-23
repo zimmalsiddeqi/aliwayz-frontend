@@ -38,6 +38,8 @@ import {
 import { formatDate, formatCompactNumber, formatRating } from '@utils/formatters';
 import { getPrimaryImage, getAllImageUrls } from '@utils/helpers';
 import toast from '@lib/toast';
+import { parsePropertyDescription, stripPrivateTags } from '@utils/categoryHelpers';
+import { CATEGORY_IDS } from '@utils/constants';
 
 const STARTER_MESSAGES = [
   'Hi! Is this still available?',
@@ -406,10 +408,42 @@ export default function ProductDetailPage() {
                     color: 'var(--color-text-secondary)',
                   }}
                 >
-                  {product.description}
+                  {product.category_id === CATEGORY_IDS.PROPERTY || product.category_id === CATEGORY_IDS.REAL_ESTATE
+                    ? stripPrivateTags(product.description)
+                    : product.description}
                 </p>
               </div>
             )}
+
+            {/* ── Private Real Estate Info (Seller Only) ──── */}
+            {isOwner && (product.category_id === CATEGORY_IDS.PROPERTY || product.category_id === CATEGORY_IDS.REAL_ESTATE) && (() => {
+              const attrs = parsePropertyDescription(product.description);
+              if (attrs.address) {
+                return (
+                  <div
+                    className="space-y-2 rounded-2xl p-4 border"
+                    style={{
+                      backgroundColor: 'rgba(16,185,129,0.05)',
+                      borderColor: 'rgba(16,185,129,0.2)',
+                    }}
+                  >
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600">
+                      <MapPin size={14} />
+                      <span>Private Property Details (Seller Only)</span>
+                    </div>
+                    <div className="text-xs space-y-1">
+                      <p style={{ color: 'var(--color-text-primary)' }}>
+                        <span className="font-semibold">Private Address:</span> {attrs.address}
+                      </p>
+                      <p style={{ color: 'var(--color-text-muted)' }}>
+                        <span className="font-semibold">Public Representation:</span> {attrs.addressVisibility === 'exact' ? 'Exact location' : 'Approximate neighborhood circle'}
+                      </p>
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            })()}
 
             {/* ── Details ────────────────────────────────── */}
             <div

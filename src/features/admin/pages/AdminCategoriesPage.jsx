@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import {
   FolderOpen, Plus, Trash2, Folder, Layers,
-  ChevronRight, ChevronDown, Check, AlertTriangle
+  ChevronRight, ChevronDown, Check, AlertTriangle, Edit2, X
 } from 'lucide-react';
 import CategoryService from '@api/services/category.service';
 import Button from '@components/ui/Button';
@@ -16,14 +16,16 @@ import toast from '@lib/toast';
 export default function AdminCategoriesPage() {
   const queryClient = useQueryClient();
 
-  // Selected parent category ID for creating a subcategory/sub-subcategory
   const [parentId, setParentId] = useState('');
   const [categoryName, setCategoryName] = useState('');
   const [displayOrder, setDisplayOrder] = useState('0');
   const [expandedIds, setExpandedIds] = useState({});
   const [deletingId, setDeletingId] = useState(null);
+  
+  // Track Category Editing State
+  const [editingCategory, setEditingCategory] = useState(null);
 
-  // Fetch category tree (Levels 1, 2, and 3)
+  // Fetch category tree
   const { data: treeData, isLoading: isTreeLoading } = useQuery({
     queryKey: ['admin-categories-tree'],
     queryFn: CategoryService.getTree,
@@ -38,7 +40,6 @@ export default function AdminCategoriesPage() {
   const categoriesTree = treeData?.data || [];
   const flatCategories = flatData?.data || [];
 
-  // Toggle tree node collapse/expand
   const toggleExpand = (id) => {
     setExpandedIds((prev) => ({
       ...prev,
@@ -52,11 +53,24 @@ export default function AdminCategoriesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-categories-tree'] });
       queryClient.invalidateQueries({ queryKey: ['admin-categories-flat'] });
-      queryClient.invalidateQueries({ queryKey: ['categories-tree'] }); // invalidate public drawer cache
-      setCategoryName('');
-      setParentId('');
-      setDisplayOrder('0');
+      queryClient.invalidateQueries({ queryKey: ['categories-tree'] });
+      resetForm();
       toast.success('Category created successfully! 🎉');
+    },
+    onError: (err) => {
+      toast.error(getErrorMessage(err));
+    },
+  });
+
+  // Update Category Mutation
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => CategoryService.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-categories-tree'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-categories-flat'] });
+      queryClient.invalidateQueries({ queryKey: ['categories-tree'] });
+      resetForm();
+      toast.success('Category updated successfully! 📝');
     },
     onError: (err) => {
       toast.error(getErrorMessage(err));
@@ -69,7 +83,7 @@ export default function AdminCategoriesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-categories-tree'] });
       queryClient.invalidateQueries({ queryKey: ['admin-categories-flat'] });
-      queryClient.invalidateQueries({ queryKey: ['categories-tree'] }); // invalidate public drawer cache
+      queryClient.invalidateQueries({ queryKey: ['categories-tree'] });
       setDeletingId(null);
       toast.success('Category deleted successfully! 🗑️');
     },
@@ -79,19 +93,45 @@ export default function AdminCategoriesPage() {
     },
   });
 
-  const handleCreate = (e) => {
+  const resetForm = () => {
+    setCategoryName('');
+    setParentId('');
+    setDisplayOrder('0');
+    setEditingCategory(null);
+  };
+
+  const handleEditClick = (cat) => {
+    setEditingCategory(cat);
+    setCategoryName(cat.name);
+    setParentId(cat.parent_id || '');
+    setDisplayOrder(String(cat.display_order || 0));
+    document.getElementById('cat-name-input')?.focus();
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (!categoryName.trim()) {
       toast.error('Please enter a category name');
       return;
     }
 
-    createMutation.mutate({
+    const payload = {
       name: categoryName.trim(),
       parent_id: parentId || null,
       display_order: parseInt(displayOrder) || 0,
-      icon_url: null, // Left null to avoid URL format validation errors
-    });
+      icon_url: null,
+    };
+
+    if (editingCategory) {
+      // Prevent selecting itself as parent
+      if (parentId === editingCategory.id) {
+        toast.error('A category cannot be its own parent category.');
+        return;
+      }
+      updateMutation.mutate({ id: editingCategory.id, data: payload });
+    } else {
+      createMutation.mutate(payload);
+    }
   };
 
   const handleDelete = (id, name, childrenCount) => {
@@ -110,13 +150,15 @@ export default function AdminCategoriesPage() {
     const hasChildren = cat.children && cat.children.length > 0;
     const childrenCount = cat.children ? cat.children.length : 0;
     const isExpanded = expandedIds[cat.id];
+    const isEditingThis = editingCategory?.id === cat.id;
 
     return (
       <div key={cat.id} className="space-y-1">
         <div
           className={cn(
             "flex items-center justify-between rounded-xl p-3 border border-transparent transition-all duration-200",
-            depth === 0 ? "bg-[var(--color-surface-elevated)]" : "bg-transparent"
+            depth === 0 ? "bg-[var(--color-surface-elevated)]" : "bg-transparent",
+            isEditingThis ? "border-[var(--color-brand)] bg-[var(--color-brand-glow)]" : ""
           )}
           style={{
             marginLeft: `${depth * 20}px`,
@@ -133,7 +175,7 @@ export default function AdminCategoriesPage() {
                 {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
               </button>
             ) : (
-              <span className="w-6" /> // spacer
+              <span className="w-6" />
             )}
 
             {depth === 0 ? (
@@ -170,7 +212,7 @@ export default function AdminCategoriesPage() {
             <button
               onClick={() => {
                 setParentId(cat.id);
-                // focus category name input
+                setEditingCategory(null);
                 document.getElementById('cat-name-input')?.focus();
               }}
               title="Add subcategory under this"
@@ -178,6 +220,15 @@ export default function AdminCategoriesPage() {
             >
               <Plus size={16} />
             </button>
+            
+            <button
+              onClick={() => handleEditClick(cat)}
+              title="Modify category name & order"
+              className="p-1.5 rounded-lg text-amber-400 hover:bg-amber-500/10 transition-colors"
+            >
+              <Edit2 size={16} />
+            </button>
+
             <button
               disabled={deletingId === cat.id}
               onClick={() => handleDelete(cat.id, cat.name, childrenCount)}
@@ -192,7 +243,6 @@ export default function AdminCategoriesPage() {
           </div>
         </div>
 
-        {/* Render child nodes if expanded */}
         {hasChildren && isExpanded && (
           <div className="space-y-1">
             {cat.children.map((child) => renderCategoryNode(child, depth + 1))}
@@ -213,11 +263,11 @@ export default function AdminCategoriesPage() {
       <div className="space-y-6">
         <PageHeader
           title="Categories Management"
-          subtitle="Add, nested-structure, or delete platform categories, subcategories, and sub-subcategories."
+          subtitle="Add, nested-structure, modify, or delete platform categories, subcategories, and sub-subcategories."
         />
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* ═══ LEFT: Categories Tree Explorer ═══════════ */}
+          {/* Tree Explorer */}
           <div className="lg:col-span-2 space-y-4">
             <Card className="p-4 md:p-6 space-y-4">
               <h3 className="text-base font-bold flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
@@ -244,15 +294,15 @@ export default function AdminCategoriesPage() {
             </Card>
           </div>
 
-          {/* ═══ RIGHT: Create Category Form ══════════════ */}
+          {/* Form */}
           <div>
             <Card className="p-4 md:p-6 space-y-4">
               <h3 className="text-base font-bold flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
-                <Plus className="text-emerald-400" size={20} />
-                Create Category
+                {editingCategory ? <Edit2 className="text-amber-400" size={20} /> : <Plus className="text-emerald-400" size={20} />}
+                {editingCategory ? 'Modify Category' : 'Create Category'}
               </h3>
 
-              <form onSubmit={handleCreate} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Category Name */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold" style={{ color: 'var(--color-text-primary)' }}>
@@ -290,11 +340,13 @@ export default function AdminCategoriesPage() {
                     }}
                   >
                     <option value="">None (Top-Level Root Category)</option>
-                    {flatCategories.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.parent_id ? '↳ ' : ''}{c.name}
-                      </option>
-                    ))}
+                    {flatCategories
+                      .filter((c) => !editingCategory || c.id !== editingCategory.id) // Cannot nest under itself
+                      .map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.parent_id ? '↳ ' : ''}{c.name}
+                        </option>
+                      ))}
                   </select>
                   <p className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
                     Select None to create a main category. Select an existing category to make it a subcategory (Level 2) or sub-subcategory (Level 3).
@@ -324,7 +376,6 @@ export default function AdminCategoriesPage() {
                   </p>
                 </div>
 
-                {/* Warning Card */}
                 {parentId && (
                   <div className="p-3 rounded-xl border text-xs flex gap-2"
                     style={{
@@ -335,20 +386,32 @@ export default function AdminCategoriesPage() {
                   >
                     <AlertTriangle className="flex-shrink-0" size={16} />
                     <p>
-                      You are nesting this new item as a sub-level category. It will inherit inheritance constraints and display in the drilldown explorer drawer.
+                      You are nesting this item as a sub-level category. It will inherit inheritance constraints and display in the drilldown explorer drawer.
                     </p>
                   </div>
                 )}
 
-                {/* Submit button */}
-                <Button
-                  type="submit"
-                  fullWidth
-                  isLoading={createMutation.isPending}
-                  leftIcon={<Check size={16} />}
-                >
-                  Create Category
-                </Button>
+                <div className="flex gap-2">
+                  {editingCategory && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      fullWidth
+                      onClick={resetForm}
+                      leftIcon={<X size={16} />}
+                    >
+                      Cancel
+                    </Button>
+                  )}
+                  <Button
+                    type="submit"
+                    fullWidth
+                    isLoading={createMutation.isPending || updateMutation.isPending}
+                    leftIcon={<Check size={16} />}
+                  >
+                    {editingCategory ? 'Update' : 'Create'} Category
+                  </Button>
+                </div>
               </form>
             </Card>
           </div>

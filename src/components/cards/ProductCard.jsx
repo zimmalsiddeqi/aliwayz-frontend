@@ -11,6 +11,8 @@ import { cn, formatPrice, formatRelativeTime, getConditionLabel, getConditionCol
 import { getPrimaryImage } from '@utils/helpers';
 import { formatCompactNumber } from '@utils/formatters';
 import toast from '@lib/toast';
+import { parsePropertyDescription } from '@utils/categoryHelpers';
+import { CATEGORY_IDS } from '@utils/constants';
 
 const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
   const { isAuthenticated, user } = useAuthStore();
@@ -100,16 +102,39 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
             />
           </button>
 
-          {/* Condition badge */}
+          {/* Condition badge / Transaction Type badge */}
           <div className="absolute top-3 left-3">
-            <span
-              className={cn(
-                'px-2 py-0.5 rounded-lg text-[10px] font-semibold backdrop-blur-md',
-                getConditionColor(product.condition)
-              )}
-            >
-              {getConditionLabel(product.condition)}
-            </span>
+            {product.category_id === CATEGORY_IDS.PROPERTY || product.category_id === CATEGORY_IDS.REAL_ESTATE ? (
+              (() => {
+                const attrs = parsePropertyDescription(product.description);
+                let badgeText = 'For Sale';
+                let badgeColor = 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600';
+                if (attrs.intent === 'rent') {
+                  badgeText = 'For Rent';
+                  badgeColor = 'bg-blue-500/10 border-blue-500/30 text-blue-600';
+                } else if (attrs.intent === 'lease') {
+                  badgeText = 'For Lease';
+                  badgeColor = 'bg-purple-500/10 border-purple-500/30 text-purple-600';
+                } else if (attrs.intent === 'vacation') {
+                  badgeText = 'Vacation';
+                  badgeColor = 'bg-amber-500/10 border-amber-500/30 text-amber-600';
+                }
+                return (
+                  <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-semibold border backdrop-blur-md', badgeColor)}>
+                    {badgeText}
+                  </span>
+                );
+              })()
+            ) : (
+              <span
+                className={cn(
+                  'px-2 py-0.5 rounded-lg text-[10px] font-semibold backdrop-blur-md',
+                  getConditionColor(product.condition)
+                )}
+              >
+                {getConditionLabel(product.condition)}
+              </span>
+            )}
           </div>
 
           {/* Featured badge */}
@@ -130,10 +155,52 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
             {product.title}
           </h3>
 
-          {/* Price */}
-          <p className="text-lg font-bold text-gradient-brand">
-            {formatPrice(product.price, product.currency)}
-          </p>
+          {/* Price & Real estate subtitle info */}
+          <div>
+            <p className="text-lg font-bold text-gradient-brand">
+              {(() => {
+                if (product.category_id === CATEGORY_IDS.PROPERTY || product.category_id === CATEGORY_IDS.REAL_ESTATE) {
+                  const attrs = parsePropertyDescription(product.description);
+                  const priceStr = formatPrice(product.price, product.currency);
+                  if (attrs.intent === 'rent') return `${priceStr} / mo`;
+                  if (attrs.intent === 'vacation') return `${priceStr} / night`;
+                  if (attrs.intent === 'lease') {
+                    const leaseTypeMatch = product.description.match(/Pricing Type:\s*(\w+)/);
+                    const leaseType = leaseTypeMatch ? leaseTypeMatch[1] : '';
+                    if (leaseType === 'year') return `${priceStr} / yr`;
+                    if (leaseType === 'sqft_month') return `${priceStr} / SF / mo`;
+                    if (leaseType === 'sqft_year') return `${priceStr} / SF / yr`;
+                    return `${priceStr} / mo`;
+                  }
+                  return priceStr;
+                }
+                return formatPrice(product.price, product.currency);
+              })()}
+            </p>
+            {(product.category_id === CATEGORY_IDS.PROPERTY || product.category_id === CATEGORY_IDS.REAL_ESTATE) && (() => {
+              const attrs = parsePropertyDescription(product.description);
+              let subtitleParts = [];
+              if (attrs.propertyType === 'land') {
+                const acMatch = product.description.match(/Acreage:\s*([^\n]+)/);
+                if (acMatch) subtitleParts.push(`${acMatch[1]} acres`);
+              } else if (['commercial', 'office', 'industrial'].includes(attrs.propertyType) || attrs.intent === 'lease') {
+                if (attrs.areaSize) subtitleParts.push(`${attrs.areaSize} sq ft`);
+              } else {
+                if (attrs.bedrooms) {
+                  subtitleParts.push(attrs.bedrooms === 'studio' ? 'Studio' : `${attrs.bedrooms} bd`);
+                }
+                if (attrs.bathrooms) subtitleParts.push(`${attrs.bathrooms} ba`);
+              }
+              if (subtitleParts.length > 0) {
+                return (
+                  <p className="text-[11px] font-medium mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
+                    {subtitleParts.join(' · ')}
+                  </p>
+                );
+              }
+              return null;
+            })()}
+          </div>
 
           {/* Meta row */}
           <div className="flex items-center justify-between">

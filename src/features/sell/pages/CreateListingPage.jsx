@@ -117,7 +117,10 @@ export default function CreateListingPage() {
               {selectedCategory === MAIN_CATEGORIES.VEHICLES && <CarListingForm store={store} />}
 
               {selectedCategory === MAIN_CATEGORIES.REAL_ESTATE && (
-                <PropertyListingForm store={store} />
+                <RealEstateWizard
+                  store={store}
+                  onBackToCategory={() => setSelectedCategory(null)}
+                />
               )}
 
               {selectedCategory === MAIN_CATEGORIES.ESSENTIALS && (
@@ -450,5 +453,199 @@ function CategorySelector({ onSelect }) {
         ))}
       </div>
     </motion.div>
+  );
+}
+
+function RealEstateWizard({ store, onBackToCategory }) {
+  const [step, setStep] = useState(0);
+  const [intent, setIntent] = useState('');
+  const [propertyType, setPropertyType] = useState('');
+
+  const INTENTS = [
+    {
+      id: 'sale',
+      label: 'Sell a Property',
+      desc: 'I’m looking for a buyer.',
+      emoji: '🏡',
+      gradient: 'linear-gradient(135deg, #059669 0%, #10B981 100%)',
+    },
+    {
+      id: 'rent',
+      label: 'Rent a Property',
+      desc: 'I’m looking for a tenant.',
+      emoji: '🔑',
+      gradient: 'linear-gradient(135deg, #2563EB 0%, #3B82F6 100%)',
+    },
+    {
+      id: 'lease',
+      label: 'Lease Commercial Space',
+      desc: 'I’m looking for a business/tenant.',
+      emoji: '🏢',
+      gradient: 'linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%)',
+    },
+    {
+      id: 'vacation',
+      label: 'Vacation Rental',
+      desc: 'Short-term stays.',
+      emoji: '🌴',
+      gradient: 'linear-gradient(135deg, #D97706 0%, #F59E0B 100%)',
+    },
+  ];
+
+  const PROPERTY_TYPES_BY_INTENT = {
+    sale: [
+      { value: 'single_family', label: 'Single-Family Home' },
+      { value: 'townhome', label: 'Townhouse' },
+      { value: 'condo', label: 'Condo / Co-op' },
+      { value: 'multi_family', label: 'Multi-Family' },
+      { value: 'apartment', label: 'Apartment Building' },
+      { value: 'mobile_home', label: 'Mobile / Manufactured Home' },
+      { value: 'land', label: 'Land / Lot' },
+      { value: 'commercial', label: 'Commercial Property' },
+      { value: 'office', label: 'Office' },
+      { value: 'retail', label: 'Retail' },
+      { value: 'restaurant', label: 'Restaurant' },
+      { value: 'industrial', label: 'Industrial / Warehouse' },
+      { value: 'mixed_use', label: 'Mixed Use' },
+      { value: 'parking', label: 'Parking' },
+    ],
+    rent: [
+      { value: 'apartment', label: 'Apartment' },
+      { value: 'single_family', label: 'House' },
+      { value: 'townhome', label: 'Townhouse' },
+      { value: 'condo', label: 'Condo' },
+      { value: 'room', label: 'Room' },
+      { value: 'basement', label: 'Basement' },
+      { value: 'duplex', label: 'Duplex' },
+      { value: 'multi_family', label: 'Multi-Family' },
+      { value: 'mobile_home', label: 'Mobile / Manufactured' },
+      { value: 'student_housing', label: 'Student Housing' },
+      { value: 'senior_housing', label: 'Senior Housing' },
+    ],
+    lease: [
+      { value: 'office', label: 'Office' },
+      { value: 'retail', label: 'Retail' },
+      { value: 'restaurant', label: 'Restaurant / Food Service' },
+      { value: 'medical', label: 'Medical' },
+      { value: 'industrial', label: 'Warehouse' },
+      { value: 'industrial_flex', label: 'Industrial / Flex Space' },
+      { value: 'land', label: 'Commercial Land' },
+      { value: 'parking', label: 'Parking' },
+      { value: 'storage', label: 'Storage' },
+      { value: 'mixed_use', label: 'Mixed Use' },
+    ],
+    vacation: [
+      { value: 'single_family', label: 'House' },
+      { value: 'condo', label: 'Condo' },
+      { value: 'apartment', label: 'Apartment' },
+      { value: 'cabin', label: 'Cabin' },
+      { value: 'guest_house', label: 'Guest House' },
+      { value: 'room', label: 'Room' },
+    ],
+  };
+
+  const handleSelectIntent = (id) => {
+    setIntent(id);
+    setStep(1);
+  };
+
+  const handleSelectType = (val) => {
+    setPropertyType(val);
+    setStep(2);
+  };
+
+  if (step === 0) {
+    return (
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+        <div className="mb-4">
+          <button
+            onClick={onBackToCategory}
+            className="flex items-center gap-1.5 text-sm font-medium transition-colors hover:underline text-[var(--color-text-muted)]"
+          >
+            <ArrowLeft size={16} />
+            Back to categories
+          </button>
+        </div>
+        <div className="space-y-2 text-center">
+          <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">What do you want to do?</h2>
+          <p className="text-sm text-[var(--color-text-secondary)]">Select the transaction type for your property</p>
+        </div>
+        <div className="space-y-3">
+          {INTENTS.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => handleSelectIntent(item.id)}
+              className="group flex w-full items-center gap-4 rounded-2xl p-5 text-left transition-all duration-200 hover:-translate-y-0.5"
+              style={{
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                boxShadow: 'var(--shadow-card)',
+              }}
+            >
+              <div
+                className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl text-3xl transition-transform group-hover:scale-110"
+                style={{ background: item.gradient }}
+              >
+                <span className="drop-shadow">{item.emoji}</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-bold text-[var(--color-text-primary)]">{item.label}</h3>
+                <p className="mt-0.5 text-xs text-[var(--color-text-muted)]">{item.desc}</p>
+              </div>
+              <ArrowRight size={18} className="transition-transform group-hover:translate-x-1 text-[var(--color-text-muted)]" />
+            </button>
+          ))}
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (step === 1) {
+    const types = PROPERTY_TYPES_BY_INTENT[intent] || [];
+    const intentLabel = INTENTS.find((i) => i.id === intent)?.label || '';
+    return (
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+        <div className="mb-4">
+          <button
+            onClick={() => setStep(0)}
+            className="flex items-center gap-1.5 text-sm font-medium transition-colors hover:underline text-[var(--color-text-muted)]"
+          >
+            <ArrowLeft size={16} />
+            Back to transaction type
+          </button>
+        </div>
+        <div className="space-y-2 text-center">
+          <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">
+            {intent === 'rent' ? 'What are you renting?' : intent === 'lease' ? 'What type of commercial space?' : 'What are you selling?'}
+          </h2>
+          <p className="text-sm text-[var(--color-text-secondary)]">Selected: {intentLabel}</p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {types.map((type) => (
+            <button
+              key={type.value}
+              onClick={() => handleSelectType(type.value)}
+              className="flex w-full items-center justify-between rounded-xl p-4 text-left transition-all hover:bg-[var(--glass-bg-strong)]"
+              style={{
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+              }}
+            >
+              <span className="text-sm font-semibold text-[var(--color-text-primary)]">{type.label}</span>
+              <ArrowRight size={16} className="text-[var(--color-text-muted)]" />
+            </button>
+          ))}
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <PropertyListingForm
+      store={store}
+      intent={intent}
+      propertyType={propertyType}
+      onBack={() => setStep(1)}
+    />
   );
 }

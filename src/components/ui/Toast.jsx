@@ -26,7 +26,7 @@ function addToast(toast) {
   const id = ++toastId;
   const newToast = {
     id,
-    duration:  toast.centered ? 0 : 4000,
+    duration:  3000,
     centered:  false,
     ...toast,
     createdAt: Date.now(),
@@ -34,7 +34,7 @@ function addToast(toast) {
   toasts = [newToast, ...toasts].slice(0, 5);
   notify();
 
-  if (newToast.duration > 0 && !newToast.centered) {
+  if (newToast.duration > 0) {
     setTimeout(() => removeToast(id), newToast.duration);
   }
 
@@ -56,19 +56,19 @@ function updateToast(id, updates) {
 // ── Public API ─────────────────────────────────────────
 export const showToast = {
   success: (message, options = {}) =>
-    addToast({ type: 'success', message, centered: true, ...options }),
+    addToast({ type: 'success', message, centered: false, duration: 3000, ...options }),
 
   error: (message, options = {}) =>
-    addToast({ type: 'error', message, centered: true, duration: 0, ...options }),
+    addToast({ type: 'error', message, centered: false, duration: 3000, ...options }),
 
   warning: (message, options = {}) =>
-    addToast({ type: 'warning', message, centered: true, ...options }),
+    addToast({ type: 'warning', message, centered: false, duration: 3000, ...options }),
 
   info: (message, options = {}) =>
-    addToast({ type: 'info', message, ...options }),
+    addToast({ type: 'info', message, centered: false, duration: 3000, ...options }),
 
   loading: (message, options = {}) =>
-    addToast({ type: 'loading', message, duration: 0, ...options }),
+    addToast({ type: 'loading', message, duration: 0, centered: false, ...options }),
 
   // Mini toast — top-right corner (non-blocking)
   mini: (message, options = {}) =>
@@ -87,14 +87,16 @@ export const showToast = {
       updateToast(id, {
         type:     'success',
         message:  msgs.success || 'Done!',
-        centered: true,
+        duration: 3000,
+        centered: false,
       });
       return result;
     } catch (err) {
       updateToast(id, {
         type:     'error',
         message:  msgs.error || 'Something went wrong',
-        centered: true,
+        duration: 3000,
+        centered: false,
       });
       throw err;
     }

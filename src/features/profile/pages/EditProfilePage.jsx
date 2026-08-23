@@ -38,6 +38,17 @@ export default function EditProfilePage() {
   const [phoneStep, setPhoneStep]         = useState('idle');
   const [phoneOtp, setPhoneOtp]           = useState('');
   const [phoneNumber, setPhoneNumber]     = useState('');
+  const [selectedRole, setSelectedRole]   = useState(user?.role || 'buyer');
+
+  const updateRoleMutation = useMutation({
+    mutationFn: (newRole) => UserService.updateRole({ role: newRole }),
+    onSuccess: (res) => {
+      setUser({ role: res.data.role });
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.me() });
+      toast.success('Account role updated successfully! 🎉');
+    },
+    onError: (err) => toast.error(getErrorMessage(err)),
+  });
 
   const {
     register, handleSubmit, setError,
@@ -363,6 +374,48 @@ export default function EditProfilePage() {
                 </p>
               </div>
             )}
+          </Card>
+
+          {/* Account Role */}
+          <Card className="p-5">
+            <h3
+              className="font-semibold text-sm mb-3"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
+              Account Role
+            </h3>
+            <p
+              className="text-xs mb-4"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              Choose your role on the platform. Sellers can create stores and list products, while Buyers can purchase items. Select "Both" if you want to buy and sell.
+            </p>
+            <div className="space-y-4">
+              <select
+                value={selectedRole}
+                onChange={(e) => setSelectedRole(e.target.value)}
+                className="w-full rounded-xl border px-3 py-2.5 text-sm outline-none transition-all focus:ring-2 focus:ring-[var(--color-brand)]"
+                style={{
+                  backgroundColor: 'var(--color-bg)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-primary)',
+                }}
+              >
+                <option value="buyer">Buyer (I want to browse & buy products)</option>
+                <option value="seller">Seller (I want to list items & manage my store)</option>
+                <option value="both">Both (I want to buy and sell)</option>
+              </select>
+
+              <Button
+                fullWidth
+                isLoading={updateRoleMutation.isPending}
+                loadingText="Updating..."
+                disabled={selectedRole === user?.role}
+                onClick={() => updateRoleMutation.mutate(selectedRole)}
+              >
+                Update Role
+              </Button>
+            </div>
           </Card>
 
           {/* Account info */}
