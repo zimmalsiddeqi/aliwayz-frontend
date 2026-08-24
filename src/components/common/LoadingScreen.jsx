@@ -15,7 +15,7 @@ export default function LoadingScreen() {
           animate={{ rotate: [0, 5, -5, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
         >
-          <img src="/icon.jpg" alt="Aliwayz Loading" className="w-16 h-16 rounded-2xl shadow-lg object-contain" />
+          <img src="/logo.png" alt="Aliwayz Loading" className="w-16 h-16 rounded-2xl shadow-lg object-contain" />
         </motion.div>
 
         {/* Spinner dots */}
