@@ -32,6 +32,9 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
         ? ProductService.unfavorite(product.id)
         : ProductService.favorite(product.id),
     onMutate: () => setIsFav((prev) => !prev),
+    onSuccess: () => {
+      toast.success(isFav ? 'Removed from Favorites' : 'Added to Favorites');
+    },
     onError:  () => {
       setIsFav((prev) => !prev);
       toast.error('Failed to update favorite');

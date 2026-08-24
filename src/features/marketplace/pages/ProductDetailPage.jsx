@@ -80,6 +80,9 @@ export default function ProductDetailPage() {
   const favMutation = useMutation({
     mutationFn: () => (isFav ? ProductService.unfavorite(id) : ProductService.favorite(id)),
     onMutate: () => setIsFav((p) => !p),
+    onSuccess: () => {
+      toast.success(isFav ? 'Removed from Favorites' : 'Added to Favorites');
+    },
     onError: () => {
       setIsFav((p) => !p);
       toast.error('Failed to update favorite');
