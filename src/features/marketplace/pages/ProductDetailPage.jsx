@@ -81,7 +81,7 @@ export default function ProductDetailPage() {
     mutationFn: () => (isFav ? ProductService.unfavorite(id) : ProductService.favorite(id)),
     onMutate: () => setIsFav((p) => !p),
     onSuccess: () => {
-      toast.success(isFav ? 'Removed from Favorites' : 'Added to Favorites');
+      toast.success(isFav ? 'Added to Favorites' : 'Removed from Favorites');
     },
     onError: (err) => {
       setIsFav((p) => !p);

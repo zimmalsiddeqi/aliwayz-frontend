@@ -39,8 +39,7 @@ export default function FavoritesPage() {
   const [viewMode, setViewMode] = useState('grid');
   const { user } = useAuthStore();
 
-  console.warn('[Favorites Debug] Logged in user ID:', user?.id);
-  console.warn('[Favorites Debug] API Base URL:', import.meta.env.VITE_API_BASE_URL);
+
 
   const {
     data,
@@ -98,17 +97,7 @@ export default function FavoritesPage() {
     })
     .filter(Boolean);
 
-  try {
-    console.warn('[Favorites Debug] Raw data pages stringified:', JSON.stringify(data?.pages, null, 2));
-  } catch (e) {
-    console.warn('[Favorites Debug] Raw data pages (non-stringifiable):', data?.pages);
-  }
-  console.warn('[Favorites Debug] RawData parsed:', rawData);
-  console.warn('[Favorites Debug] Products mapped:', products);
 
-  if (isError) {
-    console.error('[Favorites Debug] Infinite query error:', error);
-  }
 
   // Remove from favorites
   const removeMutation = useMutation({

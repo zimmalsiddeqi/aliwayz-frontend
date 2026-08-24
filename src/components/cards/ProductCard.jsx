@@ -33,7 +33,7 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
         : ProductService.favorite(product.id),
     onMutate: () => setIsFav((prev) => !prev),
     onSuccess: () => {
-      toast.success(isFav ? 'Removed from Favorites' : 'Added to Favorites');
+      toast.success(isFav ? 'Added to Favorites' : 'Removed from Favorites');
     },
     onError:  (err) => {
       setIsFav((prev) => !prev);
