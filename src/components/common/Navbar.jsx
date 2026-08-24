@@ -71,25 +71,38 @@ export default function Navbar() {
   const getBottomNavItems = () => {
     const items = [];
 
-    // Sell button — NOT for admin
-    if (isAuthenticated && role !== 'admin') {
-      const sellLink = isSeller(role) ? '/sell/create' : '/profile/edit';
-      items.push({ to: sellLink, icon: PlusCircle, label: 'Sell', highlight: true });
-    }
+    // 1. Home
+    items.push({ to: '/', icon: Home, label: 'Home' });
 
+    // 2. Inbox or Search
     if (isAuthenticated) {
       items.push({ to: '/inbox', icon: MessageCircle, label: 'Inbox', badge: totalUnread });
+    } else {
+      items.push({ to: '/marketplace', icon: Search, label: 'Search' });
     }
 
-    // Admin gets admin panel instead of profile in bottom nav
-    if (isAuthenticated && isAdmin(role)) {
-      items.push({ to: '/admin', icon: Settings, label: 'Admin' });
+    // 3. Sell button in the center (highlighted)
+    const sellLink = isAuthenticated
+      ? (role === 'admin' ? '/admin' : (isSeller(role) ? '/sell/create' : '/profile/edit'))
+      : '/login';
+    items.push({ to: sellLink, icon: PlusCircle, label: 'Sell', highlight: true });
+
+    // 4. Notifications (Alerts)
+    if (isAuthenticated) {
+      items.push({ to: '/notifications', icon: Bell, label: 'Alerts', badge: unreadCount });
     } else {
-      items.push({
-        to: isAuthenticated ? '/profile' : '/login',
-        icon: User,
-        label: isAuthenticated ? 'Profile' : 'Login',
-      });
+      items.push({ to: '/login', icon: Bell, label: 'Alerts' });
+    }
+
+    // 5. Profile or Login
+    if (isAuthenticated) {
+      if (isAdmin(role)) {
+        items.push({ to: '/admin', icon: Settings, label: 'Admin' });
+      } else {
+        items.push({ to: '/profile', icon: User, label: 'Profile' });
+      }
+    } else {
+      items.push({ to: '/login', icon: User, label: 'Login' });
     }
 
     return items;

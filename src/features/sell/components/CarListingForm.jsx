@@ -14,7 +14,7 @@ import Textarea from '@components/ui/Textarea';
 import Select from '@components/ui/Select';
 import Button from '@components/ui/Button';
 import PageHeader from '@components/common/PageHeader';
-import { getErrorMessage } from '@lib/utils';
+import { cn, getErrorMessage } from '@lib/utils';
 import useLocationStore from '@store/location.store';
 import useFormDraft from '@hooks/useFormDraft';
 import { validateImageFile, createFilePreview, revokeFilePreview, getProductListingLocation } from '@utils/helpers';
@@ -31,8 +31,19 @@ import {
   VEHICLE_YEAR_RANGE,
   MAX_PRODUCT_IMAGES,
   CATEGORY_IDS,
+  ITEM_CONDITIONS,
 } from '@utils/constants';
 import toast from '@lib/toast';
+
+const ACCESSORIES_IDS = [
+  '6048801d-f786-5a3a-8a5b-fe09b7bc1ea7', // Vehicle Accessories (parent)
+  '9f55f80f-e831-5cd5-b653-a67ccc4463be', // Wheels
+  '55e88c2f-9b28-525a-bbd4-e757bf10b8e1', // Tires
+  '6311a60a-3cc8-5395-89de-e6e60da32d4f', // Roof Racks
+  '87eca5b1-0bcd-5034-a39b-fe9f4b3c14cd', // Towing Equipment
+  'df2607bf-2ff3-5227-b20c-4f40b432806f', // Car Accessories
+  '09d8dc12-1ce4-549a-8639-4392d44a4f7b', // Interior Accessories
+];
 
 export default function CarListingForm({ store }) {
   const navigate = useNavigate();
@@ -41,6 +52,8 @@ export default function CarListingForm({ store }) {
   const [selectedFeatures, setSelectedFeatures] = useState([]);
 
   const defaultValues = useMemo(() => ({
+    title: '',
+    brand: '',
     make: '',
     model: '',
     year: '',
@@ -74,6 +87,9 @@ export default function CarListingForm({ store }) {
   } = useForm({
     defaultValues,
   });
+
+  const selectedCategoryId = watch('vehicle_category');
+  const isAccessories = ACCESSORIES_IDS.includes(selectedCategoryId);
 
   const { clearDraft } = useFormDraft('draft-car', watch, reset, defaultValues);
 
@@ -111,36 +127,40 @@ export default function CarListingForm({ store }) {
 
   const createMutation = useMutation({
     mutationFn: async (formData) => {
-      const title = `${formData.year} ${formData.make} ${formData.model}`.trim();
+      const title = isAccessories
+        ? formData.title
+        : `${formData.year} ${formData.make} ${formData.model}`.trim();
 
-      const details = [
-        `Make: ${formData.make}`,
-        `Model: ${formData.model}`,
-        `Year: ${formData.year}`,
-        formData.mileage && `Mileage: ${formData.mileage} miles`,
-        `Fuel: ${VEHICLE_FUEL_TYPES.find((f) => f.value === formData.fuel_type)?.label || formData.fuel_type}`,
-        `Transmission: ${VEHICLE_TRANSMISSIONS.find((t) => t.value === formData.transmission)?.label || formData.transmission}`,
-        formData.drivetrain &&
-          `Drivetrain: ${VEHICLE_DRIVETRAINS.find((d) => d.value === formData.drivetrain)?.label || formData.drivetrain}`,
-        `Body: ${VEHICLE_BODY_TYPES.find((b) => b.value === formData.body_type)?.label || formData.body_type}`,
-        formData.engine_size && `Engine: ${formData.engine_size}L`,
-        formData.color && `Color: ${formData.color}`,
-        `Previous Owners: ${formData.num_owners}`,
-        formData.title_status &&
-          `Title Status: ${VEHICLE_TITLE_STATUS.find((t) => t.value === formData.title_status)?.label || formData.title_status}`,
-        formData.seller_type &&
-          `Seller: ${VEHICLE_SELLER_TYPE.find((s) => s.value === formData.seller_type)?.label || formData.seller_type}`,
-        formData.vin && `VIN: ${formData.vin}`,
-        formData.registration_state && `Registration: ${formData.registration_state}`,
-        selectedFeatures.length > 0 &&
-          `\nFeatures: ${selectedFeatures
-            .map((k) => VEHICLE_FEATURES.find((f) => f.key === k)?.label)
+      const details = isAccessories
+        ? formData.description
+        : [
+            `Make: ${formData.make}`,
+            `Model: ${formData.model}`,
+            `Year: ${formData.year}`,
+            formData.mileage && `Mileage: ${formData.mileage} miles`,
+            `Fuel: ${VEHICLE_FUEL_TYPES.find((f) => f.value === formData.fuel_type)?.label || formData.fuel_type}`,
+            `Transmission: ${VEHICLE_TRANSMISSIONS.find((t) => t.value === formData.transmission)?.label || formData.transmission}`,
+            formData.drivetrain &&
+              `Drivetrain: ${VEHICLE_DRIVETRAINS.find((d) => d.value === formData.drivetrain)?.label || formData.drivetrain}`,
+            `Body: ${VEHICLE_BODY_TYPES.find((b) => b.value === formData.body_type)?.label || formData.body_type}`,
+            formData.engine_size && `Engine: ${formData.engine_size}L`,
+            formData.color && `Color: ${formData.color}`,
+            `Previous Owners: ${formData.num_owners}`,
+            formData.title_status &&
+              `Title Status: ${VEHICLE_TITLE_STATUS.find((t) => t.value === formData.title_status)?.label || formData.title_status}`,
+            formData.seller_type &&
+              `Seller: ${VEHICLE_SELLER_TYPE.find((s) => s.value === formData.seller_type)?.label || formData.seller_type}`,
+            formData.vin && `VIN: ${formData.vin}`,
+            formData.registration_state && `Registration: ${formData.registration_state}`,
+            selectedFeatures.length > 0 &&
+              `\nFeatures: ${selectedFeatures
+                .map((k) => VEHICLE_FEATURES.find((f) => f.key === k)?.label)
+                .filter(Boolean)
+                .join(', ')}`,
+            formData.description && `\n${formData.description}`,
+          ]
             .filter(Boolean)
-            .join(', ')}`,
-        formData.description && `\n${formData.description}`,
-      ]
-        .filter(Boolean)
-        .join('\n');
+            .join('\n');
 
       const locType = formData.location_type || (store?.description === 'Personal listings' ? 'approximate' : (store?.location_city ? 'store' : 'approximate'));
       let finalLat = userLat;
@@ -159,16 +179,17 @@ export default function CarListingForm({ store }) {
 
       const productData = {
         title,
-        description: details,
+        description: details || '',
         price: Number(formData.price),
-        condition:
-          formData.condition === 'new'
-            ? 'new'
-            : formData.condition === 'certified_preowned'
-              ? 'like_new'
-              : 'good',
+        condition: isAccessories
+          ? formData.condition
+          : (formData.condition === 'new'
+              ? 'new'
+              : formData.condition === 'certified_preowned'
+                ? 'like_new'
+                : 'good'),
         category_id: formData.vehicle_category || CATEGORY_IDS.AUTOMOTIVE,
-        brand: formData.make,
+        brand: (isAccessories ? formData.brand : formData.make) || undefined,
         color: formData.color || undefined,
         quantity: 1,
         location_city: finalCity,
@@ -277,151 +298,180 @@ export default function CarListingForm({ store }) {
             )}
           />
 
-          <div className="grid grid-cols-2 gap-3">
-            <Select
-              label="Make *"
-              placeholder="Select make"
-              options={VEHICLE_MAKES.map((m) => ({ value: m, label: m }))}
-              error={errors.make?.message}
-              {...register('make', { required: 'Required' })}
-            />
-            <Input
-              label="Model *"
-              placeholder="Camry, Civic, F-150..."
-              error={errors.model?.message}
-              {...register('model', { required: 'Required' })}
-            />
-          </div>
+          {isAccessories ? (
+            <>
+              <Input
+                label="Listing Title *"
+                placeholder="e.g. Michelin Pilot Sport 4 Tires (Set of 4)"
+                error={errors.title?.message}
+                {...register('title', { required: isAccessories ? 'Required' : false })}
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  label="Brand (Optional)"
+                  placeholder="e.g. Michelin, Brembo..."
+                  {...register('brand')}
+                />
+                <Select
+                  label="Condition *"
+                  placeholder="Select condition"
+                  options={ITEM_CONDITIONS}
+                  error={errors.condition?.message}
+                  {...register('condition', { required: 'Required' })}
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <Select
+                  label="Make *"
+                  placeholder="Select make"
+                  options={VEHICLE_MAKES.map((m) => ({ value: m, label: m }))}
+                  error={errors.make?.message}
+                  {...register('make', { required: !isAccessories ? 'Required' : false })}
+                />
+                <Input
+                  label="Model *"
+                  placeholder="Camry, Civic, F-150..."
+                  error={errors.model?.message}
+                  {...register('model', { required: !isAccessories ? 'Required' : false })}
+                />
+              </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <Select
-              label="Year *"
-              placeholder="Year"
-              options={VEHICLE_YEAR_RANGE}
-              error={errors.year?.message}
-              {...register('year', { required: 'Required' })}
-            />
-            <Input
-              label="Mileage (miles)"
-              type="number"
-              placeholder="45000"
-              {...register('mileage')}
-            />
-            <Input
-              label="Engine Size (L)"
-              type="number"
-              placeholder="2.0"
-              step="0.1"
-              {...register('engine_size')}
-            />
-          </div>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <Select
+                  label="Year *"
+                  placeholder="Year"
+                  options={VEHICLE_YEAR_RANGE}
+                  error={errors.year?.message}
+                  {...register('year', { required: !isAccessories ? 'Required' : false })}
+                />
+                <Input
+                  label="Mileage (miles)"
+                  type="number"
+                  placeholder="45000"
+                  {...register('mileage')}
+                />
+                <Input
+                  label="Engine Size (L)"
+                  type="number"
+                  placeholder="2.0"
+                  step="0.1"
+                  {...register('engine_size')}
+                />
+              </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <Select
-              label="Fuel Type *"
-              placeholder="Select"
-              options={VEHICLE_FUEL_TYPES}
-              error={errors.fuel_type?.message}
-              {...register('fuel_type', { required: 'Required' })}
-            />
-            <Select
-              label="Transmission *"
-              placeholder="Select"
-              options={VEHICLE_TRANSMISSIONS}
-              error={errors.transmission?.message}
-              {...register('transmission', { required: 'Required' })}
-            />
-            <Select
-              label="Body Type *"
-              placeholder="Select"
-              options={VEHICLE_BODY_TYPES}
-              error={errors.body_type?.message}
-              {...register('body_type', { required: 'Required' })}
-            />
-          </div>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <Select
+                  label="Fuel Type *"
+                  placeholder="Select"
+                  options={VEHICLE_FUEL_TYPES}
+                  error={errors.fuel_type?.message}
+                  {...register('fuel_type', { required: !isAccessories ? 'Required' : false })}
+                />
+                <Select
+                  label="Transmission *"
+                  placeholder="Select"
+                  options={VEHICLE_TRANSMISSIONS}
+                  error={errors.transmission?.message}
+                  {...register('transmission', { required: !isAccessories ? 'Required' : false })}
+                />
+                <Select
+                  label="Body Type *"
+                  placeholder="Select"
+                  options={VEHICLE_BODY_TYPES}
+                  error={errors.body_type?.message}
+                  {...register('body_type', { required: !isAccessories ? 'Required' : false })}
+                />
+              </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <Select
-              label="Drivetrain"
-              placeholder="Select"
-              options={VEHICLE_DRIVETRAINS}
-              {...register('drivetrain')}
-            />
-            <Input label="Color" placeholder="White" {...register('color')} />
-            <Input
-              label="Previous Owners"
-              type="number"
-              placeholder="1"
-              {...register('num_owners')}
-            />
-          </div>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <Select
+                  label="Drivetrain"
+                  placeholder="Select"
+                  options={VEHICLE_DRIVETRAINS}
+                  {...register('drivetrain')}
+                />
+                <Input label="Color" placeholder="White" {...register('color')} />
+                <Input
+                  label="Previous Owners"
+                  type="number"
+                  placeholder="1"
+                  {...register('num_owners')}
+                />
+              </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <Select
-              label="Condition *"
-              placeholder="Select"
-              options={VEHICLE_CONDITIONS}
-              error={errors.condition?.message}
-              {...register('condition', { required: 'Required' })}
-            />
-            <Select
-              label="Title Status *"
-              placeholder="Select"
-              options={VEHICLE_TITLE_STATUS}
-              error={errors.title_status?.message}
-              {...register('title_status', { required: 'Required' })}
-            />
-            <Select
-              label="Seller Type"
-              placeholder="Select"
-              options={VEHICLE_SELLER_TYPE}
-              {...register('seller_type')}
-            />
-          </div>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <Select
+                  label="Condition *"
+                  placeholder="Select"
+                  options={VEHICLE_CONDITIONS}
+                  error={errors.condition?.message}
+                  {...register('condition', { required: 'Required' })}
+                />
+                <Select
+                  label="Title Status *"
+                  placeholder="Select"
+                  options={VEHICLE_TITLE_STATUS}
+                  error={errors.title_status?.message}
+                  {...register('title_status', { required: !isAccessories ? 'Required' : false })}
+                />
+                <Select
+                  label="Seller Type"
+                  placeholder="Select"
+                  options={VEHICLE_SELLER_TYPE}
+                  {...register('seller_type')}
+                />
+              </div>
 
-          <Input
-            label="VIN (Optional)"
-            placeholder="1HGCM82633A004352"
-            hint="Vehicle Identification Number — helps verify vehicle specs"
-            {...register('vin')}
-          />
+              <Input
+                label="VIN (Optional)"
+                placeholder="1HGCM82633A004352"
+                hint="Vehicle Identification Number — helps verify vehicle specs"
+                {...register('vin')}
+              />
+            </>
+          )}
         </div>
 
         {/* Features */}
-        <div className="glass-card space-y-3 p-5">
-          <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-            ⚙️ Features & Options
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {VEHICLE_FEATURES.map((feature) => {
-              const isSelected = selectedFeatures.includes(feature.key);
-              return (
-                <button
-                  key={feature.key}
-                  type="button"
-                  onClick={() => toggleFeature(feature.key)}
-                  className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200"
-                  style={{
-                    backgroundColor: isSelected
-                      ? 'rgba(59,130,246,0.15)'
-                      : 'var(--color-surface-elevated)',
-                    border: `1px solid ${isSelected ? '#3B82F6' : 'var(--color-border)'}`,
-                    color: isSelected ? '#3B82F6' : 'var(--color-text-secondary)',
-                  }}
-                >
-                  <span>{feature.emoji}</span> {feature.label}
-                </button>
-              );
-            })}
+        {!isAccessories && (
+          <div className="glass-card space-y-3 p-5">
+            <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+              ⚙️ Features & Options
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {VEHICLE_FEATURES.map((feature) => {
+                const isSelected = selectedFeatures.includes(feature.key);
+                return (
+                  <button
+                    key={feature.key}
+                    type="button"
+                    onClick={() => toggleFeature(feature.key)}
+                    className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200"
+                    style={{
+                      backgroundColor: isSelected
+                        ? 'rgba(59,130,246,0.15)'
+                        : 'var(--color-surface-elevated)',
+                      border: `1px solid ${isSelected ? '#3B82F6' : 'var(--color-border)'}`,
+                      color: isSelected ? '#3B82F6' : 'var(--color-text-secondary)',
+                    }}
+                  >
+                    <span>{feature.emoji}</span> {feature.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Price & Location */}
         <div className="glass-card space-y-4 p-5">
           <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
             💰 Price & Location
           </h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className={cn("grid gap-3", !isAccessories ? "grid-cols-2" : "grid-cols-1")}>
             <Controller
               name="price"
               control={control}
@@ -430,7 +480,7 @@ export default function CarListingForm({ store }) {
                 <Input
                   label="Asking Price *"
                   type="text"
-                  placeholder="e.g. 25,000"
+                  placeholder="e.g. 250"
                   leftIcon={<span className="font-mono text-xs font-bold">$</span>}
                   error={errors.price?.message}
                   value={value ? new Intl.NumberFormat('en-US').format(value) : ''}
@@ -442,11 +492,13 @@ export default function CarListingForm({ store }) {
                 />
               )}
             />
-            <Input
-              label="Title / Registration State"
-              placeholder="California"
-              {...register('registration_state')}
-            />
+            {!isAccessories && (
+              <Input
+                label="Title / Registration State"
+                placeholder="California"
+                {...register('registration_state')}
+              />
+            )}
           </div>
           <Controller
             name="location_type"
@@ -463,8 +515,8 @@ export default function CarListingForm({ store }) {
 
         {/* Description */}
         <Textarea
-          label="Additional Notes (Optional)"
-          placeholder="Any additional details about the vehicle..."
+          label="Description / Additional Notes (Optional)"
+          placeholder={isAccessories ? "Describe the item, condition, fitment, or compatibility..." : "Any additional details about the vehicle..."}
           maxLength={5000}
           {...register('description')}
         />
@@ -476,7 +528,7 @@ export default function CarListingForm({ store }) {
           isLoading={createMutation.isPending}
           loadingText="Publishing listing..."
         >
-          Publish Automotive Listing
+          {isAccessories ? 'Publish Accessory Listing' : 'Publish Automotive Listing'}
         </Button>
       </form>
     </div>
