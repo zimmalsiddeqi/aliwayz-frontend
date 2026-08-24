@@ -3,7 +3,7 @@ import { API } from '@api/api.endpoints';
 
 const FollowerService = {
   follow: (storeId) =>
-    api.post(API.FOLLOWERS.FOLLOW(storeId)).then((r) => r.data),
+    api.post(API.FOLLOWERS.FOLLOW(storeId), {}).then((r) => r.data),
 
   unfollow: (storeId) =>
     api.delete(API.FOLLOWERS.UNFOLLOW(storeId)).then((r) => r.data),

@@ -6,7 +6,7 @@ const FavoriteService = {
     api.get(API.FAVORITES.LIST, { params }).then((r) => r.data),
 
   add: (productId) =>
-    api.post(API.FAVORITES.ADD(productId)).then((r) => r.data),
+    api.post(API.FAVORITES.ADD(productId), {}).then((r) => r.data),
 
   remove: (productId) =>
     api.delete(API.FAVORITES.REMOVE(productId)).then((r) => r.data),

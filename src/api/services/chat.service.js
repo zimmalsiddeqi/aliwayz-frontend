@@ -18,7 +18,7 @@ const ChatService = {
     api.delete(API.CONVERSATIONS.ARCHIVE(id)).then((r) => r.data),
 
   blockUser: (id) =>
-    api.post(API.CONVERSATIONS.BLOCK(id)).then((r) => r.data),
+    api.post(API.CONVERSATIONS.BLOCK(id), {}).then((r) => r.data),
 
   reportConversation: (id, data) =>
     api.post(API.CONVERSATIONS.REPORT(id), data).then((r) => r.data),

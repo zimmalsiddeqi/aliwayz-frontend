@@ -56,20 +56,29 @@ export default function FavoritesPage() {
         : undefined,
   });
 
-  const rawData = data?.pages.flatMap((p) => p.data) || [];
-  const total =
-    data?.pages?.[0]?.pagination?.total || 0;
+  const rawData = data?.pages.flatMap((p) => {
+    if (!p) return [];
+    if (Array.isArray(p)) return p;
+    if (p.data && Array.isArray(p.data)) return p.data;
+    if (p.favorites && Array.isArray(p.favorites)) return p.favorites;
+    return [p];
+  }) || [];
 
-  // ✅ FIX: Extract products from ALL possible response shapes
+  const total =
+    data?.pages?.[0]?.pagination?.total || rawData.length || 0;
+
+  // Extract products from ALL possible response shapes
   const products = rawData
     .map((item) => {
+      if (!item) return null;
+
       // Case A: item is the product itself
-      if (item && item.title) {
+      if (item.title) {
         return { ...item, is_favorited: true };
       }
 
       // Extract the nested product object (could be 'product', 'products', or an array)
-      const nested = item?.product || item?.products;
+      const nested = item.product || item.products;
       if (nested) {
         const prod = Array.isArray(nested) ? nested[0] : nested;
         if (prod && prod.title) {

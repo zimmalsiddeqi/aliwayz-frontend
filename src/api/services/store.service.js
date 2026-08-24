@@ -32,7 +32,7 @@ const StoreService = {
     api.get(API.STORES.ANALYTICS(id)).then((r) => r.data),
 
   follow: (slug) =>
-    api.post(API.STORES.FOLLOW(slug)).then((r) => r.data),
+    api.post(API.STORES.FOLLOW(slug), {}).then((r) => r.data),
 
   unfollow: (slug) =>
     api.delete(API.STORES.UNFOLLOW(slug)).then((r) => r.data),

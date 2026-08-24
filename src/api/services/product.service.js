@@ -58,7 +58,7 @@ const ProductService = {
     }).then((r) => r.data),
 
   favorite: (id) =>
-    api.post(API.PRODUCTS.FAVORITE(id)).then((r) => r.data),
+    api.post(API.PRODUCTS.FAVORITE(id), {}).then((r) => r.data),
 
   unfavorite: (id) =>
     api.delete(API.PRODUCTS.UNFAVORITE(id)).then((r) => r.data),

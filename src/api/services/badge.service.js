@@ -15,7 +15,7 @@ const BadgeService = {
     api.get(API.BADGES.HISTORY(userId)).then((r) => r.data),
 
   triggerEvaluation: (userId) =>
-    api.post(API.BADGES.EVALUATE(userId)).then((r) => r.data),
+    api.post(API.BADGES.EVALUATE(userId), {}).then((r) => r.data),
 };
 
 export default BadgeService;
