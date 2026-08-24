@@ -109,8 +109,10 @@ export default function FavoritesPage() {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       toast.success('Removed from favorites');
     },
-    onError: (err) =>
-      toast.error(getErrorMessage(err)),
+    onError: (err) => {
+      console.error('[Favorites Debug] Remove mutation failed:', err);
+      toast.error(getErrorMessage(err));
+    },
   });
 
   return (
