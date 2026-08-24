@@ -137,23 +137,6 @@ export default function MyProfilePage() {
                       size="2xl"
                     />
                   </div>
-                  <div
-                    className="absolute -bottom-1.5 -right-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold capitalize"
-                    style={{
-                      backgroundColor: isAdmin(
-                        role
-                      )
-                        ? '#7C3AED'
-                        : isSeller(role)
-                          ? 'var(--color-brand)'
-                          : 'var(--color-success)',
-                      color: 'white',
-                    }}
-                  >
-                    {isAdmin(role)
-                      ? 'Admin'
-                      : role}
-                  </div>
                 </div>
               </div>
 
@@ -214,36 +197,6 @@ export default function MyProfilePage() {
                     profile?.created_at
                   )}
                 </span>
-                {profile?.email_verified && (
-                  <span
-                    className="px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                    style={{
-                      backgroundColor:
-                        'rgba(16,185,129,0.1)',
-                      color:
-                        'var(--color-success)',
-                      border:
-                        '1px solid rgba(16,185,129,0.2)',
-                    }}
-                  >
-                    ✉ Verified
-                  </span>
-                )}
-                {profile?.phone_verified && (
-                  <span
-                    className="px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                    style={{
-                      backgroundColor:
-                        'rgba(6,182,212,0.1)',
-                      color:
-                        'var(--color-info)',
-                      border:
-                        '1px solid rgba(6,182,212,0.2)',
-                    }}
-                  >
-                    📱 Verified
-                  </span>
-                )}
               </div>
 
               {/* Badges */}

@@ -84,10 +84,13 @@ export default function ProductDetailPage() {
       setIsFav((p) => !p);
       toast.error('Failed to update favorite');
     },
-    onSettled: () =>
+    onSettled: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.products.byId(id),
-      }),
+      });
+      queryClient.invalidateQueries({ queryKey: ['favorites'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.favorites() });
+    },
   });
 
   // Set initial fav state

@@ -4,6 +4,7 @@ import {
   useMutation,
   useQueryClient,
 } from '@tanstack/react-query';
+import { queryKeys } from '@lib/queryClient';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
@@ -50,7 +51,7 @@ export default function FavoritesPage() {
         limit: 12,
       }),
     getNextPageParam: (last) =>
-      last.pagination?.has_next
+      last.pagination?.hasNextPage
         ? last.pagination.page + 1
         : undefined,
   });
@@ -86,9 +87,9 @@ export default function FavoritesPage() {
     mutationFn: (productId) =>
       FavoriteService.remove(productId),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['favorites'],
-      });
+      queryClient.invalidateQueries({ queryKey: ['favorites'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.favorites() });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
       toast.success('Removed from favorites');
     },
     onError: (err) =>

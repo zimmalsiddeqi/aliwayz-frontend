@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Heart, Eye, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@lib/queryClient';
 import useAuthStore from '@store/auth.store';
 import useInterestStore from '@store/interest.store';
 import ProductService from '@api/services/product.service';
@@ -35,7 +36,11 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
       setIsFav((prev) => !prev);
       toast.error('Failed to update favorite');
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ['products'] }),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['favorites'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.favorites() });
+    },
   });
 
   const handleFavorite = (e) => {
