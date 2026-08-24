@@ -83,8 +83,9 @@ export default function ProductDetailPage() {
     onSuccess: () => {
       toast.success(isFav ? 'Removed from Favorites' : 'Added to Favorites');
     },
-    onError: () => {
+    onError: (err) => {
       setIsFav((p) => !p);
+      console.error('[Favorites Debug] ProductDetailPage mutation failed:', err);
       toast.error('Failed to update favorite');
     },
     onSettled: () => {
