@@ -39,8 +39,9 @@ import ConfirmDeleteModal from '@components/modals/ConfirmDeleteModal';
 import StoreFollowersSection from '@features/store/components/StoreFollowersSection';
 import { cn, getErrorMessage, isAdmin } from '@lib/utils';
 import { formatCompactNumber, formatRating, formatMemberSince } from '@utils/formatters';
-import { DEFAULT_PAGE_SIZE } from '@utils/constants';
+import { DEFAULT_PAGE_SIZE, CATEGORY_IDS } from '@utils/constants';
 import toast from '@lib/toast';
+import ListingQRModal from '@components/modals/ListingQRModal';
 
 export default function StoreProfilePage() {
   const { slug } = useParams();
@@ -53,6 +54,7 @@ export default function StoreProfilePage() {
   const [activeTab, setActiveTab] = useState('products');
   const [showReport, setShowReport] = useState(false);
   const [showAdminDelete, setShowAdminDelete] = useState(false);
+  const [qrTarget, setQrTarget] = useState(null);
 
   // ── Fetch store ────────────────────────────────────────
   const { data: storeData, isLoading } = useQuery({
@@ -195,8 +197,10 @@ export default function StoreProfilePage() {
       </div>
     );
   }
-
   const TABS = ['products', 'reviews', 'followers', 'about'];
+  if (isOwner) {
+    TABS.push('qr_codes');
+  }
 
   return (
     <>
@@ -455,7 +459,7 @@ export default function StoreProfilePage() {
                   color: activeTab === tab ? 'white' : 'var(--color-text-secondary)',
                 }}
               >
-                {tab === 'products' ? 'listings' : tab}
+                {tab === 'products' ? 'listings' : tab === 'qr_codes' ? 'QR Codes' : tab}
               </button>
             ))}
           </div>
@@ -692,6 +696,50 @@ export default function StoreProfilePage() {
               </div>
             </Card>
           )}
+
+          {/* ── QR Codes ──────────────────────────────────── */}
+          {activeTab === 'qr_codes' && isOwner && (
+            <div className="space-y-4">
+              {(() => {
+                const qrProducts = products.filter(p => [CATEGORY_IDS.VEHICLES, CATEGORY_IDS.AUTOMOTIVE, CATEGORY_IDS.REAL_ESTATE, CATEGORY_IDS.PROPERTY].includes(p.category_id));
+                
+                if (productsLoading) return (
+                  <div className="flex justify-center py-8">
+                    <Spinner size="md" />
+                  </div>
+                );
+                
+                if (qrProducts.length === 0) {
+                  return (
+                    <EmptyState
+                      icon="▣"
+                      title="No Listing QR Codes"
+                      description="You don't have any active Automotive or Real Estate listings that support QR codes."
+                    />
+                  );
+                }
+                
+                return (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                    {qrProducts.map(p => (
+                      <Card key={p.id} className="p-4 flex flex-col items-center text-center justify-between h-full hover-lift">
+                        <div className="w-full flex flex-col items-center">
+                          <div className="w-16 h-16 bg-[var(--color-surface-elevated)] rounded-xl flex items-center justify-center mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--color-text-secondary)]"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+                          </div>
+                          <p className="font-medium text-sm mb-1 truncate w-full" style={{ color: 'var(--color-text-primary)' }}>{p.title}</p>
+                          <p className="font-bold text-lg mb-4" style={{ color: 'var(--color-brand)' }}>{p.currency || '$'}{p.price}</p>
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => setQrTarget(p)} className="w-full">
+                          View QR Code
+                        </Button>
+                      </Card>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
         </div>
       </div>
 
@@ -717,6 +765,12 @@ export default function StoreProfilePage() {
         itemName={store?.store_name}
         itemType="Seller Profile"
         countdownSeconds={10}
+      />
+
+      <ListingQRModal
+        isOpen={!!qrTarget}
+        onClose={() => setQrTarget(null)}
+        product={qrTarget}
       />
     </>
   );

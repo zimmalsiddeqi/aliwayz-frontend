@@ -13,6 +13,7 @@ import {
   Archive,
   MoreVertical,
   Filter,
+  QrCode,
 } from 'lucide-react';
 import StoreService from '@api/services/store.service';
 import ProductService from '@api/services/product.service';
@@ -23,6 +24,8 @@ import Modal from '@components/ui/Modal';
 import Dropdown from '@components/ui/Dropdown';
 import PageHeader from '@components/common/PageHeader';
 import EmptyState from '@components/common/EmptyState';
+import ListingQRModal from '@components/modals/ListingQRModal';
+import { CATEGORY_IDS } from '@utils/constants';
 import Spinner from '@components/ui/Spinner';
 import { cn, formatPrice, getStatusColor, getErrorMessage } from '@lib/utils';
 import { formatRelativeTime, formatCompactNumber } from '@utils/formatters';
@@ -38,6 +41,7 @@ export default function MyListingsPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [qrTarget, setQrTarget] = useState(null);
 
   // Fetch products
   const { data, isLoading } = useQuery({
@@ -293,6 +297,15 @@ export default function MyListingsPage() {
                             label: 'View',
                             onClick: () => navigate(`/product/${product.id}`),
                           },
+                          ...([CATEGORY_IDS.VEHICLES, CATEGORY_IDS.AUTOMOTIVE, CATEGORY_IDS.REAL_ESTATE, CATEGORY_IDS.PROPERTY].includes(product.category_id)
+                            ? [
+                                {
+                                  icon: <QrCode size={14} />,
+                                  label: '▣ Listing QR Code',
+                                  onClick: () => setQrTarget(product),
+                                },
+                              ]
+                            : []),
                           { divider: true },
                           ...(product.status !== 'available'
                             ? [
@@ -360,6 +373,13 @@ export default function MyListingsPage() {
         itemName={deleteTarget?.title}
         itemType="Product"
         countdownSeconds={10}
+      />
+      
+      {/* ── Listing QR Code Modal ───────────────────────── */}
+      <ListingQRModal
+        isOpen={!!qrTarget}
+        onClose={() => setQrTarget(null)}
+        product={qrTarget}
       />
     </>
   );

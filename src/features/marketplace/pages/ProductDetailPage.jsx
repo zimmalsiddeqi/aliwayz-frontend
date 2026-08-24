@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   ChevronLeft,
   ChevronRight,
+  QrCode,
 } from 'lucide-react';
 import ProductService from '@api/services/product.service';
 import ChatService from '@api/services/chat.service';
@@ -28,6 +29,7 @@ import BadgeUI from '@components/ui/Badge';
 import Spinner from '@components/ui/Spinner';
 import EmptyState from '@components/common/EmptyState';
 import ReportModal from '@components/modals/ReportModal';
+import ListingQRModal from '@components/modals/ListingQRModal';
 import {
   cn,
   formatPrice,
@@ -61,6 +63,7 @@ export default function ProductDetailPage() {
   const [showReport, setShowReport] = useState(false);
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState('');
+  const [showQRModal, setShowQRModal] = useState(false);
 
   // ── Fetch product ──────────────────────────────────────
   const {
@@ -405,6 +408,12 @@ export default function ProductDetailPage() {
                 <Button fullWidth variant="secondary" onClick={() => navigate(`/sell/edit/${id}`)}>
                   Edit Listing
                 </Button>
+                {([CATEGORY_IDS.VEHICLES, CATEGORY_IDS.AUTOMOTIVE, CATEGORY_IDS.REAL_ESTATE, CATEGORY_IDS.PROPERTY].includes(product.category_id)) && (
+                  <Button fullWidth variant="outline" className="gap-2" onClick={() => setShowQRModal(true)}>
+                    <QrCode size={18} />
+                    Listing QR
+                  </Button>
+                )}
               </div>
             )}
 
@@ -849,6 +858,12 @@ export default function ProductDetailPage() {
           </div>
         )}
       </AnimatePresence>
+
+      <ListingQRModal
+        isOpen={showQRModal}
+        onClose={() => setShowQRModal(false)}
+        product={product}
+      />
     </>
   );
 }

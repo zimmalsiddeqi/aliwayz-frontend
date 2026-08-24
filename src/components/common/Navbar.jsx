@@ -74,11 +74,11 @@ export default function Navbar() {
     // 1. Home
     items.push({ to: '/', icon: Home, label: 'Home' });
 
-    // 2. Inbox or Search
+    // 2. Inbox
     if (isAuthenticated) {
       items.push({ to: '/inbox', icon: MessageCircle, label: 'Inbox', badge: totalUnread });
     } else {
-      items.push({ to: '/marketplace', icon: Search, label: 'Search' });
+      items.push({ to: '/login', icon: MessageCircle, label: 'Inbox' });
     }
 
     // 3. Sell button in the center (highlighted)
