@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import FavoriteService from '@api/services/favorite.service';
 import ProductCard from '@components/cards/ProductCard';
+import useAuthStore from '@store/auth.store';
 import { ProductCardSkeleton } from '@components/ui/Skeleton';
 import PageHeader from '@components/common/PageHeader';
 import EmptyState from '@components/common/EmptyState';
@@ -36,6 +37,9 @@ import toast from '@lib/toast';
 export default function FavoritesPage() {
   const queryClient = useQueryClient();
   const [viewMode, setViewMode] = useState('grid');
+  const { user } = useAuthStore();
+
+  console.warn('[Favorites Debug] Logged in user ID:', user?.id);
 
   const {
     data,
