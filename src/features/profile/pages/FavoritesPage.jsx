@@ -43,6 +43,9 @@ export default function FavoritesPage() {
     hasNextPage,
     isFetchingNextPage,
     isLoading,
+    isError,
+    error,
+    refetch,
   } = useInfiniteQuery({
     queryKey: ['favorites'],
     queryFn: ({ pageParam = 1 }) =>
@@ -174,6 +177,14 @@ export default function FavoritesPage() {
               <ProductCardSkeleton key={i} />
             ))}
           </div>
+        ) : isError ? (
+          <EmptyState
+            icon="⚠️"
+            title="Failed to load favorites"
+            description={getErrorMessage(error) || "There was a problem communicating with the server."}
+            actionLabel="Try Again"
+            onAction={() => refetch()}
+          />
         ) : products.length === 0 ? (
           <EmptyState
             icon="❤️"
