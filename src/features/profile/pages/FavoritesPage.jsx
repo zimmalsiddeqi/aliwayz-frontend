@@ -108,7 +108,7 @@ export default function FavoritesPage() {
     try {
       const res = await removeFavoriteDirect(productId);
       if (res?.action === 'removed') {
-        toast.success('💔 Removed from Favorites');
+        toast.success('💔 Removed from Favorites', { duration: 1000, hideProgress: true });
       }
       queryClient.invalidateQueries({ queryKey: ['favorites'] });
       queryClient.invalidateQueries({ queryKey: queryKeys.users.favorites() });

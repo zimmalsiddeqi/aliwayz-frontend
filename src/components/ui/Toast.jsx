@@ -415,7 +415,7 @@ function MiniToast({ toast, onDismiss }) {
         </button>
       </div>
 
-      {toast.duration > 0 && (
+      {toast.duration > 0 && !toast.hideProgress && (
         <div
           className="h-[2px] w-full"
           style={{ backgroundColor: config.bg }}

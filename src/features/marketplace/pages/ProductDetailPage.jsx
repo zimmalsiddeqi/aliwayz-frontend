@@ -90,9 +90,9 @@ export default function ProductDetailPage() {
     try {
       const res = await toggleFavorite(id);
       if (res?.action === 'added') {
-        toast.success('❤️ Added to Favorites');
+        toast.success('❤️ Added to Favorites', { duration: 1000, hideProgress: true });
       } else if (res?.action === 'removed') {
-        toast.success('💔 Removed from Favorites');
+        toast.success('💔 Removed from Favorites', { duration: 1000, hideProgress: true });
       }
       queryClient.invalidateQueries({ queryKey: queryKeys.products.byId(id) });
       queryClient.invalidateQueries({ queryKey: ['favorites'] });

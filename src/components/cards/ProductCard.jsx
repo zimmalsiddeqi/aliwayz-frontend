@@ -42,9 +42,9 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
     try {
       const res = await toggleFavorite(product.id);
       if (res?.action === 'added') {
-        toast.success('❤️ Added to Favorites');
+        toast.success('❤️ Added to Favorites', { duration: 1000, hideProgress: true });
       } else if (res?.action === 'removed') {
-        toast.success('💔 Removed from Favorites');
+        toast.success('💔 Removed from Favorites', { duration: 1000, hideProgress: true });
       }
       queryClient.invalidateQueries({ queryKey: ['favorites'] });
       queryClient.invalidateQueries({ queryKey: queryKeys.users.favorites() });
