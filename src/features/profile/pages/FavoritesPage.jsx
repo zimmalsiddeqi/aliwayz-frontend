@@ -40,6 +40,7 @@ export default function FavoritesPage() {
   const { user } = useAuthStore();
 
   console.warn('[Favorites Debug] Logged in user ID:', user?.id);
+  console.warn('[Favorites Debug] API Base URL:', import.meta.env.VITE_API_BASE_URL);
 
   const {
     data,
