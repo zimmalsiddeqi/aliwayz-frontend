@@ -93,6 +93,10 @@ export default function FavoritesPage() {
     })
     .filter(Boolean);
 
+  console.log('[Favorites Debug] Raw data pages:', data?.pages);
+  console.log('[Favorites Debug] RawData parsed:', rawData);
+  console.log('[Favorites Debug] Products mapped:', products);
+
   // Remove from favorites
   const removeMutation = useMutation({
     mutationFn: (productId) =>
