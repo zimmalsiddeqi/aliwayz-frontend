@@ -63,19 +63,18 @@ export default function FavoritesPage() {
   // ✅ FIX: Extract products from ALL possible response shapes
   const products = rawData
     .map((item) => {
-      // Shape 1: { id, product: { ... } }
-      if (item.product && item.product.title) {
-        return { ...item.product, is_favorited: true };
-      }
-
-      // Shape 2: item IS the product (already flat)
-      if (item.title) {
+      // Case A: item is the product itself
+      if (item && item.title) {
         return { ...item, is_favorited: true };
       }
 
-      // Shape 3: nested under different key
-      if (item.products && item.products.title) {
-        return { ...item.products, is_favorited: true };
+      // Extract the nested product object (could be 'product', 'products', or an array)
+      const nested = item?.product || item?.products;
+      if (nested) {
+        const prod = Array.isArray(nested) ? nested[0] : nested;
+        if (prod && prod.title) {
+          return { ...prod, is_favorited: true };
+        }
       }
 
       return null;
