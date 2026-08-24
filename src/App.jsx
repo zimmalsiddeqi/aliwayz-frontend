@@ -13,6 +13,7 @@ import { getAccessToken, getRefreshToken, setTokens, clearTokens } from '@api/ax
 import axiosInstance from '@api/axios.instance';
 import { API } from '@api/api.endpoints';
 import useChatStore from '@store/chat.store';
+import { useFavoritesStore } from '@store/favorites.store';
 
 function AuthInitializer() {
   const initialized = useRef(false);
@@ -154,6 +155,20 @@ function SocketManager() {
   return null;
 }
 
+function FavoritesManager() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const fetchFavorites = useFavoritesStore((s) => s.fetchFavorites);
+  const isFavoritesInitialized = useFavoritesStore((s) => s.isInitialized);
+
+  useEffect(() => {
+    if (isAuthenticated && !isFavoritesInitialized) {
+      fetchFavorites();
+    }
+  }, [isAuthenticated, isFavoritesInitialized, fetchFavorites]);
+
+  return null;
+}
+
 function ThemeInitializer() {
   const { theme } = useUIStore();
   useEffect(() => {
@@ -178,6 +193,7 @@ export default function App() {
         <QueryClientProvider client={queryClient}>
           <ThemeInitializer />
           <AuthInitializer />
+          <FavoritesManager />
           <SocketManager />
           <AppRouter />
           <ToastContainer />

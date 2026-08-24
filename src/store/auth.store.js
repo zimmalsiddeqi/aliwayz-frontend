@@ -27,6 +27,13 @@ const useAuthStore = create(
         isLoading:       false,
         isInitialized:   true,
       });
+      // Fetch user favorites upon successful authentication
+      try {
+        const { useFavoritesStore } = require('./favorites.store');
+        useFavoritesStore.getState().fetchFavorites();
+      } catch (e) {
+        console.error('Failed to require favorites store:', e);
+      }
     },
 
     setUser: (userData) => {
@@ -51,6 +58,13 @@ const useAuthStore = create(
         isLoading:       false,
         isInitialized:   true,
       });
+      // Clear favorites from store
+      try {
+        const { useFavoritesStore } = require('./favorites.store');
+        useFavoritesStore.getState().clear();
+      } catch (e) {
+        console.error('Failed to require favorites store on logout:', e);
+      }
     },
 
     setLoading:     (isLoading)   => set({ isLoading }),

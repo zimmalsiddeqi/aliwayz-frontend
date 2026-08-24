@@ -21,6 +21,7 @@ import ProductService from '@api/services/product.service';
 import ChatService from '@api/services/chat.service';
 import { queryKeys } from '@lib/queryClient';
 import useAuthStore from '@store/auth.store';
+import { useFavoritesStore } from '@store/favorites.store';
 import Avatar from '@components/ui/Avatar';
 import Button from '@components/ui/Button';
 import BadgeUI from '@components/ui/Badge';
@@ -75,37 +76,31 @@ export default function ProductDetailPage() {
   const product = productData?.data;
 
   // ── Favorite toggle ────────────────────────────────────
-  const [isFav, setIsFav] = useState(false);
+  const isFav = useFavoritesStore((s) => s.ids.has(id));
+  const isPending = useFavoritesStore((s) => s.pendingIds.has(id));
+  const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
 
-  const favMutation = useMutation({
-    mutationFn: () => (isFav ? ProductService.unfavorite(id) : ProductService.favorite(id)),
-    onMutate: () => setIsFav((p) => !p),
-    onSuccess: () => {
-      toast.success(isFav ? 'Added to Favorites' : 'Removed from Favorites');
-    },
-    onError: (err) => {
-      setIsFav((p) => !p);
-      console.error('[Favorites Debug] ProductDetailPage mutation failed:', err);
-      toast.error('Failed to update favorite');
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.products.byId(id),
-      });
+  const handleFavorite = async () => {
+    if (!isAuthenticated) {
+      toast.error('Sign in to save favorites');
+      return;
+    }
+    if (isPending) return;
+
+    try {
+      const res = await toggleFavorite(id);
+      if (res?.action === 'added') {
+        toast.success('❤️ Added to Favorites');
+      } else if (res?.action === 'removed') {
+        toast.success('💔 Removed from Favorites');
+      }
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.byId(id) });
       queryClient.invalidateQueries({ queryKey: ['favorites'] });
       queryClient.invalidateQueries({ queryKey: queryKeys.users.favorites() });
-    },
-  });
-
-  // Set initial fav state
-  if (
-    product &&
-    product.is_favorited !== undefined &&
-    product.is_favorited !== isFav &&
-    !favMutation.isPending
-  ) {
-    setIsFav(product.is_favorited);
-  }
+    } catch (err) {
+      toast.error('⚠️ Unable to update favorites');
+    }
+  };
 
   // ── Start conversation mutation ────────────────────────
   const startChatMutation = useMutation({
@@ -389,14 +384,12 @@ export default function ProductDetailPage() {
                 <Button
                   variant="outline"
                   size="lg"
-                  onClick={() => {
-                    if (!isAuthenticated) {
-                      toast.error('Sign in to save favorites');
-                      return;
-                    }
-                    favMutation.mutate();
-                  }}
-                  className={isFav ? '!border-red-400/30 !text-red-400' : ''}
+                  onClick={handleFavorite}
+                  disabled={isPending}
+                  className={cn(
+                    isFav ? '!border-red-400/30 !text-red-400' : '',
+                    isPending && 'opacity-50 cursor-not-allowed'
+                  )}
                 >
                   <Heart size={18} fill={isFav ? 'currentColor' : 'none'} />
                 </Button>

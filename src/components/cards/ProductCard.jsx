@@ -1,8 +1,8 @@
-import { useState, memo } from 'react';
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, Eye, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@lib/queryClient';
 import useAuthStore from '@store/auth.store';
 import useInterestStore from '@store/interest.store';
@@ -14,11 +14,14 @@ import { formatCompactNumber } from '@utils/formatters';
 import toast from '@lib/toast';
 import { parsePropertyDescription } from '@utils/categoryHelpers';
 import { CATEGORY_IDS } from '@utils/constants';
+import { useFavoritesStore } from '@store/favorites.store';
 
 const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
   const { isAuthenticated, user } = useAuthStore();
   const queryClient = useQueryClient();
-  const [isFav, setIsFav] = useState(product.is_favorited || false);
+  const isFav = useFavoritesStore((s) => s.ids.has(product.id));
+  const isPending = useFavoritesStore((s) => s.pendingIds.has(product.id));
+  const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
   const logView = useInterestStore((s) => s.logView);
   const logFavorite = useInterestStore((s) => s.logFavorite);
 
@@ -26,28 +29,7 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
   const store    = product.stores;
   const seller   = product.users;
 
-  const favMutation = useMutation({
-    mutationFn: () =>
-      isFav
-        ? ProductService.unfavorite(product.id)
-        : ProductService.favorite(product.id),
-    onMutate: () => setIsFav((prev) => !prev),
-    onSuccess: () => {
-      toast.success(isFav ? 'Added to Favorites' : 'Removed from Favorites');
-    },
-    onError:  (err) => {
-      setIsFav((prev) => !prev);
-      console.error('[Favorites Debug] ProductCard mutation failed:', err);
-      toast.error('Failed to update favorite');
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: ['favorites'] });
-      queryClient.invalidateQueries({ queryKey: queryKeys.users.favorites() });
-    },
-  });
-
-  const handleFavorite = (e) => {
+  const handleFavorite = async (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (!isAuthenticated) {
@@ -55,9 +37,22 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
       return;
     }
     if (user?.id === product.users?.id) return;
-    favMutation.mutate();
-    if (!isFav) {
-      logFavorite(product.category_id);
+    if (isPending) return;
+
+    try {
+      const res = await toggleFavorite(product.id);
+      if (res?.action === 'added') {
+        toast.success('❤️ Added to Favorites');
+      } else if (res?.action === 'removed') {
+        toast.success('💔 Removed from Favorites');
+      }
+      queryClient.invalidateQueries({ queryKey: ['favorites'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.favorites() });
+      if (res?.action === 'added') {
+        logFavorite(product.category_id);
+      }
+    } catch (err) {
+      toast.error('⚠️ Unable to update favorites');
     }
   };
 
@@ -96,12 +91,14 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
           {/* Favorite button */}
           <button
             onClick={handleFavorite}
+            disabled={isPending}
             className={cn(
               'absolute top-3 right-3 w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200',
               'backdrop-blur-md border',
               isFav
                 ? 'bg-red-500/20 border-red-500/30 text-red-400'
-                : 'bg-black/20 border-white/10 text-white/80 hover:bg-black/40'
+                : 'bg-black/20 border-white/10 text-white/80 hover:bg-black/40',
+              isPending && 'opacity-50 cursor-not-allowed'
             )}
           >
             <Heart

@@ -18,6 +18,7 @@ import {
 import FavoriteService from '@api/services/favorite.service';
 import ProductCard from '@components/cards/ProductCard';
 import useAuthStore from '@store/auth.store';
+import { useFavoritesStore } from '@store/favorites.store';
 import { ProductCardSkeleton } from '@components/ui/Skeleton';
 import PageHeader from '@components/common/PageHeader';
 import EmptyState from '@components/common/EmptyState';
@@ -99,21 +100,23 @@ export default function FavoritesPage() {
 
 
 
-  // Remove from favorites
-  const removeMutation = useMutation({
-    mutationFn: (productId) =>
-      FavoriteService.remove(productId),
-    onSuccess: () => {
+  // Remove from favorites using global store
+  const removeFavoriteDirect = useFavoritesStore((s) => s.removeFavoriteDirect);
+  const pendingIds = useFavoritesStore((s) => s.pendingIds);
+
+  const handleRemove = async (productId) => {
+    try {
+      const res = await removeFavoriteDirect(productId);
+      if (res?.action === 'removed') {
+        toast.success('💔 Removed from Favorites');
+      }
       queryClient.invalidateQueries({ queryKey: ['favorites'] });
       queryClient.invalidateQueries({ queryKey: queryKeys.users.favorites() });
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      toast.success('Removed from favorites');
-    },
-    onError: (err) => {
-      console.error('[Favorites Debug] Remove mutation failed:', err);
-      toast.error(getErrorMessage(err));
-    },
-  });
+    } catch (err) {
+      toast.error('⚠️ Unable to update favorites');
+    }
+  };
 
   return (
     <>
@@ -301,26 +304,29 @@ export default function FavoritesPage() {
                             </div>
                           </div>
 
-                          <button
-                            onClick={() =>
-                              removeMutation.mutate(
-                                product.id
-                              )
-                            }
-                            disabled={
-                              removeMutation.isPending
-                            }
-                            className="p-2 rounded-xl transition-all hover:bg-red-500/10 flex-shrink-0 self-center"
-                            style={{
-                              color:
-                                'var(--color-error)',
-                            }}
-                          >
-                            <Heart
-                              size={18}
-                              fill="currentColor"
-                            />
-                          </button>
+                           <button
+                             onClick={() =>
+                               handleRemove(
+                                 product.id
+                               )
+                             }
+                             disabled={
+                               pendingIds.has(product.id)
+                             }
+                             className={cn(
+                               "p-2 rounded-xl transition-all hover:bg-red-500/10 flex-shrink-0 self-center",
+                               pendingIds.has(product.id) && "opacity-50 cursor-not-allowed"
+                             )}
+                             style={{
+                               color:
+                                 'var(--color-error)',
+                             }}
+                           >
+                             <Heart
+                               size={18}
+                               fill="currentColor"
+                             />
+                           </button>
                         </div>
                       </Card>
                     </motion.div>
