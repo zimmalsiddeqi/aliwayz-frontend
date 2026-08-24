@@ -93,9 +93,13 @@ export default function FavoritesPage() {
     })
     .filter(Boolean);
 
-  console.log('[Favorites Debug] Raw data pages:', data?.pages);
-  console.log('[Favorites Debug] RawData parsed:', rawData);
-  console.log('[Favorites Debug] Products mapped:', products);
+  console.warn('[Favorites Debug] Raw data pages:', data?.pages);
+  console.warn('[Favorites Debug] RawData parsed:', rawData);
+  console.warn('[Favorites Debug] Products mapped:', products);
+
+  if (isError) {
+    console.error('[Favorites Debug] Infinite query error:', error);
+  }
 
   // Remove from favorites
   const removeMutation = useMutation({
