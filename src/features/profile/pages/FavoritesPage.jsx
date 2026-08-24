@@ -93,7 +93,11 @@ export default function FavoritesPage() {
     })
     .filter(Boolean);
 
-  console.warn('[Favorites Debug] Raw data pages:', data?.pages);
+  try {
+    console.warn('[Favorites Debug] Raw data pages stringified:', JSON.stringify(data?.pages, null, 2));
+  } catch (e) {
+    console.warn('[Favorites Debug] Raw data pages (non-stringifiable):', data?.pages);
+  }
   console.warn('[Favorites Debug] RawData parsed:', rawData);
   console.warn('[Favorites Debug] Products mapped:', products);
 
