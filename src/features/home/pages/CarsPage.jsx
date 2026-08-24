@@ -147,17 +147,15 @@ export default function CarsPage() {
               >
                 <ArrowLeft size={14} /> Home
               </Link>
-              {canSell && (
-                <Link to="/sell/create?category=vehicles">
-                  <Button
-                    size="xs"
-                    leftIcon={<PlusCircle size={14} />}
-                    className="!border-white/35 !bg-white/20 !text-white backdrop-blur-md hover:!bg-white/30"
-                  >
-                    Sell Automotive
-                  </Button>
-                </Link>
-              )}
+              <Link to="/sell/create?category=vehicles">
+                <Button
+                  size="xs"
+                  leftIcon={<PlusCircle size={14} />}
+                  className="!border-white/35 !bg-white/20 !text-white backdrop-blur-md hover:!bg-white/30"
+                >
+                  Sell Automotive
+                </Button>
+              </Link>
             </div>
 
             <div className="mt-2.5">

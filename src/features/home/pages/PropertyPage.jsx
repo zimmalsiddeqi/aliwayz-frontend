@@ -175,7 +175,6 @@ export default function PropertyPage() {
               >
                 <ArrowLeft size={14} /> Home
               </Link>
-              {canSell && (
                 <Link to="/sell/create?category=real-estate">
                   <Button
                     size="xs"
@@ -185,7 +184,6 @@ export default function PropertyPage() {
                     List Property
                   </Button>
                 </Link>
-              )}
             </div>
 
             <div className="mt-2.5">

@@ -315,7 +315,24 @@ export default function ProductDetailPage() {
 
             {/* Price */}
             <p className="text-gradient-brand text-3xl font-bold sm:text-4xl">
-              {formatPrice(product.price, product.currency)}
+              {(() => {
+                if (product.category_id === CATEGORY_IDS.PROPERTY || product.category_id === CATEGORY_IDS.REAL_ESTATE) {
+                  const attrs = parsePropertyDescription(product.description || '');
+                  const priceStr = formatPrice(product.price, product.currency);
+                  if (attrs.intent === 'rent') return `${priceStr} / mo`;
+                  if (attrs.intent === 'vacation') return `${priceStr} / night`;
+                  if (attrs.intent === 'lease') {
+                    const leaseTypeMatch = (product.description || '').match(/Pricing Type:\s*(\w+)/);
+                    const leaseType = leaseTypeMatch ? leaseTypeMatch[1] : '';
+                    if (leaseType === 'year') return `${priceStr} / yr`;
+                    if (leaseType === 'sqft_month') return `${priceStr} / SF / mo`;
+                    if (leaseType === 'sqft_year') return `${priceStr} / SF / yr`;
+                    return `${priceStr} / mo`;
+                  }
+                  return priceStr;
+                }
+                return formatPrice(product.price, product.currency);
+              })()}
             </p>
 
             {/* Meta */}

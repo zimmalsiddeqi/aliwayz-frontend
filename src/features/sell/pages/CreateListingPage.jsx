@@ -81,6 +81,31 @@ export default function CreateListingPage() {
     );
   }
 
+  const handleBack = () => {
+    if (selectedCategory === MAIN_CATEGORIES.REAL_ESTATE) {
+      const stepStr = searchParams.get('step');
+      const step = stepStr ? parseInt(stepStr, 10) : 0;
+      if (step > 0) {
+        setSearchParams({
+          category: selectedCategory,
+          intent: searchParams.get('intent') || '',
+          type: searchParams.get('type') || '',
+          step: step - 1
+        });
+        return;
+      }
+    }
+    if (selectedCategory) {
+      searchParams.delete('category');
+      searchParams.delete('step');
+      searchParams.delete('intent');
+      searchParams.delete('type');
+      setSearchParams(searchParams);
+    } else {
+      navigate(-1);
+    }
+  };
+
   return (
     <>
       <Helmet>
@@ -103,7 +128,7 @@ export default function CreateListingPage() {
             >
               <div className="mb-4">
                 <button
-                  onClick={() => navigate(-1)}
+                  onClick={handleBack}
                   className="flex items-center gap-1.5 text-sm font-medium transition-colors hover:underline"
                   style={{
                     color: 'var(--color-text-muted)',

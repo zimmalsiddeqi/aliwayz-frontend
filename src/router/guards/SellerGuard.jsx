@@ -11,7 +11,7 @@ export default function SellerGuard({ children }) {
   const hasSellerRole = ['seller', 'both', 'admin'].includes(user?.role);
 
   if (!hasSellerRole) {
-    return <Navigate to="/profile" replace />;
+    return <Navigate to="/profile/edit?switch_role=true" replace />;
   }
 
   return children;
