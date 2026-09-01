@@ -23,12 +23,14 @@ import {
   CATEGORY_IDS,
 } from '@utils/constants';
 import toast from '@lib/toast';
+import ListingQRModal from '@components/modals/ListingQRModal';
 
 export default function PropertyListingForm({ store, intent = 'sale', propertyType = 'single_family', onBack }) {
   const { lat: userLat, lng: userLng, city: userCity, state: userState } = useLocationStore();
   const navigate = useNavigate();
   const [images, setImages] = useState([]);
   const [selectedFeatures, setSelectedFeatures] = useState([]);
+  const [publishedProduct, setPublishedProduct] = useState(null);
 
   const isLand = propertyType === 'land';
 
@@ -308,7 +310,7 @@ export default function PropertyListingForm({ store, intent = 'sale', propertyTy
       images.forEach((img) => revokeFilePreview(img.preview));
       clearDraft();
       toast.success('Property listed successfully! 🏠');
-      navigate(`/product/${product.id}`);
+      setPublishedProduct(product);
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });
@@ -663,6 +665,18 @@ export default function PropertyListingForm({ store, intent = 'sale', propertyTy
           </Button>
         </div>
       </form>
+
+      <ListingQRModal
+        isOpen={!!publishedProduct}
+        onClose={() => {
+          const pId = publishedProduct?.id;
+          setPublishedProduct(null);
+          if (pId) {
+            navigate(`/product/${pId}`);
+          }
+        }}
+        product={publishedProduct}
+      />
     </div>
   );
 }

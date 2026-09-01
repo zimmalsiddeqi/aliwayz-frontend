@@ -57,9 +57,11 @@ export default function MyListingsPage() {
 
   const allProducts = data?.data || [];
 
-  // Filter client-side for "all"
+  // Filter client-side for status or QR codes
   const products =
-    statusFilter === 'all' ? allProducts : allProducts.filter((p) => p.status === statusFilter);
+    statusFilter === 'all' || statusFilter === 'qr'
+      ? allProducts
+      : allProducts.filter((p) => p.status === statusFilter);
 
   // ── Status mutation ────────────────────────────────────
   const statusMutation = useMutation({
@@ -122,6 +124,11 @@ export default function MyListingsPage() {
       value: 'available',
       label: 'Active',
       count: allProducts.filter((p) => p.status === 'available').length,
+    },
+    {
+      value: 'qr',
+      label: '▣ QR Codes',
+      count: allProducts.length,
     },
     {
       value: 'reserved',
@@ -275,7 +282,18 @@ export default function MyListingsPage() {
                     </div>
 
                     {/* Actions dropdown */}
-                    <div className="flex-shrink-0 self-center">
+                    <div className="flex-shrink-0 self-center flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setQrTarget(product)}
+                        className="gap-1.5 px-2.5 py-1 text-xs"
+                        title="View / Download QR Code"
+                      >
+                        <QrCode size={14} />
+                        <span className="hidden sm:inline">QR Code</span>
+                      </Button>
+
                       <Dropdown
                         align="right"
                         trigger={
@@ -297,15 +315,11 @@ export default function MyListingsPage() {
                             label: 'View',
                             onClick: () => navigate(`/product/${product.id}`),
                           },
-                          ...([CATEGORY_IDS.VEHICLES, CATEGORY_IDS.AUTOMOTIVE, CATEGORY_IDS.REAL_ESTATE, CATEGORY_IDS.PROPERTY].includes(product.category_id)
-                            ? [
-                                {
-                                  icon: <QrCode size={14} />,
-                                  label: '▣ Listing QR Code',
-                                  onClick: () => setQrTarget(product),
-                                },
-                              ]
-                            : []),
+                          {
+                            icon: <QrCode size={14} />,
+                            label: '▣ Listing QR Code',
+                            onClick: () => setQrTarget(product),
+                          },
                           { divider: true },
                           ...(product.status !== 'available'
                             ? [

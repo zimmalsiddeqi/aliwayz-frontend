@@ -34,6 +34,7 @@ import {
   ITEM_CONDITIONS,
 } from '@utils/constants';
 import toast from '@lib/toast';
+import ListingQRModal from '@components/modals/ListingQRModal';
 
 const ACCESSORIES_IDS = [
   '6048801d-f786-5a3a-8a5b-fe09b7bc1ea7', // Vehicle Accessories (parent)
@@ -50,6 +51,7 @@ export default function CarListingForm({ store }) {
   const { lat: userLat, lng: userLng, city: userCity, state: userState } = useLocationStore();
   const [images, setImages] = useState([]);
   const [selectedFeatures, setSelectedFeatures] = useState([]);
+  const [publishedProduct, setPublishedProduct] = useState(null);
 
   const defaultValues = useMemo(() => ({
     title: '',
@@ -216,7 +218,7 @@ export default function CarListingForm({ store }) {
       images.forEach((img) => revokeFilePreview(img.preview));
       clearDraft();
       toast.success('Vehicle listed successfully! 🚗');
-      navigate(`/product/${product.id}`);
+      setPublishedProduct(product);
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });
@@ -531,6 +533,18 @@ export default function CarListingForm({ store }) {
           {isAccessories ? 'Publish Accessory Listing' : 'Publish Automotive Listing'}
         </Button>
       </form>
+
+      <ListingQRModal
+        isOpen={!!publishedProduct}
+        onClose={() => {
+          const pId = publishedProduct?.id;
+          setPublishedProduct(null);
+          if (pId) {
+            navigate(`/product/${pId}`);
+          }
+        }}
+        product={publishedProduct}
+      />
     </div>
   );
 }

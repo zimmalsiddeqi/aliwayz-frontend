@@ -701,7 +701,8 @@ export default function StoreProfilePage() {
           {activeTab === 'qr_codes' && isOwner && (
             <div className="space-y-4">
               {(() => {
-                const qrProducts = products.filter(p => [CATEGORY_IDS.VEHICLES, CATEGORY_IDS.AUTOMOTIVE, CATEGORY_IDS.REAL_ESTATE, CATEGORY_IDS.PROPERTY].includes(p.category_id));
+                const qrProducts = products.filter(p => [CATEGORY_IDS.VEHICLES, CATEGORY_IDS.AUTOMOTIVE, CATEGORY_IDS.REAL_ESTATE, CATEGORY_IDS.PROPERTY, CATEGORY_IDS.AUTO_PARTS_ACCESSORIES].includes(p.category_id));
+                const displayProducts = qrProducts.length > 0 ? qrProducts : products;
                 
                 if (productsLoading) return (
                   <div className="flex justify-center py-8">
@@ -709,19 +710,19 @@ export default function StoreProfilePage() {
                   </div>
                 );
                 
-                if (qrProducts.length === 0) {
+                if (displayProducts.length === 0) {
                   return (
                     <EmptyState
                       icon="▣"
-                      title="No Listing QR Codes"
-                      description="You don't have any active Automotive or Real Estate listings that support QR codes."
+                      title="No Listings Yet"
+                      description="Create a listing to view and download your printable QR codes."
                     />
                   );
                 }
                 
                 return (
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-                    {qrProducts.map(p => (
+                    {displayProducts.map(p => (
                       <Card key={p.id} className="p-4 flex flex-col items-center text-center justify-between h-full hover-lift">
                         <div className="w-full flex flex-col items-center">
                           <div className="w-16 h-16 bg-[var(--color-surface-elevated)] rounded-xl flex items-center justify-center mb-3">
