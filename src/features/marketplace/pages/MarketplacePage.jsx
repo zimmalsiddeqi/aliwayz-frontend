@@ -239,7 +239,7 @@ export default function MarketplacePage() {
                     </div>
                   </div>
                   <Select
-                    label="Condition"
+                    label="Item Condition"
                     placeholder="Any Condition"
                     value={filters.condition || ''}
                     onChange={(e) => updateFilter('condition', e.target.value)}

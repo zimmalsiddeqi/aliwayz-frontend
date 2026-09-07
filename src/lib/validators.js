@@ -129,7 +129,7 @@ export const createProductSchema = z.object({
   description:   z.string().max(5000).trim().optional(),
   category_id:   z.string().uuid('Select a valid category'),
   condition:     z.enum(['new', 'like_new', 'good', 'fair', 'poor'], {
-    errorMap: () => ({ message: 'Select a condition' }),
+    errorMap: () => ({ message: 'Select item condition' }),
   }),
   price:         z.coerce.number({ invalid_type_error: 'Enter a valid price' })
                    .positive('Price must be greater than 0')

@@ -35,7 +35,7 @@ export const ITEM_CONDITIONS = [
   { value: 'like_new',  label: 'Like New' },
   { value: 'good',      label: 'Good' },
   { value: 'fair',      label: 'Fair' },
-  { value: 'poor',      label: 'For Parts / Not Working' },
+  { value: 'poor',      label: 'For Parts / Repair' },
 ];
 
 // ── Notification Types ─────────────────────────────────────────

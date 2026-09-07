@@ -315,8 +315,8 @@ export default function CarListingForm({ store }) {
                   {...register('brand')}
                 />
                 <Select
-                  label="Condition *"
-                  placeholder="Select condition"
+                  label="Item Condition *"
+                  placeholder="Select item condition"
                   options={ITEM_CONDITIONS}
                   error={errors.condition?.message}
                   {...register('condition', { required: 'Required' })}

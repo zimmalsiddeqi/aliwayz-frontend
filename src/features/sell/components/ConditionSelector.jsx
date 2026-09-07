@@ -5,7 +5,7 @@ import { CONDITIONS } from '@utils/constants';
 export default function ConditionSelector({ control, name = 'condition', error }) {
   return (
     <div className="space-y-1.5">
-      <label className="floating-label">Condition</label>
+      <label className="floating-label">Item Condition</label>
       <Controller
         name={name}
         control={control}

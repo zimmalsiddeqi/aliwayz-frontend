@@ -214,11 +214,11 @@ export function parsePagination(pagination) {
  */
 export function getConditionLabel(condition) {
   const labels = {
-    new:       'New',
+    new:       'Brand New',
     like_new:  'Like New',
     good:      'Good',
     fair:      'Fair',
-    poor:      'Poor',
+    poor:      'For Parts / Repair',
   };
   return labels[condition] || condition;
 }

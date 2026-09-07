@@ -228,7 +228,6 @@ const FAQ_SECTIONS = [
     ],
   },
 ];
-];
 
 export default function FAQPage() {
   const [activeSection, setActiveSection] = useState('general');
