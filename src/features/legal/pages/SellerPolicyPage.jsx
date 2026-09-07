@@ -43,6 +43,9 @@ export default function SellerPolicyPage() {
             make, model, features, size, and any defects or wear.
           </li>
           <li>
+            <strong>Inventory Accuracy:</strong> Specify the accurate stock quantity when listing items. Keep available quantity numbers updated if items are sold through other channels.
+          </li>
+          <li>
             <strong>Original Media:</strong> Upload clear, actual photos of the item in your physical possession. 
             Do not upload stock photos, catalog images, or media copyrighted by third parties.
           </li>
@@ -103,8 +106,7 @@ export default function SellerPolicyPage() {
           </li>
           <li>
             <strong>Scanning to Confirm:</strong> Use the camera scanner built into your Aliwayz app to scan the buyer&apos;s QR code. 
-            This logs the transaction meetup as completed in our system, updates your seller badges, and prompts the buyer 
-            to leave a profile review.
+            This logs the transaction meetup as completed in our system, automatically decrements the listing&apos;s available stock quantity by 1, updates the product status to &quot;Sold&quot; when remaining quantity reaches zero, updates your seller badges, and prompts the buyer to leave a profile review.
           </li>
           <li>
             <strong>No Guarantee:</strong> This QR scan is an administrative record showing the meetup took place. 

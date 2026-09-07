@@ -27,7 +27,7 @@ export default function AccountDeletionPage() {
         <ol className="list-decimal pl-5 mb-4 space-y-2">
           <li>Log in to your account on the Aliwayz app or website.</li>
           <li>Navigate to your <strong>Profile Settings</strong> or click <strong>Edit Profile</strong>.</li>
-          <li>Scroll down to the bottom of the settings page to find the <strong>Danger Zone</strong>.</li>
+          <li>Scroll down to the bottom of the settings page to find the <strong>Account Management</strong> section.</li>
           <li>Click the <strong>Delete Account</strong> button.</li>
           <li>Verify your credentials or confirm the action on the confirmation modal.</li>
         </ol>
@@ -89,7 +89,7 @@ export default function AccountDeletionPage() {
         <p>
           Once your account is deleted, it cannot be reactivated, restored, or retrieved. 
           If you wish to return to the marketplace, you must register a brand-new profile using 
-          an email address or Google Sign-In account.
+          an email address, Google Sign-In, or Apple Sign-In account.
         </p>
       </LegalSection>
 

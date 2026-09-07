@@ -85,7 +85,7 @@ export default function ProductDetailPage() {
 
   const handleFavorite = async () => {
     if (!isAuthenticated) {
-      toast.error('Sign in to save favorites');
+      navigate('/login');
       return;
     }
     if (isPending) return;
@@ -615,13 +615,19 @@ export default function ProductDetailPage() {
             )}
 
             {/* ── Report ─────────────────────────────────── */}
-            {!isOwner && isAuthenticated && (
+            {!isOwner && (
               <button
                 className="flex items-center gap-1 text-xs transition-colors hover:underline"
                 style={{
                   color: 'var(--color-text-muted)',
                 }}
-                onClick={() => setShowReport(true)}
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    navigate('/login');
+                    return;
+                  }
+                  setShowReport(true);
+                }}
               >
                 <Flag size={12} />
                 Report this listing

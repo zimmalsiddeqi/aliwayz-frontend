@@ -112,6 +112,8 @@ export const LEGAL_PAGES = [
       'marketplace privacy',
       'data protection',
       'user data rights',
+      'apple sign-in',
+      'google oauth',
     ],
     relatedPages: ['terms', 'cookie-policy', 'data-deletion', 'account-deletion'],
 
@@ -157,6 +159,7 @@ export const LEGAL_PAGES = [
       'user agreement',
       'marketplace terms',
       'terms of service',
+      'apple sign-in',
     ],
     relatedPages: ['privacy-policy', 'community-guidelines', 'disclaimer'],
 
@@ -203,6 +206,7 @@ export const LEGAL_PAGES = [
       'tracking technologies',
       'browser cookies',
       'local storage',
+      'apple oauth',
     ],
     relatedPages: ['privacy-policy', 'terms'],
 

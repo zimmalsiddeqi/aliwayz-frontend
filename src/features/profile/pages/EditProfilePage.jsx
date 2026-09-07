@@ -503,13 +503,13 @@ export default function EditProfilePage() {
             </div>
           </Card>
 
-          {/* Danger zone */}
+          {/* Account management */}
           <Card className="p-5">
             <h3
               className="font-semibold text-sm mb-3"
               style={{ color: 'var(--color-error)' }}
             >
-              Danger Zone
+              Account Management
             </h3>
             <p
               className="text-xs mb-3"

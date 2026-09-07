@@ -73,7 +73,7 @@ export default function BuyerPolicyPage() {
           </li>
           <li>
             <strong>Scan Confirmation:</strong> Present the QR code on your screen for the seller to scan using their device. 
-            This scan records the meetup as completed, updates your transaction history, and prompts you to leave a profile review.
+            This scan records the meetup as completed, decrements the seller&apos;s available product inventory by 1, updates your transaction history, and prompts you to leave a profile review.
           </li>
           <li>
             <strong>Limit of Records:</strong> This verification is an administrative log of a completed meetup. 

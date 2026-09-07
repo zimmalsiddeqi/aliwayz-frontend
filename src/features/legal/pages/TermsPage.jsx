@@ -47,7 +47,7 @@ export default function TermsPage() {
       <LegalSection id="account-registration" title="3. Account Registration">
         <p className="mb-4">
           To list items or send messages, you must register an account using an email and password or 
-          by authenticating through Google Sign-In. You agree to:
+          by authenticating through Google Sign-In or Apple Sign-In. You agree to:
         </p>
         <ul className="list-disc pl-5 mb-4 space-y-1">
           <li>Provide accurate, current, and complete profile information.</li>
@@ -78,7 +78,8 @@ export default function TermsPage() {
           </li>
           <li>
             <strong>QR meetup verification:</strong> We provide a single-use QR meetup verification system 
-            solely to allow users to document that a physical meeting occurred. This system does not process, 
+            to document that a physical meeting occurred, decrement available product inventory quantity, 
+            and transition listings to sold status when out of stock. This system does not process, 
             guarantee, or warrant any financial transaction.
           </li>
         </ul>
@@ -108,7 +109,7 @@ export default function TermsPage() {
           and product images, you represent and warrant that:
         </p>
         <ul className="list-disc pl-5 mb-4 space-y-1">
-          <li>The listing information is complete, truthful, and accurate.</li>
+          <li>The listing information and available item quantity are complete, truthful, and accurate.</li>
           <li>You hold the legal title and permission to sell the item.</li>
           <li>The photos uploaded are actual images of the item in its current condition.</li>
           <li>The listing does not infringe upon any third-party intellectual property or copyright.</li>

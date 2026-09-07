@@ -25,7 +25,7 @@ export default function MessageInput({ value, onChange, onSend, onTypingStart, o
         placeholder="Type a message..."
         rows={1}
         disabled={disabled}
-        className="input-base resize-none max-h-32 min-h-[44px]"
+        className="input-base resize-none max-h-32 min-h-[44px] text-[16px] sm:text-sm"
         style={{ paddingTop: '10px', paddingBottom: '10px' }}
       />
       <button

@@ -19,15 +19,15 @@ const FAQ_SECTIONS = [
     faqs: [
       {
         q: 'What is Aliwayz?',
-        a: 'Aliwayz is a local marketplace where you can buy and sell cars, property, and everyday products in your area. All transactions are verified using our secure QR code system to ensure safe, in-person exchanges.',
+        a: 'Aliwayz is a premier local marketplace where you can buy and sell cars, property, and everyday products in your area. All transactions are verified using our secure QR code system to ensure safe, transparent in-person exchanges.',
       },
       {
         q: 'Is Aliwayz free to use?',
-        a: 'Yes! Creating an account, browsing listings, and posting items for sale is completely free. There are no hidden fees or commissions on your sales.',
+        a: 'Yes! Creating an account, browsing listings, generating printable QR signs, and posting items for sale is completely free. There are no hidden listing fees or sales commissions.',
       },
       {
         q: 'How does Aliwayz work?',
-        a: 'It\'s simple: 1) Create an account, 2) Browse or list items in Cars, Property, or Daily Use Products, 3) Chat with buyers/sellers, 4) Meet locally, 5) Complete the sale with QR verification, 6) Leave a review.',
+        a: 'It\'s simple: 1) Create an account with Email, Google, or Apple, 2) Browse or list items in Cars, Property, or Daily Use Products, 3) Chat with buyers/sellers, 4) Meet locally, 5) Complete the sale with QR verification or print physical QR placards for vehicles & property, 6) Leave a review.',
       },
       {
         q: 'Where is Aliwayz available?',
@@ -35,7 +35,7 @@ const FAQ_SECTIONS = [
       },
       {
         q: 'Do I need to create a store to sell something?',
-        a: 'No! You can use our "Quick Listing" feature to sell a single item without setting up a store. However, if you plan to sell multiple items regularly, we recommend setting up a seller profile for better visibility and credibility.',
+        a: 'No! You can list a single item immediately without setting up a store. However, if you plan to sell multiple items regularly, setting up a seller store profile gives you a dedicated storefront, custom URL, and a private QR Code manager.',
       },
     ],
   },
@@ -48,6 +48,10 @@ const FAQ_SECTIONS = [
       {
         q: 'How do I buy something on Aliwayz?',
         a: 'Find a product you like, click "Message Seller" to discuss details, agree on a price and meeting location, meet in person to inspect the item, then complete the purchase using QR verification.',
+      },
+      {
+        q: 'How do physical Listing QR placards work for buyers?',
+        a: 'When you see a car with a "FOR SALE" sign or a house with a "FOR SALE / RENT" placard displaying an Aliwayz QR code, simply open your phone\'s camera and scan it! You will immediately be taken to the live listing on Aliwayz where you can check pricing, specs, vehicle/property details, and message the seller directly.',
       },
       {
         q: 'Is it safe to buy on Aliwayz?',
@@ -67,7 +71,7 @@ const FAQ_SECTIONS = [
       },
       {
         q: 'Does Aliwayz handle payments?',
-        a: 'No, Aliwayz does not process payments. All payments are handled directly between the buyer and seller during the in-person meetup. You can use cash, Venmo, Zelle, or any method you both agree on.',
+        a: 'No, Aliwayz does not process payment funds. Payments are handled directly between buyer and seller during the in-person meetup using cash, Venmo, Zelle, or any agreed-upon method.',
       },
     ],
   },
@@ -79,31 +83,27 @@ const FAQ_SECTIONS = [
     faqs: [
       {
         q: 'How do I post a product or list an item for sale?',
-        a: '1) Click "Sell" in the top navigation. 2) Choose your category (Daily Essentials, Automotive, or Real Estate). 3) Select the specific sub-category (e.g., Furniture, SUV, House for Rent). 4) Fill out the required details like pricing, location, and condition. 5) Upload high-quality photos. 6) Hit "Publish Listing". Your item will instantly be live on Aliwayz!',
+        a: '1) Click "Sell" in the top navigation. 2) Choose your category (Daily Essentials, Automotive, or Real Estate). 3) Fill out details like pricing, location, condition, and stock quantity. 4) Upload photos. 5) Click "Publish Listing". For Automotive and Real Estate, a printable/downloadable QR placard will automatically generate on your screen!',
       },
       {
-        q: 'How do I switch between being a Buyer and a Seller?',
-        a: 'If you signed up as a Buyer but want to start selling, simply click the "Sell" button in the navigation or go to your Profile Settings. Under "Account Role", you can switch your role to "Seller" or "Both". Once updated, you will have full access to the Seller Dashboard.',
+        q: 'How does stock quantity tracking work?',
+        a: 'When creating a listing, you can specify your available stock quantity (e.g. 10 units). Each completed sale automatically decrements your stock quantity by 1. When quantity reaches 0, the item automatically updates to "Sold". If stock remains, it stays available for other buyers!',
       },
       {
-        q: 'How many items can I list?',
-        a: 'There\'s no limit! You can list as many items as you want across all categories.',
+        q: 'How do I print or download a QR sign for my vehicle or property?',
+        a: 'When you publish an Automotive or Real Estate listing, a QR sign modal opens automatically with "Download PNG" and "Print Sign" buttons. You can also re-download your QR placards anytime from the "▣ QR Codes" tab in your Profile Listing Dashboard or Store Profile!',
       },
       {
-        q: 'How do I complete a sale?',
-        a: 'Once you and the buyer agree on terms via chat: 1) Meet in person, 2) Open the chat and tap "Generate QR," 3) Show the QR code to the buyer, 4) The buyer scans it to confirm the purchase, 5) The item is automatically marked as sold.',
+        q: 'How do I complete a sale in person?',
+        a: 'Once you and the buyer agree on terms via chat: 1) Meet in person, 2) Open the chat and tap "Generate QR," 3) Show the QR code to the buyer, 4) The buyer scans it to confirm the purchase, 5) The stock quantity decrements, and the deal is complete.',
       },
       {
         q: 'Can I edit or delete my listing?',
-        a: 'Yes. Go to "My Listings" in your seller dashboard. You can edit details, change the status (available, reserved, hidden), or delete the listing entirely.',
+        a: 'Yes. Go to "My Listings" in your seller dashboard. You can update details, adjust available quantity, change the status (available, reserved, hidden), or delete the listing entirely.',
       },
       {
         q: 'How do I get more buyers?',
-        a: 'Add high-quality photos (up to 20), write detailed descriptions, price competitively, and maintain good reviews. Verified sellers and those with badges tend to get more interest.',
-      },
-      {
-        q: 'What\'s the difference between Quick Listing and a Seller Profile?',
-        a: 'Quick Listing lets you sell a single item instantly without setup. A Seller Profile (Shop) creates a dedicated storefront where buyers can browse all your listings, follow you, and see your reviews and ratings.',
+        a: 'Add high-quality photos (up to 20), write detailed descriptions, price competitively, and print physical Aliwayz QR placards to place on your vehicle windshield or property yard to drive local foot traffic!',
       },
     ],
   },
@@ -114,20 +114,20 @@ const FAQ_SECTIONS = [
     color: '#3B82F6',
     faqs: [
       {
-        q: 'How do I sell my car on Aliwayz?',
-        a: 'Click "Sell," choose "Automotive," then fill in the details including make, model, year, mileage, transmission, and condition. Add photos of the exterior, interior, engine, and dashboard for the best results.',
+        q: 'How do I sell my car or vehicle on Aliwayz?',
+        a: 'Click "Sell," choose "Automotive," then fill in vehicle details including make, model, year, mileage, transmission, and condition. Upload photos, click "Publish Listing", and immediately download or print your high-res "FOR SALE" windshield QR placard!',
+      },
+      {
+        q: 'How do buyers interact with my vehicle\'s QR sign?',
+        a: 'Place your printed Aliwayz QR placard on your car window. People passing by your vehicle can scan the QR code with their phone camera to instantly open your car\'s full listing, photos, price, specs, and message you directly.',
       },
       {
         q: 'What information should I include in my car listing?',
-        a: 'Include the make, model, year, mileage, fuel type, transmission, body type, engine size, color, number of previous owners, condition, and any notable features. The more details, the more serious buyers you\'ll attract.',
+        a: 'Include the make, model, year, mileage, fuel type, transmission, body type, engine size, color, number of previous owners, condition, and notable features.',
       },
       {
         q: 'Can I sell a car with a lien on it?',
-        a: 'You can list a car with a lien, but you should disclose this in the description. The lien must be resolved before transferring the title to the buyer.',
-      },
-      {
-        q: 'Do I need a dealer license to sell cars?',
-        a: 'For selling your personal vehicle, no license is needed. However, if you\'re regularly buying and selling cars for profit, your state may require a dealer license. Check your local regulations.',
+        a: 'You can list a car with a lien, but disclose this in the description. The lien must be resolved before transferring the title to the buyer.',
       },
     ],
   },
@@ -138,20 +138,20 @@ const FAQ_SECTIONS = [
     color: 'var(--color-success)',
     faqs: [
       {
-        q: 'Can I list property for rent or commercial lease?',
-        a: 'Yes! Our Real Estate wizard handles four main transaction types: Sell a Property, Rent a Property, Commercial Lease, and Vacation Rental. The form will dynamically update to show relevant pricing fields like Monthly Rent, HOA fees, NNN charges, or Nightly Rates based on what you select.',
+        q: 'Can I list property for sale, rent, or commercial lease?',
+        a: 'Yes! Our Real Estate listing form handles four main transaction types: Sell a Property, Rent a Property, Commercial Lease, and Vacation Rental. The form dynamically updates pricing fields like Monthly Rent, HOA fees, or Nightly Rates.',
+      },
+      {
+        q: 'How do physical Real Estate QR placards work?',
+        a: 'When you list a property, Aliwayz generates a downloadable "FOR SALE / RENT" placard. You can print and display this QR sign on your property yard, window, or flyer. Prospective buyers/tenants scanning the QR sign get immediate access to virtual tour info, pricing, photos, and direct seller contact.',
       },
       {
         q: 'Do I have to show the exact address of my property?',
-        a: 'No. In the Property Location section, you can explicitly choose between "Exact location" (shows a pin on the map) and "Approximate location" (shows only the general neighborhood/radius). Approximate location is the default for residential properties.',
+        a: 'No. In the Property Location section, choose between "Exact location" (pin on map) and "Approximate location" (shows neighborhood radius).',
       },
       {
         q: 'What types of property can I list?',
-        a: 'Houses, apartments, condos, plots/land, commercial spaces, offices, shops, warehouses, and farmhouses. Both residential and commercial properties are welcome.',
-      },
-      {
-        q: 'Is Aliwayz a licensed real estate platform?',
-        a: 'Aliwayz is a marketplace for connecting buyers and sellers. We are not a licensed real estate broker. For legal transactions involving property, we recommend consulting a licensed real estate attorney or agent in your state.',
+        a: 'Houses, townhomes, condos, apartments, land/plots, commercial spaces, offices, shops, warehouses, and farmhouses.',
       },
     ],
   },
@@ -163,23 +163,19 @@ const FAQ_SECTIONS = [
     faqs: [
       {
         q: 'What is QR verification?',
-        a: 'QR verification is our secure way to confirm that a sale has been completed. The seller generates a unique, encrypted QR code in the chat. The buyer scans it to confirm the purchase. This ensures both parties agree the transaction is done.',
+        a: 'QR verification is our secure, instant proof-of-sale system. The seller generates a unique, encrypted QR code in the chat during meetup, and the buyer scans it to confirm the purchase. It automatically completes the deal, decrements stock quantity, and records the sale.',
       },
       {
-        q: 'How long is a QR code valid?',
-        a: 'Each QR code expires after 10 minutes. If it expires, the seller can generate a new one. This time limit adds an extra layer of security.',
+        q: 'What is the difference between a Deal QR Code and a Listing QR Placard?',
+        a: 'A **Listing QR Placard** is a downloadable sign you print and display on your vehicle window or real estate yard to attract buyers. A **Deal QR Code** is generated inside the private chat during a physical meetup to complete and verify the final sale.',
       },
       {
-        q: 'Can a QR code be used more than once?',
-        a: 'No. Each QR code is single-use. Once scanned, it\'s permanently consumed and cannot be used again. The seller can generate a new one if needed.',
+        q: 'How long is a in-chat Deal QR code valid?',
+        a: 'Each deal QR code expires after 10 minutes for security. If it expires, the seller can generate a new one instantly in the chat.',
       },
       {
-        q: 'What happens after the QR is scanned?',
-        a: 'The product is automatically marked as "Sold," both parties receive a notification, and a review prompt appears so you can rate your experience.',
-      },
-      {
-        q: 'Can I cancel a sale after QR verification?',
-        a: 'If both parties agree to cancel, the seller can regenerate a new QR code and relist the item. Contact the other party through the chat to discuss.',
+        q: 'Can a Deal QR code be used more than once?',
+        a: 'No. Each deal QR code is single-use and encrypted. Once scanned, it is permanently consumed and records the verified sale.',
       },
     ],
   },
@@ -191,23 +187,19 @@ const FAQ_SECTIONS = [
     faqs: [
       {
         q: 'How do I stay safe when meeting in person?',
-        a: 'Always meet in a well-lit, public place (police station parking lots are ideal). Bring a friend if possible. Never share personal financial information. Trust your instincts — if something feels off, walk away.',
+        a: 'Always meet in a well-lit, public place (police station designated exchange zones are ideal). Bring a friend if possible. Inspect the item thoroughly before scanning the Deal QR code.',
       },
       {
-        q: 'How do I report a suspicious user?',
-        a: 'Tap the flag icon on any user profile, product listing, or store page to submit a report. You can also report users directly from the chat. Our moderation team reviews all reports within 24 hours.',
+        q: 'How do I report a suspicious user or listing?',
+        a: 'Click the flag icon on any listing or profile page. Unauthenticated users clicking report are seamlessly directed to sign in. Our moderation team reviews reports promptly.',
       },
       {
         q: 'What are seller badges?',
-        a: 'Badges are earned based on your activity and reputation: New Seller (just started), Verified Seller (phone verified + 1 sale), 100 Rated (100+ sales with 4.0+ rating), 500 Rated (500+ sales), Top Seller (highest tier), and Trusted Buyer (10+ purchases with great reviews).',
+        a: 'Badges are earned based on activity and reputation: New Seller, Verified Seller (phone verified + 1 sale), 100 Rated, 500 Rated, Top Seller, and Trusted Buyer.',
       },
       {
         q: 'Can I block someone?',
         a: 'Yes. In any chat conversation, tap the menu icon and select "Block User." Blocked users cannot message you or see your listings.',
-      },
-      {
-        q: 'What happens if I get reported?',
-        a: 'Our admin team reviews each report. If the report is valid, actions range from a warning to account suspension or permanent ban, depending on the severity.',
       },
     ],
   },
@@ -219,26 +211,23 @@ const FAQ_SECTIONS = [
     faqs: [
       {
         q: 'How do I create an account?',
-        a: 'Click "Sign Up," choose your role (Buyer, Seller, or Both), enter your email and password, and you\'re in! You can also sign up with Google for faster access.',
+        a: 'Click "Create Account," choose your role (Buyer, Seller, or Both), and sign up with Email, Google, or Apple for fast, secure access!',
       },
       {
-        q: 'Can I be both a buyer and seller?',
-        a: 'Yes! When signing up, choose "Both" as your role. You\'ll have full access to buying and selling features.',
-      },
-      {
-        q: 'How do I verify my account?',
-        a: 'Email verification happens automatically after signup. For phone verification (which unlocks the Verified Seller badge), go to Profile → Settings → Phone Verification.',
+        q: 'Can I sign in with Apple or Google?',
+        a: 'Yes! Aliwayz supports one-click social authentication with both Google and Apple Sign-In on web and mobile devices.',
       },
       {
         q: 'Can I delete my account?',
-        a: 'Yes. Go to Profile → Edit Profile → scroll down to "Danger Zone" and click "Delete Account." This permanently removes your account and all associated data.',
+        a: 'Yes. Go to Profile → Edit Profile → scroll down to "Account Management" and click "Delete Account." This permanently removes your account and associated data.',
       },
       {
         q: 'I forgot my password. How do I reset it?',
-        a: 'On the login page, click "Forgot password?" Enter your email address, and we\'ll send you a reset link. The link expires after 1 hour.',
+        a: 'On the login page, click "Forgot password?" Enter your email address, and we\'ll send you a password reset link.',
       },
     ],
   },
+];
 ];
 
 export default function FAQPage() {

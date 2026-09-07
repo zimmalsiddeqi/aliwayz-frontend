@@ -11,11 +11,14 @@ import Button from '@components/ui/Button';
 import Separator from '@components/ui/Separator';
 import { setFormErrors } from '@utils/helpers';
 import GoogleButton from '@components/ui/GoogleButton';
+import AppleButton from '@components/ui/AppleButton';
 import useOAuth from '@features/auth/hooks/useOAuth';
+import useAppleOAuth from '@features/auth/hooks/useAppleOAuth';
 
 export default function LoginPage() {
   const { login } = useAuth();
   const { triggerGoogleLogin, isLoading: isGoogleLoading } = useOAuth();
+  const { triggerAppleLogin, isLoading: isAppleLoading } = useAppleOAuth();
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -115,11 +118,17 @@ export default function LoginPage() {
 
       <Separator label="or" />
 
-      {/* Google Sign-in */}
-      <GoogleButton
-        onClick={triggerGoogleLogin}
-        isLoading={isGoogleLoading}
-      />
+      {/* Social Sign-in */}
+      <div className="space-y-3">
+        <GoogleButton
+          onClick={triggerGoogleLogin}
+          isLoading={isGoogleLoading}
+        />
+        <AppleButton
+          onClick={triggerAppleLogin}
+          isLoading={isAppleLoading}
+        />
+      </div>
 
       {/* Sign up link */}
       <p className="text-center text-sm" style={{ color: 'var(--color-text-secondary)' }}>

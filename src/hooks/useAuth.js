@@ -116,6 +116,26 @@ export default function useAuth() {
       }
     },
 
+    // ── Apple OAuth ────────────────────────────────────────
+    appleOAuth: async (oauthData, options = {}) => {
+      try {
+        const response = await axiosInstance.post(API.AUTH.APPLE_OAUTH, oauthData);
+        const data     = response.data.data;
+
+        setAuth(data.user, data.access_token, data.refresh_token);
+        getSocket(data.access_token);
+        queryClient.clear();
+
+        toast.success(`Welcome, ${data.user.username}!`);
+        navigate(getHomePathForRole(data.user.role));
+
+        return data;
+      } catch (error) {
+        toast.error(getErrorMessage(error));
+        throw error;
+      }
+    },
+
     // ── Logout ─────────────────────────────────────────────
     logout: async () => {
       try {

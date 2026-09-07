@@ -120,7 +120,7 @@ export default function DailyProductForm({ store }) {
         category_id: finalCategoryId,
         brand: data.brand || undefined,
         color: data.color || undefined,
-        quantity: 1,
+        quantity: Number(data.quantity) || 1,
         location_city: finalCity,
         location_lat: finalLat || undefined,
         location_lng: finalLng || undefined,
@@ -260,9 +260,18 @@ export default function DailyProductForm({ store }) {
           )}
         />
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           <Input label="Brand (Optional)" placeholder="Apple, Nike..." {...register('brand')} />
           <Input label="Color (Optional)" placeholder="Black, White..." {...register('color')} />
+          <Input
+            label="Quantity *"
+            type="number"
+            min={1}
+            max={9999}
+            placeholder="1"
+            error={errors.quantity?.message}
+            {...register('quantity', { valueAsNumber: true })}
+          />
         </div>
 
         <Controller

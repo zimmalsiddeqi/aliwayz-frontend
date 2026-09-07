@@ -70,7 +70,7 @@ export default function AboutPage() {
         <ul className="list-disc pl-5 space-y-2">
           <li>At the meetup, once the buyer inspects the item and completes offline payment, they generate a transaction QR code in the app.</li>
           <li>The seller scans the buyer&apos;s QR code using the camera scanner in the Aliwayz app.</li>
-          <li>This scan logs the meetup as completed, updates seller transaction badges, and allows the buyer to submit a profile review.</li>
+          <li>This scan logs the meetup as completed, automatically decrements the item&apos;s available stock quantity by 1, updates the listing status to &quot;Sold&quot; when stock is exhausted, updates seller transaction badges, and enables the buyer to submit a profile review.</li>
         </ul>
       </LegalSection>
 

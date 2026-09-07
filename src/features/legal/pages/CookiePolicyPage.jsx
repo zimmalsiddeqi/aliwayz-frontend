@@ -65,13 +65,12 @@ export default function CookiePolicyPage() {
 
       <LegalSection id="third-party-cookies" title="4. Third-Party Cookies">
         <p className="mb-4">
-          Certain services we integrate may set cookies on your browser. 
+          Certain services we integrate may set cookies or session identifiers on your device. 
           <strong> These third-party cookies include:</strong>
         </p>
         <ul className="list-disc pl-5 space-y-2">
           <li>
-            <strong>Google OAuth:</strong> If you use Google Sign-In, Google sets cookies on your device 
-            to manage authentication states, verify identity, and prevent profile phishing.
+            <strong>Google & Apple OAuth:</strong> If you use Google Sign-In or Apple Sign-In, these providers set cookies or session tokens on your device to manage authentication states, verify identity, and prevent profile phishing.
           </li>
           <li>
             <strong>Google Analytics (if enabled):</strong> If active in the production build, Google Analytics 

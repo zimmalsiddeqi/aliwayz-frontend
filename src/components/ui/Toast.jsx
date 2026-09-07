@@ -23,15 +23,36 @@ function notify() {
 }
 
 function addToast(toast) {
+  // 1. Deduplicate: Don't stack identical toast messages
+  const existing = toasts.find((t) => t.message === toast.message);
+  if (existing) {
+    return existing.id;
+  }
+
+  // 2. Limit network error toasts so only 1 pops up at a time
+  const isNetworkError =
+    typeof toast.message === 'string' &&
+    /network|connection|offline|failed to fetch|timeout/i.test(toast.message);
+
+  if (
+    isNetworkError &&
+    toasts.some(
+      (t) => typeof t.message === 'string' && /network|connection|offline|failed to fetch|timeout/i.test(t.message)
+    )
+  ) {
+    return toasts[0]?.id || 0;
+  }
+
   const id = ++toastId;
   const newToast = {
     id,
-    duration:  3000,
+    duration:  1000,
     centered:  false,
     ...toast,
     createdAt: Date.now(),
   };
-  toasts = [newToast, ...toasts].slice(0, 5);
+  // Maximum 2 active toasts to avoid covering mobile screen
+  toasts = [newToast, ...toasts].slice(0, 2);
   notify();
 
   if (newToast.duration > 0) {
@@ -56,23 +77,23 @@ function updateToast(id, updates) {
 // ── Public API ─────────────────────────────────────────
 export const showToast = {
   success: (message, options = {}) =>
-    addToast({ type: 'success', message, centered: false, duration: 3000, ...options }),
+    addToast({ type: 'success', message, centered: false, duration: 1000, ...options }),
 
   error: (message, options = {}) =>
-    addToast({ type: 'error', message, centered: false, duration: 3000, ...options }),
+    addToast({ type: 'error', message, centered: false, duration: 1000, ...options }),
 
   warning: (message, options = {}) =>
-    addToast({ type: 'warning', message, centered: false, duration: 3000, ...options }),
+    addToast({ type: 'warning', message, centered: false, duration: 1000, ...options }),
 
   info: (message, options = {}) =>
-    addToast({ type: 'info', message, centered: false, duration: 3000, ...options }),
+    addToast({ type: 'info', message, centered: false, duration: 1000, ...options }),
 
   loading: (message, options = {}) =>
     addToast({ type: 'loading', message, duration: 0, centered: false, ...options }),
 
   // Mini toast — top-right corner (non-blocking)
   mini: (message, options = {}) =>
-    addToast({ type: 'info', message, centered: false, duration: 3000, ...options }),
+    addToast({ type: 'info', message, centered: false, duration: 1000, ...options }),
 
   promise: async (promise, msgs = {}) => {
     const id = addToast({
@@ -87,7 +108,7 @@ export const showToast = {
       updateToast(id, {
         type:     'success',
         message:  msgs.success || 'Done!',
-        duration: 3000,
+        duration: 1000,
         centered: false,
       });
       return result;
@@ -95,7 +116,7 @@ export const showToast = {
       updateToast(id, {
         type:     'error',
         message:  msgs.error || 'Something went wrong',
-        duration: 3000,
+        duration: 1000,
         centered: false,
       });
       throw err;

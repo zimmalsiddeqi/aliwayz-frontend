@@ -218,7 +218,7 @@ export default function ConversationPage() {
       </Helmet>
 
       <div
-        className="flex flex-col"
+        className="flex flex-col overflow-x-hidden w-full max-w-full"
         style={{
           height: 'calc(100vh - var(--navbar-height) - 4rem)',
         }}
@@ -730,7 +730,7 @@ export default function ConversationPage() {
               placeholder={isConnected ? 'Type a message...' : 'Connecting...'}
               disabled={!isConnected}
               rows={1}
-              className="input-base max-h-32 min-h-[40px] resize-none text-sm sm:min-h-[44px]"
+              className="input-base max-h-32 min-h-[40px] resize-none text-[16px] sm:text-sm sm:min-h-[44px]"
               style={{
                 paddingTop: '10px',
                 paddingBottom: '10px',
@@ -1364,7 +1364,7 @@ function ReviewModal({ isOpen, onClose, transactionId, reviewerType }) {
           placeholder="Share your experience (optional)..."
           maxLength={1000}
           rows={3}
-          className="input-base resize-none"
+          className="input-base resize-none text-[16px] sm:text-sm"
         />
 
         <Button

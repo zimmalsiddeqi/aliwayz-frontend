@@ -33,7 +33,7 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
     e.preventDefault();
     e.stopPropagation();
     if (!isAuthenticated) {
-      toast.error('Sign in to save favorites');
+      window.location.href = '/login';
       return;
     }
     if (user?.id === product.users?.id) return;

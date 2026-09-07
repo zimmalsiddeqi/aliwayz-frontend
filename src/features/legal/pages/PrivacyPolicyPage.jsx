@@ -148,10 +148,10 @@ export default function PrivacyPolicyPage() {
           We do not sell, rent, or monetize your personal information. Data is used for:
         </p>
         <ul className="list-disc pl-5 space-y-1">
-          <li><strong>Authentication & Profiles:</strong> Enabling registration, password management, and Google Sign-In options.</li>
+          <li><strong>Authentication & Profiles:</strong> Enabling registration, password management, and Google Sign-In or Apple Sign-In options.</li>
           <li><strong>Listing Distribution:</strong> Displaying vehicle details, property details, and products to nearby users.</li>
           <li><strong>In-App Communication:</strong> Securing real-time text chat between buyer and seller accounts.</li>
-          <li><strong>QR verification:</strong> Authorizing meetup confirmations using encrypted in-person single-use scan codes.</li>
+          <li><strong>QR verification:</strong> Authorizing meetup confirmations using encrypted in-person single-use scan codes to verify transactions, decrement inventory quantities, and update item listing statuses.</li>
           <li><strong>Fraud & Safety Enforcement:</strong> Reviewing reported listings to block malicious accounts and spam.</li>
           <li><strong>Operational Analytics:</strong> Inspecting server loads, interface bottlenecks, and search efficiency to refine user experience.</li>
         </ul>
@@ -188,6 +188,7 @@ export default function PrivacyPolicyPage() {
         <ul className="list-disc pl-5 space-y-2">
           <li><strong>Supabase:</strong> Serves as our primary database cloud solution and handles secure authentication.</li>
           <li><strong>Google Sign-In:</strong> Integrates identity verification via optional user OAuth prompts.</li>
+          <li><strong>Apple Sign-In:</strong> Integrates identity verification via optional Apple OAuth prompts on supported devices.</li>
           <li><strong>Vercel:</strong> Hosts our static web files and executes edge server distributions.</li>
           <li><strong>Redis:</strong> Supports server side memory caching and socket communication state.</li>
           <li><strong>Socket.IO:</strong> Establishes WebSocket channels for in-app instant messaging.</li>
@@ -282,7 +283,7 @@ export default function PrivacyPolicyPage() {
         <ol className="list-decimal pl-5 mb-4 space-y-2">
           <li>Log in to your account.</li>
           <li>Navigate to your <strong>Profile Settings</strong> or click <strong>Edit Profile</strong>.</li>
-          <li>Scroll down to the <strong>Danger Zone</strong>.</li>
+          <li>Scroll down to the <strong>Account Management</strong> section.</li>
           <li>Click <strong>Delete Account</strong> and confirm the action.</li>
         </ol>
         <p className="mb-4">
