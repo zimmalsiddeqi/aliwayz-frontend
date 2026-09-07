@@ -53,7 +53,19 @@ export default function useAppleOAuth() {
         if (res && res.authorization) {
           const { id_token, code } = res.authorization;
           const user = res.user ? { name: res.user.name, email: res.user.email } : undefined;
-          await appleOAuth({ id_token, code, user });
+          let full_name;
+          if (res.user?.name) {
+            full_name = typeof res.user.name === 'string'
+              ? res.user.name
+              : [res.user.name.firstName, res.user.name.lastName].filter(Boolean).join(' ');
+          }
+          await appleOAuth({
+            identity_token: id_token,
+            id_token,
+            code,
+            user,
+            full_name,
+          });
         }
         setIsLoading(false);
       } else {
