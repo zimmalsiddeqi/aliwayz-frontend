@@ -21,8 +21,25 @@ export default function useAppleOAuth() {
     setError(null);
 
     try {
-      const clientId = import.meta.env.VITE_APPLE_CLIENT_ID || 'com.aliwayz.web';
-      const redirectURI = import.meta.env.VITE_APPLE_REDIRECT_URI || `${window.location.origin}/auth/callback/apple`;
+      const clientId = import.meta.env.VITE_APPLE_CLIENT_ID || 'com.aliwayzinc.aliwayz.web';
+      const redirectURI = import.meta.env.VITE_APPLE_REDIRECT_URI || 'https://rzwadhwnytgypgsyvowd.supabase.co/auth/v1/callback';
+
+      // Load Apple SDK dynamically if not loaded
+      if (!window.AppleID || !window.AppleID.auth) {
+        await new Promise((resolve) => {
+          const existingScript = document.getElementById('apple-auth-js');
+          if (existingScript) {
+            existingScript.onload = resolve;
+            return;
+          }
+          const script = document.createElement('script');
+          script.id = 'apple-auth-js';
+          script.src = 'https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js';
+          script.onload = resolve;
+          script.onerror = () => resolve();
+          document.head.appendChild(script);
+        });
+      }
 
       if (window.AppleID && window.AppleID.auth) {
         window.AppleID.auth.init({
@@ -38,13 +55,11 @@ export default function useAppleOAuth() {
           const user = res.user ? { name: res.user.name, email: res.user.email } : undefined;
           await appleOAuth({ id_token, code, user });
         }
-      } else if (import.meta.env.VITE_APPLE_CLIENT_ID) {
+        setIsLoading(false);
+      } else {
+        // Direct redirect fallback to Apple ID auth URL
         const appleAuthUrl = `https://appleid.apple.com/auth/authorize?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectURI)}&response_type=code%20id_token&response_mode=fragment&scope=name%20email`;
         window.location.href = appleAuthUrl;
-      } else {
-        // Ready for credentials — inform user to paste env parameters
-        toast.info('Apple Sign-In is ready! Please paste your Apple credentials into the .env file.', { duration: 4000 });
-        setIsLoading(false);
       }
     } catch (err) {
       if (err?.error !== 'popup_closed_by_user') {
