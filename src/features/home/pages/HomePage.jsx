@@ -506,7 +506,7 @@ function CategoryCard({ cat, sellerOnly, onNavigate }) {
       className="h-full"
     >
       <motion.div
-        className="relative overflow-hidden rounded-2xl sm:rounded-[24px] cursor-pointer group flex flex-col justify-between h-44 sm:h-52 p-3.5 sm:p-4 text-left border border-white/10 shadow-lg"
+        className="relative overflow-hidden rounded-[20px] sm:rounded-[24px] cursor-pointer group flex flex-col justify-between h-[180px] sm:h-[210px] p-3 sm:p-4 text-left shadow-lg border border-white/10"
         style={{
           background: cat.gradient,
           boxShadow: `0 8px 24px ${cat.glow}`,
@@ -515,41 +515,46 @@ function CategoryCard({ cat, sellerOnly, onNavigate }) {
         whileTap={{ scale: 0.97 }}
         onClick={() => onNavigate(cat.path)}
       >
-        {/* Thematic category visual image */}
+        {/* Top 3D / Realistic Category Image */}
         {cat.image && (
-          <div className="absolute inset-0 z-0 overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[56%] overflow-hidden">
             <img
               src={cat.image}
               alt={cat.name}
-              className="w-full h-full object-cover object-center opacity-40 mix-blend-overlay group-hover:scale-105 transition-transform duration-500 ease-out"
-              loading="lazy"
+              className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
+              loading="eager"
             />
-            {/* Gradient overlay to ensure text contrast */}
+            {/* Smooth gradient blend into the card base color */}
             <div
-              className="absolute inset-0"
-              style={{
-                background: 'linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0.75) 100%)',
-              }}
+              className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/60"
             />
           </div>
         )}
 
-        {/* Top Icon */}
-        <div className="relative z-10">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/20 shadow-sm">
-            <Icon size={18} className="sm:w-5 sm:h-5" />
-          </div>
-        </div>
+        {/* Top spacer */}
+        <div className="h-[44%]" />
 
-        {/* Bottom Text & Arrow */}
-        <div className="relative z-10 text-left">
-          <h2 className="text-sm sm:text-lg font-bold text-white leading-tight drop-shadow-sm">
+        {/* Bottom content section */}
+        <div className="relative z-10 text-left flex flex-col justify-end">
+          {/* Outline Icon */}
+          <div className="text-white mb-1.5 flex items-center">
+            <Icon size={20} className="stroke-[2.2]" />
+          </div>
+
+          {/* Title */}
+          <h2 className="text-sm sm:text-base font-bold text-white leading-tight tracking-tight drop-shadow-sm">
             {cat.name}
           </h2>
-          <p className="text-[10px] sm:text-xs text-white/90 font-medium mt-0.5 sm:mt-1 line-clamp-1 leading-snug">
+
+          {/* Subtitle */}
+          <p className="text-[10px] sm:text-[11px] text-white/80 font-medium mt-0.5 line-clamp-1 leading-snug">
             {cat.subtitle}
           </p>
-          <ArrowRight size={14} className="text-white/80 mt-1.5 sm:mt-2 transition-transform duration-200 group-hover:translate-x-1" />
+
+          {/* Arrow */}
+          <div className="mt-1.5 text-white/80 flex items-center">
+            <ArrowRight size={13} className="stroke-[2.5] transition-transform duration-200 group-hover:translate-x-1" />
+          </div>
         </div>
       </motion.div>
     </motion.div>

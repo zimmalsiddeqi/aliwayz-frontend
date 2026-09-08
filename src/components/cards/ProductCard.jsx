@@ -29,6 +29,46 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
   const store    = product.stores;
   const seller   = product.users;
 
+  // Category & Property/Vehicle attributes detection
+  const catId = product.category_id || product.category?.id || product.categories?.id;
+  const parentId = product.category?.parent_id || product.categories?.parent_id;
+  const catName = (product.category?.name || product.categories?.name || product.category_name || '').toLowerCase();
+  const catSlug = (product.category?.slug || product.categories?.slug || product.category_slug || '').toLowerCase();
+  const desc = product.description || '';
+  const title = (product.title || '').toLowerCase();
+
+  const isRealEstate =
+    catId === CATEGORY_IDS.PROPERTY ||
+    catId === CATEGORY_IDS.REAL_ESTATE ||
+    parentId === CATEGORY_IDS.PROPERTY ||
+    parentId === CATEGORY_IDS.REAL_ESTATE ||
+    catName.includes('real estate') ||
+    catName.includes('property') ||
+    catSlug.includes('real-estate') ||
+    catSlug.includes('property') ||
+    desc.includes('[Property_Type]') ||
+    desc.includes('[Intent]') ||
+    desc.includes('Listing: For Rent') ||
+    desc.includes('Listing: For Lease') ||
+    /^(apartment|condo|villa|house|townhouse|office space|studio for rent|room for rent)/i.test(title);
+
+  const isAutomotive =
+    catId === CATEGORY_IDS.VEHICLES ||
+    catId === CATEGORY_IDS.AUTOMOTIVE ||
+    parentId === CATEGORY_IDS.VEHICLES ||
+    parentId === CATEGORY_IDS.AUTOMOTIVE ||
+    catName.includes('vehicle') ||
+    catName.includes('car') ||
+    catName.includes('auto') ||
+    catName.includes('truck') ||
+    catName.includes('motorcycle') ||
+    catSlug.includes('vehicle') ||
+    catSlug.includes('car') ||
+    catSlug.includes('auto') ||
+    desc.match(/Mileage:\s*[^\n]+/i) ||
+    desc.match(/Transmission:\s*[^\n]+/i) ||
+    desc.match(/VIN:\s*[^\n]+/i);
+
   const handleFavorite = async (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -58,35 +98,33 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      variants={{
+        hidden: { opacity: 0, y: 15 },
+        visible: { opacity: 1, y: 0 },
+      }}
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.2 }}
+      className="group"
     >
       <Link
         to={`/product/${product.id}`}
         onClick={() => logView(product.category_id)}
-        className="group block card-interactive overflow-hidden"
+        className="block bg-surface border border-border rounded-2xl overflow-hidden hover:border-brand-500/40 hover:shadow-card-hover transition-all duration-300"
       >
-        {/* Image */}
-        <div className="relative aspect-square overflow-hidden">
+        {/* Image Container */}
+        <div className="relative aspect-square overflow-hidden bg-surface-hover">
           {imageUrl ? (
             <img
               src={imageUrl}
               alt={product.title}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               loading="lazy"
             />
           ) : (
-            <div
-              className="w-full h-full flex items-center justify-center"
-              style={{ backgroundColor: 'var(--color-surface-elevated)' }}
-            >
-              <span className="text-4xl opacity-30">📦</span>
+            <div className="w-full h-full flex items-center justify-center text-slate-500">
+              No Image
             </div>
           )}
-
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
           {/* Favorite button */}
           <button
@@ -111,35 +149,20 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
           {/* Condition badge / Transaction Type badge */}
           <div className="absolute top-3 left-3 z-10">
             {(() => {
-              const catId = product.category_id || product.category?.id;
-              const catName = (product.category?.name || product.category_name || '').toLowerCase();
-              const catSlug = (product.category?.slug || product.category_slug || '').toLowerCase();
-
-              const isRealEstate =
-                catId === CATEGORY_IDS.PROPERTY ||
-                catId === CATEGORY_IDS.REAL_ESTATE ||
-                catName.includes('real estate') ||
-                catName.includes('property') ||
-                catSlug.includes('real-estate') ||
-                catSlug.includes('property');
-
-              const isAutomotive =
-                catId === CATEGORY_IDS.VEHICLES ||
-                catId === CATEGORY_IDS.AUTOMOTIVE ||
-                catName.includes('vehicle') ||
-                catName.includes('car') ||
-                catName.includes('auto') ||
-                catSlug.includes('vehicle') ||
-                catSlug.includes('car') ||
-                catSlug.includes('auto');
-
               if (isRealEstate) {
                 const attrs = parsePropertyDescription(product.description);
                 let badgeText = 'For Sale';
                 const intentStr = (attrs.intent || '').toLowerCase();
-                if (intentStr.includes('rent')) badgeText = 'For Rent';
-                else if (intentStr.includes('lease')) badgeText = 'For Lease';
-                else if (intentStr.includes('vacation')) badgeText = 'Vacation';
+                const descLower = (product.description || '').toLowerCase();
+                const titleLower = (product.title || '').toLowerCase();
+
+                if (intentStr.includes('rent') || descLower.includes('for rent') || titleLower.includes('for rent') || descLower.includes('listing: for rent')) {
+                  badgeText = 'For Rent';
+                } else if (intentStr.includes('lease') || descLower.includes('for lease') || titleLower.includes('for lease') || descLower.includes('listing: for lease')) {
+                  badgeText = 'For Lease';
+                } else if (intentStr.includes('vacation')) {
+                  badgeText = 'Vacation';
+                }
                 return (
                   <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-[#6366F1] text-white shadow-md backdrop-blur-md">
                     <Home size={12} className="stroke-[2.5]" />
@@ -149,19 +172,20 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
               }
 
               if (isAutomotive) {
-                const desc = product.description || '';
-                const mileageMatch = desc.match(/Mileage:\s*([^\n]+)/i);
+                const mileageMatch = desc.match(/Mileage:\s*([^\n]+)/i) || desc.match(/(\d+[\d,]*\s*k?\s*miles?)/i);
                 let mileageStr = '';
                 if (mileageMatch) {
                   const rawNum = mileageMatch[1].replace(/\D/g, '');
                   if (rawNum) {
                     const num = Number(rawNum);
                     mileageStr = num >= 1000 ? `${Math.round(num / 1000)}k miles` : `${num} mi`;
+                  } else {
+                    mileageStr = mileageMatch[1].trim();
                   }
                 }
                 const isNew = product.condition === 'new' || product.condition === 'brand_new';
                 const condLabel = isNew ? 'New' : 'Used';
-                const badgeText = mileageStr ? `${condLabel} ${mileageStr}` : condLabel;
+                const badgeText = mileageStr ? `${condLabel} • ${mileageStr}` : condLabel;
                 return (
                   <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-black/70 text-white border border-white/20 shadow-md backdrop-blur-md">
                     <CheckSquare size={12} className="stroke-[2.5] text-blue-400" />
@@ -203,13 +227,19 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
           <div>
             <p className="text-lg font-bold text-gradient-brand">
               {(() => {
-                if (product.category_id === CATEGORY_IDS.PROPERTY || product.category_id === CATEGORY_IDS.REAL_ESTATE) {
+                if (isRealEstate) {
                   const attrs = parsePropertyDescription(product.description);
                   const priceStr = formatPrice(product.price, product.currency);
-                  if (attrs.intent === 'rent') return `${priceStr} / mo`;
-                  if (attrs.intent === 'vacation') return `${priceStr} / night`;
-                  if (attrs.intent === 'lease') {
-                    const leaseTypeMatch = product.description.match(/Pricing Type:\s*(\w+)/);
+                  const intentStr = (attrs.intent || '').toLowerCase();
+                  const descLower = (product.description || '').toLowerCase();
+                  const titleLower = (product.title || '').toLowerCase();
+
+                  if (intentStr.includes('rent') || descLower.includes('for rent') || titleLower.includes('for rent') || descLower.includes('listing: for rent')) {
+                    return `${priceStr} / mo`;
+                  }
+                  if (intentStr === 'vacation') return `${priceStr} / night`;
+                  if (intentStr === 'lease' || descLower.includes('for lease')) {
+                    const leaseTypeMatch = product.description?.match(/Pricing Type:\s*(\w+)/);
                     const leaseType = leaseTypeMatch ? leaseTypeMatch[1] : '';
                     if (leaseType === 'year') return `${priceStr} / yr`;
                     if (leaseType === 'sqft_month') return `${priceStr} / SF / mo`;
@@ -221,11 +251,11 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
                 return formatPrice(product.price, product.currency);
               })()}
             </p>
-            {(product.category_id === CATEGORY_IDS.PROPERTY || product.category_id === CATEGORY_IDS.REAL_ESTATE) && (() => {
+            {isRealEstate && (() => {
               const attrs = parsePropertyDescription(product.description);
               let subtitleParts = [];
               if (attrs.propertyType === 'land') {
-                const acMatch = product.description.match(/Acreage:\s*([^\n]+)/);
+                const acMatch = product.description?.match(/Acreage:\s*([^\n]+)/);
                 if (acMatch) subtitleParts.push(`${acMatch[1]} acres`);
               } else if (['commercial', 'office', 'industrial'].includes(attrs.propertyType) || attrs.intent === 'lease') {
                 if (attrs.areaSize) subtitleParts.push(`${attrs.areaSize} sq ft`);
