@@ -241,7 +241,7 @@ export default function Navbar() {
 
             {/* Logo */}
             <Link to="/" className="flex flex-shrink-0 items-center gap-2">
-              <img src="/logo.png" alt="Aliwayz Logo" className="h-6 sm:h-8 w-auto object-contain" />
+              <img src="/navbar-logo.png" alt="Aliwayz Logo" className="h-7 sm:h-9 w-auto object-contain" />
             </Link>
           </div>
 
