@@ -5,17 +5,17 @@
       "@/*":           ["src/*"],
       "@features/*":   ["src/features/*"],
       "@router/*":     ["src/router/*"],
-      "@shared/*":     ["../shared/src/*"],
-      "@api/*":        ["../shared/src/api/*"],
-      "@components/*": ["../shared/src/components/*"],
-      "@hooks/*":      ["../shared/src/hooks/*"],
-      "@lib/*":        ["../shared/src/lib/*"],
-      "@store/*":      ["../shared/src/store/*"],
-      "@styles/*":     ["../shared/src/styles/*"],
-      "@utils/*":      ["../shared/src/utils/*"],
-      "@types/*":      ["../shared/src/types/*"]
+      "@shared/*":     ["src/*"],
+      "@api/*":        ["src/api/*"],
+      "@components/*": ["src/components/*"],
+      "@hooks/*":      ["src/hooks/*"],
+      "@lib/*":        ["src/lib/*"],
+      "@store/*":      ["src/store/*"],
+      "@styles/*":     ["src/styles/*"],
+      "@utils/*":      ["src/utils/*"],
+      "@types/*":      ["src/types/*"]
     }
   },
-  "include": ["src/**/*", "../shared/src/**/*"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules"]
 }

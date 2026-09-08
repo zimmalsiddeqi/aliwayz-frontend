@@ -3,40 +3,11 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { createRequire } from 'module';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname  = path.dirname(__filename);
-const require = createRequire(import.meta.url);
-
-function resolveSharedDependencies() {
-  return {
-    name: 'resolve-shared-deps',
-    resolveId(source, importer) {
-      if (importer && (importer.includes('shared') || importer.includes('shared\\src'))) {
-        if (!source.startsWith('.') && !source.startsWith('/') && !source.startsWith('@')) {
-          try {
-            return require.resolve(source, { paths: [path.resolve(__dirname, 'node_modules')] });
-          } catch (e) {
-            // Ignore fallback
-          }
-        } else if (source.startsWith('@') && !source.startsWith('@/') && !source.startsWith('@features') && !source.startsWith('@router') && !source.startsWith('@shared') && !source.startsWith('@api') && !source.startsWith('@components') && !source.startsWith('@hooks') && !source.startsWith('@lib') && !source.startsWith('@store') && !source.startsWith('@styles') && !source.startsWith('@utils') && !source.startsWith('@types')) {
-          try {
-            return require.resolve(source, { paths: [path.resolve(__dirname, 'node_modules')] });
-          } catch (e) {
-            // Ignore fallback
-          }
-        }
-      }
-      return null;
-    }
-  };
-}
 
 export default defineConfig({
   plugins: [
     react(),
-    resolveSharedDependencies(),
   ],
 
   resolve: {
@@ -44,15 +15,15 @@ export default defineConfig({
       '@':           path.resolve(__dirname, './src'),
       '@features':   path.resolve(__dirname, './src/features'),
       '@router':     path.resolve(__dirname, './src/router'),
-      '@shared':     path.resolve(__dirname, '../shared/src'),
-      '@api':        path.resolve(__dirname, '../shared/src/api'),
-      '@components': path.resolve(__dirname, '../shared/src/components'),
-      '@hooks':      path.resolve(__dirname, '../shared/src/hooks'),
-      '@lib':        path.resolve(__dirname, '../shared/src/lib'),
-      '@store':      path.resolve(__dirname, '../shared/src/store'),
-      '@styles':     path.resolve(__dirname, '../shared/src/styles'),
-      '@utils':      path.resolve(__dirname, '../shared/src/utils'),
-      '@types':      path.resolve(__dirname, '../shared/src/types'),
+      '@shared':     path.resolve(__dirname, './src'),
+      '@api':        path.resolve(__dirname, './src/api'),
+      '@components': path.resolve(__dirname, './src/components'),
+      '@hooks':      path.resolve(__dirname, './src/hooks'),
+      '@lib':        path.resolve(__dirname, './src/lib'),
+      '@store':      path.resolve(__dirname, './src/store'),
+      '@styles':     path.resolve(__dirname, './src/styles'),
+      '@utils':      path.resolve(__dirname, './src/utils'),
+      '@types':      path.resolve(__dirname, './src/types'),
     },
   },
 

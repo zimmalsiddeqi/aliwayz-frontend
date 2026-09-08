@@ -13,16 +13,10 @@ import { getErrorMessage } from '@lib/utils';
 import toast from '@lib/toast';
 
 /**
- * Get the correct home path based on user role
+ * Get the default home path based on user role
  */
 function getHomePathForRole(role) {
-  switch (role) {
-    case 'admin':  return '/admin';
-    // case 'seller': return '/dashboard';
-    // case 'buyer':  return '/';
-    // case 'both':   return '/';
-    default:       return '/';
-  }
+  return '/';
 }
 
 export default function useAuth() {
