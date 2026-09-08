@@ -111,15 +111,35 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
           {/* Condition badge / Transaction Type badge */}
           <div className="absolute top-3 left-3 z-10">
             {(() => {
-              const isRealEstate = product.category_id === CATEGORY_IDS.PROPERTY || product.category_id === CATEGORY_IDS.REAL_ESTATE;
-              const isAutomotive = product.category_id === CATEGORY_IDS.VEHICLES || product.category_id === CATEGORY_IDS.AUTOMOTIVE;
+              const catId = product.category_id || product.category?.id;
+              const catName = (product.category?.name || product.category_name || '').toLowerCase();
+              const catSlug = (product.category?.slug || product.category_slug || '').toLowerCase();
+
+              const isRealEstate =
+                catId === CATEGORY_IDS.PROPERTY ||
+                catId === CATEGORY_IDS.REAL_ESTATE ||
+                catName.includes('real estate') ||
+                catName.includes('property') ||
+                catSlug.includes('real-estate') ||
+                catSlug.includes('property');
+
+              const isAutomotive =
+                catId === CATEGORY_IDS.VEHICLES ||
+                catId === CATEGORY_IDS.AUTOMOTIVE ||
+                catName.includes('vehicle') ||
+                catName.includes('car') ||
+                catName.includes('auto') ||
+                catSlug.includes('vehicle') ||
+                catSlug.includes('car') ||
+                catSlug.includes('auto');
 
               if (isRealEstate) {
                 const attrs = parsePropertyDescription(product.description);
                 let badgeText = 'For Sale';
-                if (attrs.intent === 'rent') badgeText = 'For Rent';
-                else if (attrs.intent === 'lease') badgeText = 'For Lease';
-                else if (attrs.intent === 'vacation') badgeText = 'Vacation';
+                const intentStr = (attrs.intent || '').toLowerCase();
+                if (intentStr.includes('rent')) badgeText = 'For Rent';
+                else if (intentStr.includes('lease')) badgeText = 'For Lease';
+                else if (intentStr.includes('vacation')) badgeText = 'Vacation';
                 return (
                   <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-[#6366F1] text-white shadow-md backdrop-blur-md">
                     <Home size={12} className="stroke-[2.5]" />
@@ -139,10 +159,11 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
                     mileageStr = num >= 1000 ? `${Math.round(num / 1000)}k miles` : `${num} mi`;
                   }
                 }
-                const condLabel = product.condition === 'new' ? 'New' : 'Used';
-                const badgeText = mileageStr ? `${condLabel} • ${mileageStr}` : condLabel;
+                const isNew = product.condition === 'new' || product.condition === 'brand_new';
+                const condLabel = isNew ? 'New' : 'Used';
+                const badgeText = mileageStr ? `${condLabel} ${mileageStr}` : condLabel;
                 return (
-                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-black/60 text-white border border-white/20 shadow-md backdrop-blur-md">
+                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-black/70 text-white border border-white/20 shadow-md backdrop-blur-md">
                     <CheckSquare size={12} className="stroke-[2.5] text-blue-400" />
                     {badgeText}
                   </span>
@@ -150,10 +171,11 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
               }
 
               // General Marketplace Item
+              const conditionLabel = getConditionLabel(product.condition) || 'Brand New';
               return (
                 <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-[#10B981] text-white shadow-md backdrop-blur-md">
                   <Check size={12} className="stroke-[3]" />
-                  {getConditionLabel(product.condition)}
+                  {conditionLabel}
                 </span>
               );
             })()}

@@ -152,19 +152,17 @@ export function getCleanDescriptionText(description) {
   if (!description) return '';
 
   let cleaned = description
-    // Strip bracketed tags e.g. [Private_Address]: 123 Main, [Intent]: rent, [Condition]: brand_new
-    .replace(/\[[A-Za-z0-9_]+\]:[^\n]*/gi, '')
-    // Strip key-value lines like "Make: Toyota", "Model: Camry", "Year: 2022", "Mileage: 42000 miles", "Beds: 2", "Baths: 2", "Size: 1200", "Listing: For Rent", "Type: Apartment", "Pricing Type: sqft_month", "Condition: brand_new"
-    .replace(/^(Make|Model|Year|Mileage|Fuel|Transmission|Drivetrain|Body|Engine|Color|Previous Owners|Title Status|Seller|VIN|Registration|Features|Listing|Type|Beds|Bedrooms|Baths|Bathrooms|Size|Available Space|Acreage|Address|Pricing Type|Condition):\s*[^\n]*/gim, '')
-    // Strip standalone bracketed tags [ ...]
-    .replace(/\[[^\]]*\]/g, '')
+    // Strip system metadata bracket tags (e.g. [Private_Address]: 123, [Intent]: rent, etc.)
+    .replace(/\[(Private_Address|Private_Lat|Private_Lng|Address_Visibility|Intent|Property_Type)\]:[^\n]*/gi, '')
+    // Remove standalone metadata brackets
+    .replace(/\[(Private_Address|Private_Lat|Private_Lng|Address_Visibility)\]/gi, '')
     .trim();
 
-  // Replace remaining raw underscores between words with spaces (e.g. brand_new -> brand new)
+  // Replace raw system underscores between words (e.g. brand_new -> brand new, single_family -> single family)
   cleaned = cleaned.replace(/([a-zA-Z0-9])_([a-zA-Z0-9])/g, '$1 $2');
 
-  // Collapse multiple blank lines
-  cleaned = cleaned.replace(/\n\s*\n\s*\n+/g, '\n\n').trim();
+  // Collapse excessive blank lines
+  cleaned = cleaned.replace(/\n{3,}/g, '\n\n').trim();
 
   return cleaned;
 }

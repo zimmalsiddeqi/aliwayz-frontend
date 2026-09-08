@@ -61,7 +61,8 @@ const CATEGORIES = [
     name:        'Marketplace',
     subtitle:    'Shop the best deals',
     icon:        ShoppingBag,
-    gradient:    'linear-gradient(145deg, #5B21B6 0%, #7C3AED 50%, #6D28D9 100%)',
+    image:       'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80',
+    gradient:    'linear-gradient(180deg, rgba(109,40,217,0.85) 0%, rgba(76,29,149,0.98) 100%)',
     glow:        'rgba(124,58,237,0.35)',
     path:        '/essentials',
     sellPath:    '/sell/create?category=essentials',
@@ -71,7 +72,8 @@ const CATEGORIES = [
     name:        'Automotive',
     subtitle:    'Find your next ride',
     icon:        Car,
-    gradient:    'linear-gradient(145deg, #1E40AF 0%, #2563EB 50%, #1D4ED8 100%)',
+    image:       'https://images.unsplash.com/photo-1617788138017-80ad40651399?w=600&auto=format&fit=crop&q=80',
+    gradient:    'linear-gradient(180deg, rgba(29,78,216,0.85) 0%, rgba(30,58,138,0.98) 100%)',
     glow:        'rgba(37,99,235,0.35)',
     path:        '/vehicles',
     sellPath:    '/sell/create?category=vehicles',
@@ -81,7 +83,8 @@ const CATEGORIES = [
     name:        'Real Estate',
     subtitle:    'Buy, Rent or Lease',
     icon:        Home,
-    gradient:    'linear-gradient(145deg, #064E3B 0%, #059669 50%, #047857 100%)',
+    image:       'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&auto=format&fit=crop&q=80',
+    gradient:    'linear-gradient(180deg, rgba(4,120,87,0.85) 0%, rgba(6,78,59,0.98) 100%)',
     glow:        'rgba(5,150,105,0.35)',
     path:        '/real-estate',
     sellPath:    '/sell/create?category=real-estate',
@@ -503,32 +506,47 @@ function CategoryCard({ cat, sellerOnly, onNavigate }) {
       className="h-full"
     >
       <motion.div
-        className="relative overflow-hidden rounded-2xl sm:rounded-[24px] cursor-pointer group flex flex-col justify-between h-32 sm:h-40 p-3.5 sm:p-4 text-left"
+        className="relative overflow-hidden rounded-2xl sm:rounded-[24px] cursor-pointer group flex flex-col justify-between h-44 sm:h-52 p-3.5 sm:p-4 text-left border border-white/10 shadow-lg"
         style={{
           background: cat.gradient,
           boxShadow: `0 8px 24px ${cat.glow}`,
         }}
-        whileHover={{ y: -4, boxShadow: `0 12px 32px ${cat.glow}` }}
-        whileTap={{ scale: 0.96 }}
+        whileHover={{ y: -4, boxShadow: `0 14px 32px ${cat.glow}` }}
+        whileTap={{ scale: 0.97 }}
         onClick={() => onNavigate(cat.path)}
       >
-        {/* Background decorative elements */}
-        <div className="absolute -top-10 -right-10 w-28 sm:w-36 h-28 sm:h-36 rounded-full bg-white/10 blur-md pointer-events-none" />
-        <div className="absolute -bottom-8 -left-8 w-20 sm:w-28 h-20 sm:h-28 rounded-full bg-white/5 pointer-events-none" />
+        {/* Thematic category visual image */}
+        {cat.image && (
+          <div className="absolute inset-0 z-0 overflow-hidden">
+            <img
+              src={cat.image}
+              alt={cat.name}
+              className="w-full h-full object-cover object-center opacity-40 mix-blend-overlay group-hover:scale-105 transition-transform duration-500 ease-out"
+              loading="lazy"
+            />
+            {/* Gradient overlay to ensure text contrast */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: 'linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0.75) 100%)',
+              }}
+            />
+          </div>
+        )}
 
         {/* Top Icon */}
         <div className="relative z-10">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white border border-white/20 shadow-sm">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/20 shadow-sm">
             <Icon size={18} className="sm:w-5 sm:h-5" />
           </div>
         </div>
 
         {/* Bottom Text & Arrow */}
         <div className="relative z-10 text-left">
-          <h2 className="text-sm sm:text-lg font-bold text-white leading-tight">
+          <h2 className="text-sm sm:text-lg font-bold text-white leading-tight drop-shadow-sm">
             {cat.name}
           </h2>
-          <p className="text-[10px] sm:text-xs text-white/80 font-normal mt-0.5 sm:mt-1 line-clamp-1 leading-snug">
+          <p className="text-[10px] sm:text-xs text-white/90 font-medium mt-0.5 sm:mt-1 line-clamp-1 leading-snug">
             {cat.subtitle}
           </p>
           <ArrowRight size={14} className="text-white/80 mt-1.5 sm:mt-2 transition-transform duration-200 group-hover:translate-x-1" />

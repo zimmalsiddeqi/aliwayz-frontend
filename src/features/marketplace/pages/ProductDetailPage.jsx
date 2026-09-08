@@ -417,66 +417,34 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* ── Key Specifications & Details Grid ────────── */}
-            {(() => {
-              const specs = parseDescriptionSpecs(product.description);
-              if (specs.length === 0) return null;
-              return (
-                <div className="space-y-3 pt-2">
-                  <h3
-                    className="text-sm font-semibold"
-                    style={{ color: 'var(--color-text-primary)' }}
-                  >
-                    Key Details & Specifications
-                  </h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                    {specs.map((spec, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center gap-2.5 p-3 rounded-2xl border transition-all"
-                        style={{
-                          backgroundColor: 'var(--color-surface)',
-                          borderColor: 'var(--color-border)',
-                        }}
-                      >
-                        <span className="text-lg">{spec.icon}</span>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[11px] font-medium" style={{ color: 'var(--color-text-muted)' }}>
-                            {spec.label}
-                          </p>
-                          <p className="text-xs font-semibold truncate" style={{ color: 'var(--color-text-primary)' }}>
-                            {spec.value}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* ── Clean Body Description ────────────────────────── */}
+            {/* ── Product Description ────────────────────────── */}
             {(() => {
               const cleanDesc = getCleanDescriptionText(product.description);
               if (!cleanDesc) return null;
               return (
-                <div className="space-y-2 pt-2">
+                <div
+                  className="space-y-3 p-4 sm:p-5 rounded-2xl border transition-all"
+                  style={{
+                    backgroundColor: 'var(--color-surface)',
+                    borderColor: 'var(--color-border)',
+                  }}
+                >
                   <h3
-                    className="text-sm font-semibold"
+                    className="text-sm sm:text-base font-semibold"
                     style={{
                       color: 'var(--color-text-primary)',
                     }}
                   >
                     Description
                   </h3>
-                  <p
-                    className="whitespace-pre-line text-sm leading-relaxed"
+                  <div
+                    className="whitespace-pre-line text-sm leading-relaxed font-normal"
                     style={{
                       color: 'var(--color-text-secondary)',
                     }}
                   >
                     {cleanDesc}
-                  </p>
+                  </div>
                 </div>
               );
             })()}
