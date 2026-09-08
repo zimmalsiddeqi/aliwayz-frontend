@@ -44,13 +44,24 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
     parentId === CATEGORY_IDS.REAL_ESTATE ||
     catName.includes('real estate') ||
     catName.includes('property') ||
+    catName.includes('housing') ||
+    catName.includes('rent') ||
+    catName.includes('apartment') ||
     catSlug.includes('real-estate') ||
     catSlug.includes('property') ||
+    catSlug.includes('housing') ||
+    catSlug.includes('rent') ||
+    catSlug.includes('apartment') ||
     desc.includes('[Property_Type]') ||
     desc.includes('[Intent]') ||
     desc.includes('Listing: For Rent') ||
     desc.includes('Listing: For Lease') ||
-    /^(apartment|condo|villa|house|townhouse|office space|studio for rent|room for rent)/i.test(title);
+    desc.includes('Listing: Vacation') ||
+    desc.includes('[Private_Address]') ||
+    /Beds?:\s*[^\n]+/i.test(desc) ||
+    /Bathrooms?:\s*[^\n]+/i.test(desc) ||
+    /Property Type:\s*[^\n]+/i.test(desc) ||
+    /(\b(apartment|condo|condominium|villa|house|townhouse|penthouse|studio|office space|commercial space|for rent|for sale|for lease)\b)/i.test(title);
 
   const isAutomotive =
     catId === CATEGORY_IDS.VEHICLES ||
@@ -65,9 +76,14 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
     catSlug.includes('vehicle') ||
     catSlug.includes('car') ||
     catSlug.includes('auto') ||
-    desc.match(/Mileage:\s*[^\n]+/i) ||
-    desc.match(/Transmission:\s*[^\n]+/i) ||
-    desc.match(/VIN:\s*[^\n]+/i);
+    /Mileage:\s*[^\n]+/i.test(desc) ||
+    /Transmission:\s*[^\n]+/i.test(desc) ||
+    /Drivetrain:\s*[^\n]+/i.test(desc) ||
+    /VIN:\s*[^\n]+/i.test(desc) ||
+    /Make:\s*[^\n]+/i.test(desc) ||
+    /Model:\s*[^\n]+/i.test(desc) ||
+    /(\b(bmw|mercedes|toyota|honda|ford|nissan|audi|tesla|hyundai|kia|chevrolet|chevy|jeep|lexus|mazda|subaru|dodge|porsche|volkswagen|vw|volvo|land rover|gmc|ram|chrysler|cadillac|infiniti|acura|mitsubishi|sedan|suv|coupe|truck|convertible|hatchback|crossover|civic|corolla|camry|accord|mustang|f-150|silverado)\b)/i.test(title) ||
+    /(\b(bmw|mercedes|toyota|honda|ford|nissan|audi|tesla|hyundai|kia|chevrolet|chevy|jeep|lexus|mazda|subaru|dodge|porsche|volkswagen|vw|volvo|land rover|gmc|ram|chrysler|cadillac|infiniti|acura|mitsubishi|sedan|suv|coupe|truck|convertible|hatchback|crossover|civic|corolla|camry|accord|mustang|f-150|silverado)\b)/i.test(catSlug);
 
   const handleFavorite = async (e) => {
     e.preventDefault();
@@ -172,22 +188,27 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
               }
 
               if (isAutomotive) {
-                const mileageMatch = desc.match(/Mileage:\s*([^\n]+)/i) || desc.match(/(\d+[\d,]*\s*k?\s*miles?)/i);
+                const mileageMatch = desc.match(/Mileage:\s*([^\n\r]+)/i) || desc.match(/(\d+[\d,]*\s*k?\s*miles?)/i);
                 let mileageStr = '';
                 if (mileageMatch) {
                   const rawNum = mileageMatch[1].replace(/\D/g, '');
                   if (rawNum) {
                     const num = Number(rawNum);
-                    mileageStr = num >= 1000 ? `${Math.round(num / 1000)}k miles` : `${num} mi`;
+                    if (num >= 1000) {
+                      const inK = num / 1000;
+                      mileageStr = `${inK % 1 === 0 ? inK : inK.toFixed(1)}k miles`;
+                    } else {
+                      mileageStr = `${num} miles`;
+                    }
                   } else {
                     mileageStr = mileageMatch[1].trim();
                   }
                 }
                 const isNew = product.condition === 'new' || product.condition === 'brand_new';
                 const condLabel = isNew ? 'New' : 'Used';
-                const badgeText = mileageStr ? `${condLabel} • ${mileageStr}` : condLabel;
+                const badgeText = mileageStr ? `${condLabel} • ${mileageStr}` : (isNew ? 'Brand New' : 'Used');
                 return (
-                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-black/70 text-white border border-white/20 shadow-md backdrop-blur-md">
+                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-black/75 text-white border border-white/20 shadow-md backdrop-blur-md">
                     <CheckSquare size={12} className="stroke-[2.5] text-blue-400" />
                     {badgeText}
                   </span>

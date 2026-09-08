@@ -61,9 +61,10 @@ const CATEGORIES = [
     name:        'Marketplace',
     subtitle:    'Shop the best deals',
     icon:        ShoppingBag,
-    image:       'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80',
-    gradient:    'linear-gradient(180deg, rgba(109,40,217,0.85) 0%, rgba(76,29,149,0.98) 100%)',
-    glow:        'rgba(124,58,237,0.35)',
+    image:       'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=85',
+    gradient:    'linear-gradient(180deg, #7C3AED 0%, #6D28D9 50%, #5B21B6 100%)',
+    baseColor:   '#5B21B6',
+    glow:        'rgba(124,58,237,0.45)',
     path:        '/essentials',
     sellPath:    '/sell/create?category=essentials',
   },
@@ -72,9 +73,10 @@ const CATEGORIES = [
     name:        'Automotive',
     subtitle:    'Find your next ride',
     icon:        Car,
-    image:       'https://images.unsplash.com/photo-1617788138017-80ad40651399?w=600&auto=format&fit=crop&q=80',
-    gradient:    'linear-gradient(180deg, rgba(29,78,216,0.85) 0%, rgba(30,58,138,0.98) 100%)',
-    glow:        'rgba(37,99,235,0.35)',
+    image:       'https://images.unsplash.com/photo-1617788138017-80ad40651399?w=600&auto=format&fit=crop&q=85',
+    gradient:    'linear-gradient(180deg, #3B82F6 0%, #2563EB 50%, #1D4ED8 100%)',
+    baseColor:   '#1D4ED8',
+    glow:        'rgba(37,99,235,0.45)',
     path:        '/vehicles',
     sellPath:    '/sell/create?category=vehicles',
   },
@@ -83,9 +85,10 @@ const CATEGORIES = [
     name:        'Real Estate',
     subtitle:    'Buy, Rent or Lease',
     icon:        Home,
-    image:       'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&auto=format&fit=crop&q=80',
-    gradient:    'linear-gradient(180deg, rgba(4,120,87,0.85) 0%, rgba(6,78,59,0.98) 100%)',
-    glow:        'rgba(5,150,105,0.35)',
+    image:       'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&auto=format&fit=crop&q=85',
+    gradient:    'linear-gradient(180deg, #10B981 0%, #059669 50%, #047857 100%)',
+    baseColor:   '#047857',
+    glow:        'rgba(5,150,105,0.45)',
     path:        '/real-estate',
     sellPath:    '/sell/create?category=real-estate',
   },
@@ -517,7 +520,7 @@ function CategoryCard({ cat, sellerOnly, onNavigate }) {
       >
         {/* Top 3D / Realistic Category Image */}
         {cat.image && (
-          <div className="absolute top-0 left-0 right-0 h-[56%] overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[58%] overflow-hidden">
             <img
               src={cat.image}
               alt={cat.name}
@@ -526,13 +529,16 @@ function CategoryCard({ cat, sellerOnly, onNavigate }) {
             />
             {/* Smooth gradient blend into the card base color */}
             <div
-              className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/60"
+              className="absolute inset-0"
+              style={{
+                background: `linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.05) 40%, ${cat.baseColor} 100%)`,
+              }}
             />
           </div>
         )}
 
         {/* Top spacer */}
-        <div className="h-[44%]" />
+        <div className="h-[42%]" />
 
         {/* Bottom content section */}
         <div className="relative z-10 text-left flex flex-col justify-end">
@@ -547,12 +553,12 @@ function CategoryCard({ cat, sellerOnly, onNavigate }) {
           </h2>
 
           {/* Subtitle */}
-          <p className="text-[10px] sm:text-[11px] text-white/80 font-medium mt-0.5 line-clamp-1 leading-snug">
+          <p className="text-[10px] sm:text-[11px] text-white/85 font-medium mt-0.5 line-clamp-1 leading-snug">
             {cat.subtitle}
           </p>
 
           {/* Arrow */}
-          <div className="mt-1.5 text-white/80 flex items-center">
+          <div className="mt-1.5 text-white/85 flex items-center">
             <ArrowRight size={13} className="stroke-[2.5] transition-transform duration-200 group-hover:translate-x-1" />
           </div>
         </div>
