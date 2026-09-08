@@ -272,7 +272,9 @@ export default function MyProfilePage() {
                   </p>
                 </div>
               </div>
-              <Link to="/admin">
+const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'http://localhost:5174';
+
+              <a href={ADMIN_URL}>
                 <Button
                   fullWidth
                   size="lg"
@@ -282,7 +284,7 @@ export default function MyProfilePage() {
                 >
                   Open Admin Panel
                 </Button>
-              </Link>
+              </a>
             </Card>
           </motion.div>
         )}

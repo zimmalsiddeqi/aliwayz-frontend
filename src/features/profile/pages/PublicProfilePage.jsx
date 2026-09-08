@@ -105,12 +105,14 @@ export default function PublicProfilePage() {
     onError: (err) => toast.error(getErrorMessage(err)),
   });
 
+const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'http://localhost:5174';
+
   // ── Admin: Delete user ─────────────────────────────────
   const deleteMutation = useMutation({
     mutationFn: () => AdminService.deleteUser(profile.id),
     onSuccess: () => {
       toast.success('User deleted');
-      navigate('/admin/users');
+      window.location.href = `${ADMIN_URL}/users`;
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });

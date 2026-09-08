@@ -10,26 +10,25 @@ const ResetPasswordPage   = lazy(() => import('@features/auth/pages/ResetPasswor
 const CompleteProfilePage = lazy(() => import('@features/auth/pages/CompleteProfilePage'));
 
 // Home
-const HomePage = lazy(() => import('@features/home/pages/HomePage'));
-const CarsPage      = lazy(() => import('@features/home/pages/CarsPage'));
-const PropertyPage  = lazy(() => import('@features/home/pages/PropertyPage'));
-const DailyUsePage  = lazy(() => import('@features/home/pages/DailyUsePage'));
-const FAQPage = lazy(() => import('@features/home/pages/FAQPage'));
-
+const HomePage     = lazy(() => import('@features/home/pages/HomePage'));
+const CarsPage     = lazy(() => import('@features/home/pages/CarsPage'));
+const PropertyPage = lazy(() => import('@features/home/pages/PropertyPage'));
+const DailyUsePage = lazy(() => import('@features/home/pages/DailyUsePage'));
+const FAQPage      = lazy(() => import('@features/home/pages/FAQPage'));
 
 // Marketplace
-const MarketplacePage    = lazy(() => import('@features/marketplace/pages/MarketplacePage'));
-const ProductDetailPage  = lazy(() => import('@features/marketplace/pages/ProductDetailPage'));
-const CategoryPage       = lazy(() => import('@features/marketplace/pages/CategoryPage'));
+const MarketplacePage   = lazy(() => import('@features/marketplace/pages/MarketplacePage'));
+const ProductDetailPage = lazy(() => import('@features/marketplace/pages/ProductDetailPage'));
+const CategoryPage      = lazy(() => import('@features/marketplace/pages/CategoryPage'));
 
 // Search
 const SearchPage = lazy(() => import('@features/search/pages/SearchPage'));
 
 // Store
-const StoreProfilePage    = lazy(() => import('@features/store/pages/StoreProfilePage'));
-const CreateStorePage     = lazy(() => import('@features/store/pages/CreateStorePage'));
-const EditStorePage       = lazy(() => import('@features/store/pages/EditStorePage'));
-const StoreAnalyticsPage  = lazy(() => import('@features/store/pages/StoreAnalyticsPage'));
+const StoreProfilePage   = lazy(() => import('@features/store/pages/StoreProfilePage'));
+const CreateStorePage    = lazy(() => import('@features/store/pages/CreateStorePage'));
+const EditStorePage      = lazy(() => import('@features/store/pages/EditStorePage'));
+const StoreAnalyticsPage = lazy(() => import('@features/store/pages/StoreAnalyticsPage'));
 
 // Sell
 const CreateListingPage = lazy(() => import('@features/sell/pages/CreateListingPage'));
@@ -53,18 +52,6 @@ const FollowingPage       = lazy(() => import('@features/profile/pages/Following
 
 // Notifications
 const NotificationsPage = lazy(() => import('@features/notifications/pages/NotificationsPage'));
-
-// Admin
-const AdminDashboardPage = lazy(() => import('@features/admin/pages/AdminDashboardPage'));
-const AdminUsersPage     = lazy(() => import('@features/admin/pages/AdminUsersPage'));
-const AdminStoresPage    = lazy(() => import('@features/admin/pages/AdminStoresPage'));
-const AdminProductsPage  = lazy(() => import('@features/admin/pages/AdminProductsPage'));
-const AdminReportsPage   = lazy(() => import('@features/admin/pages/AdminReportsPage'));
-const AdminLogsPage      = lazy(() => import('@features/admin/pages/AdminLogsPage'));
-const AdminBroadcastPage = lazy(() => import('@features/admin/pages/AdminBroadcastPage'));
-const AdminFeedbackPage = lazy(() => import('@features/admin/pages/AdminFeedbackPage'));
-const AdminVerificationsPage = lazy(() => import('@features/admin/pages/AdminVerificationsPage'));
-const AdminCategoriesPage = lazy(() => import('@features/admin/pages/AdminCategoriesPage'));
 
 // Verification
 const VerificationPage = lazy(() => import('@features/verification/pages/VerificationPage'));
@@ -101,10 +88,6 @@ export {
   MyProfilePage, PublicProfilePage, EditProfilePage,
   PurchaseHistoryPage, FavoritesPage, FollowingPage,
   NotificationsPage,
-  AdminDashboardPage, AdminUsersPage, AdminStoresPage,
-  AdminProductsPage, AdminReportsPage, AdminLogsPage,
-  AdminBroadcastPage, AdminFeedbackPage, AdminVerificationsPage,
-  AdminCategoriesPage,
   VerificationPage,
   CarsPage, PropertyPage, DailyUsePage, FAQPage,
   

@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, SlidersHorizontal, ChevronDown, X } from 'lucide-react';
+import { Search, SlidersHorizontal, ChevronDown, X, ShoppingBag, Car, Home, ArrowRight } from 'lucide-react';
 import useAuthStore from '@store/auth.store';
 import useLocationStore from '@store/location.store';
 import SearchBar from '@components/common/SearchBar';
@@ -59,38 +59,32 @@ const CATEGORIES = [
   {
     id:          'essentials',
     name:        'Marketplace',
-    emoji:       '🛒',
-    description: 'Electronics, fashion, home goods & more',
-    gradient:    'linear-gradient(135deg, #4C1D95 0%, #7C3AED 60%, #A78BFA 100%)',
+    subtitle:    'Shop the best deals',
+    icon:        ShoppingBag,
+    gradient:    'linear-gradient(145deg, #5B21B6 0%, #7C3AED 50%, #6D28D9 100%)',
     glow:        'rgba(124,58,237,0.35)',
     path:        '/essentials',
     sellPath:    '/sell/create?category=essentials',
-    bgPattern:   '📱👟🛋️📚🎮',
-    stats:       ['Electronics', 'Fashion', 'Home'],
   },
   {
     id:          'vehicles',
     name:        'Automotive',
-    emoji:       '🚗',
-    description: 'Cars, trucks, motorcycles & powersports',
-    gradient:    'linear-gradient(135deg, #1D4ED8 0%, #3B82F6 60%, #60A5FA 100%)',
-    glow:        'rgba(59,130,246,0.35)',
+    subtitle:    'Find your next ride',
+    icon:        Car,
+    gradient:    'linear-gradient(145deg, #1E40AF 0%, #2563EB 50%, #1D4ED8 100%)',
+    glow:        'rgba(37,99,235,0.35)',
     path:        '/vehicles',
     sellPath:    '/sell/create?category=vehicles',
-    bgPattern:   '🚗🏎️🚙🛻🏍️',
-    stats:       ['Cars & Trucks', 'Motorcycles', 'Parts'],
   },
   {
     id:          'real-estate',
     name:        'Real Estate',
-    emoji:       '🏠',
-    description: 'Homes, apartments, land & commercial spaces',
-    gradient:    'linear-gradient(135deg, #065F46 0%, #10B981 60%, #34D399 100%)',
-    glow:        'rgba(16,185,129,0.35)',
+    subtitle:    'Buy, Rent or Lease',
+    icon:        Home,
+    gradient:    'linear-gradient(145deg, #064E3B 0%, #059669 50%, #047857 100%)',
+    glow:        'rgba(5,150,105,0.35)',
     path:        '/real-estate',
     sellPath:    '/sell/create?category=real-estate',
-    bgPattern:   '🏠🏢🏡🏗️🌍',
-    stats:       ['For Sale', 'For Rent', 'Land'],
   },
 ];
 
@@ -496,6 +490,7 @@ export default function HomePage() {
 }
 
 function CategoryCard({ cat, sellerOnly, onNavigate }) {
+  const Icon = cat.icon;
   return (
     <motion.div
       variants={{
@@ -508,37 +503,35 @@ function CategoryCard({ cat, sellerOnly, onNavigate }) {
       className="h-full"
     >
       <motion.div
-        className="relative overflow-hidden rounded-2xl sm:rounded-[24px] cursor-pointer group flex flex-col justify-between h-24 sm:h-36"
+        className="relative overflow-hidden rounded-2xl sm:rounded-[24px] cursor-pointer group flex flex-col justify-between h-32 sm:h-40 p-3.5 sm:p-4 text-left"
         style={{
           background: cat.gradient,
-          boxShadow: `0 8px 32px ${cat.glow}`,
+          boxShadow: `0 8px 24px ${cat.glow}`,
         }}
-        whileHover={{ y: -4, boxShadow: `0 12px 40px ${cat.glow}` }}
+        whileHover={{ y: -4, boxShadow: `0 12px 32px ${cat.glow}` }}
         whileTap={{ scale: 0.96 }}
         onClick={() => onNavigate(cat.path)}
       >
-        <div className="absolute inset-0 flex flex-wrap gap-2 sm:gap-3 p-2 sm:p-3 opacity-[0.06] text-xl sm:text-2xl pointer-events-none overflow-hidden">
-          {Array.from({ length: 20 }).map((_, i) => (
-            <span key={i} className="select-none hidden sm:inline">
-              {cat.bgPattern.split('').filter((c) => c.trim())[i % 5]}
-            </span>
-          ))}
+        {/* Background decorative elements */}
+        <div className="absolute -top-10 -right-10 w-28 sm:w-36 h-28 sm:h-36 rounded-full bg-white/10 blur-md pointer-events-none" />
+        <div className="absolute -bottom-8 -left-8 w-20 sm:w-28 h-20 sm:h-28 rounded-full bg-white/5 pointer-events-none" />
+
+        {/* Top Icon */}
+        <div className="relative z-10">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white border border-white/20 shadow-sm">
+            <Icon size={18} className="sm:w-5 sm:h-5" />
+          </div>
         </div>
 
-        <div className="absolute -top-12 -right-12 w-24 sm:w-36 h-24 sm:h-36 rounded-full bg-white/10" />
-        <div className="absolute -bottom-8 -left-8 w-20 sm:w-28 h-20 sm:h-28 rounded-full bg-white/5" />
-
-        <div className="relative z-10 h-full flex flex-col items-center justify-center text-center p-2 sm:p-3">
-          <motion.div
-            className="text-4xl sm:text-5xl mb-2"
-            animate={{ rotate: [0, -3, 3, 0] }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            {cat.emoji}
-          </motion.div>
-          <h2 className="text-[14px] sm:text-[18px] font-bold text-white w-full leading-tight truncate px-1">
+        {/* Bottom Text & Arrow */}
+        <div className="relative z-10 text-left">
+          <h2 className="text-sm sm:text-lg font-bold text-white leading-tight">
             {cat.name}
           </h2>
+          <p className="text-[10px] sm:text-xs text-white/80 font-normal mt-0.5 sm:mt-1 line-clamp-1 leading-snug">
+            {cat.subtitle}
+          </p>
+          <ArrowRight size={14} className="text-white/80 mt-1.5 sm:mt-2 transition-transform duration-200 group-hover:translate-x-1" />
         </div>
       </motion.div>
     </motion.div>

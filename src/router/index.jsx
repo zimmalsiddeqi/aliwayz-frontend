@@ -1,13 +1,10 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import LoadingScreen from '@components/common/LoadingScreen';
 import AuthGuard from './guards/AuthGuard';
 import GuestGuard from './guards/GuestGuard';
 import SellerGuard from './guards/SellerGuard';
-import AdminGuard from './guards/AdminGuard';
 import RootLayout from './layouts/RootLayout';
 import AuthLayout from './layouts/AuthLayout';
 import DashboardLayout from './layouts/DashboardLayout';
-import AdminLayout from './layouts/AdminLayout';
 import RoleBasedHome from './guards/RoleBasedHome';
 
 import {
@@ -39,19 +36,9 @@ import {
   FavoritesPage,
   FollowingPage,
   NotificationsPage,
-  AdminDashboardPage,
-  AdminUsersPage,
-  AdminStoresPage,
-  AdminProductsPage,
-  AdminReportsPage,
-  AdminLogsPage,
   CarsPage,
   PropertyPage,
   DailyUsePage,
-  AdminBroadcastPage,
-  AdminFeedbackPage,
-  AdminVerificationsPage,
-  AdminCategoriesPage,
   VerificationPage,
   FAQPage,
   
@@ -108,8 +95,6 @@ const router = createBrowserRouter(
     },
 
     // ── Seller Dashboard (MUST be BEFORE RootLayout) ─────────
-    // This ensures /dashboard, /sell/*, /my-store/* paths
-    // are matched before RootLayout's /store/:slug
     {
       element: (
         <SellerGuard>
@@ -124,27 +109,6 @@ const router = createBrowserRouter(
         { path: '/my-store/edit', element: <EditStorePage /> },
         { path: '/my-store/analytics', element: <StoreAnalyticsPage /> },
         { path: '/my-store/verification', element: <VerificationPage /> },
-      ],
-    },
-
-    // ── Admin (BEFORE RootLayout) ────────────────────────────
-    {
-      element: (
-        <AdminGuard>
-          <AdminLayout />
-        </AdminGuard>
-      ),
-      children: [
-        { path: '/admin', element: <AdminDashboardPage /> },
-        { path: '/admin/users', element: <AdminUsersPage /> },
-        { path: '/admin/stores', element: <AdminStoresPage /> },
-        { path: '/admin/products', element: <AdminProductsPage /> },
-        { path: '/admin/reports', element: <AdminReportsPage /> },
-        { path: '/admin/logs', element: <AdminLogsPage /> },
-        { path: '/admin/broadcast', element: <AdminBroadcastPage /> },
-        { path: '/admin/feedback', element: <AdminFeedbackPage /> },
-        { path: '/admin/verifications', element: <AdminVerificationsPage /> },
-        { path: '/admin/categories', element: <AdminCategoriesPage /> },
       ],
     },
 

@@ -41,7 +41,7 @@ import {
 import { formatDate, formatCompactNumber, formatRating } from '@utils/formatters';
 import { getPrimaryImage, getAllImageUrls } from '@utils/helpers';
 import toast from '@lib/toast';
-import { parsePropertyDescription, stripPrivateTags } from '@utils/categoryHelpers';
+import { parsePropertyDescription, stripPrivateTags, getCleanDescriptionText, parseDescriptionSpecs } from '@utils/categoryHelpers';
 import { CATEGORY_IDS } from '@utils/constants';
 
 const STARTER_MESSAGES = [
@@ -417,29 +417,69 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* ── Description ────────────────────────────── */}
-            {product.description && (
-              <div className="space-y-2">
-                <h3
-                  className="text-sm font-semibold"
-                  style={{
-                    color: 'var(--color-text-primary)',
-                  }}
-                >
-                  Description
-                </h3>
-                <p
-                  className="whitespace-pre-line text-sm leading-relaxed"
-                  style={{
-                    color: 'var(--color-text-secondary)',
-                  }}
-                >
-                  {product.category_id === CATEGORY_IDS.PROPERTY || product.category_id === CATEGORY_IDS.REAL_ESTATE
-                    ? stripPrivateTags(product.description)
-                    : product.description}
-                </p>
-              </div>
-            )}
+            {/* ── Key Specifications & Details Grid ────────── */}
+            {(() => {
+              const specs = parseDescriptionSpecs(product.description);
+              if (specs.length === 0) return null;
+              return (
+                <div className="space-y-3 pt-2">
+                  <h3
+                    className="text-sm font-semibold"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
+                    Key Details & Specifications
+                  </h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                    {specs.map((spec, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-2.5 p-3 rounded-2xl border transition-all"
+                        style={{
+                          backgroundColor: 'var(--color-surface)',
+                          borderColor: 'var(--color-border)',
+                        }}
+                      >
+                        <span className="text-lg">{spec.icon}</span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[11px] font-medium" style={{ color: 'var(--color-text-muted)' }}>
+                            {spec.label}
+                          </p>
+                          <p className="text-xs font-semibold truncate" style={{ color: 'var(--color-text-primary)' }}>
+                            {spec.value}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* ── Clean Body Description ────────────────────────── */}
+            {(() => {
+              const cleanDesc = getCleanDescriptionText(product.description);
+              if (!cleanDesc) return null;
+              return (
+                <div className="space-y-2 pt-2">
+                  <h3
+                    className="text-sm font-semibold"
+                    style={{
+                      color: 'var(--color-text-primary)',
+                    }}
+                  >
+                    Description
+                  </h3>
+                  <p
+                    className="whitespace-pre-line text-sm leading-relaxed"
+                    style={{
+                      color: 'var(--color-text-secondary)',
+                    }}
+                  >
+                    {cleanDesc}
+                  </p>
+                </div>
+              );
+            })()}
 
             {/* ── Private Real Estate Info (Seller Only) ──── */}
             {isOwner && (product.category_id === CATEGORY_IDS.PROPERTY || product.category_id === CATEGORY_IDS.REAL_ESTATE) && (() => {

@@ -139,12 +139,14 @@ export default function StoreProfilePage() {
     onError: (err) => toast.error(getErrorMessage(err)),
   });
 
+const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'http://localhost:5174';
+
   // ── Admin: Delete seller profile ────────────────────────
   const adminDeleteMutation = useMutation({
     mutationFn: () => StoreService.delete(store.id),
     onSuccess: () => {
       toast.success('Seller profile deleted');
-      navigate('/admin/stores');
+      window.location.href = `${ADMIN_URL}/stores`;
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });

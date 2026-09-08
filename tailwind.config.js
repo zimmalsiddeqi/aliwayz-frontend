@@ -4,6 +4,7 @@ export default {
   content: [
     './index.html',
     './src/**/*.{js,jsx,ts,tsx}',
+    '../shared/src/**/*.{js,jsx,ts,tsx}',
   ],
   theme: {
     extend: {
@@ -41,7 +42,6 @@ export default {
           orange: '#F59E0B',
           red:    '#EF4444',
         },
-        // Theme-aware via CSS variables
         theme: {
           bg:        'var(--color-bg)',
           surface:   'var(--color-surface)',
