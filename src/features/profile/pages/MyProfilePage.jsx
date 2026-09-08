@@ -8,7 +8,7 @@ import {
   Heart, Users, Package, Settings, Shield,
   ChevronRight, Store, LayoutDashboard,
   PlusCircle, Compass, Bell, MessageCircle,
-  TrendingUp, Eye,
+  TrendingUp, Eye, LogOut,
 } from 'lucide-react';
 import UserService from '@api/services/user.service';
 import ReviewService from '@api/services/review.service';
@@ -17,6 +17,7 @@ import { queryKeys } from '@lib/queryClient';
 import useAuthStore from '@store/auth.store';
 import useChatStore from '@store/chat.store';
 import useNotificationStore from '@store/notification.store';
+import useAuth from '@hooks/useAuth';
 import Avatar from '@components/ui/Avatar';
 import Button from '@components/ui/Button';
 import { Card } from '@components/ui/Card';
@@ -41,6 +42,7 @@ export default function MyProfilePage() {
   const { user } = useAuthStore();
   const { totalUnread } = useChatStore();
   const { unreadCount } = useNotificationStore();
+  const { logout } = useAuth();
 
   const role = user?.role || 'buyer';
 
@@ -96,25 +98,44 @@ export default function MyProfilePage() {
                       : 'linear-gradient(135deg, #F59E0B 0%, #EF4444 100%)',
               }}
             >
-              <button
-                onClick={() =>
-                  navigate('/profile/edit')
-                }
-                className="absolute top-3 right-3 px-3 py-1.5 rounded-xl text-xs font-semibold backdrop-blur-md transition-all hover:bg-white/30"
-                style={{
-                  backgroundColor:
-                    'rgba(255,255,255,0.2)',
-                  color: 'white',
-                  border:
-                    '1px solid rgba(255,255,255,0.3)',
-                }}
-              >
-                <Edit3
-                  size={12}
-                  className="inline mr-1"
-                />
-                Edit
-              </button>
+              <div className="absolute top-3 right-3 flex items-center gap-2">
+                <button
+                  onClick={() =>
+                    navigate('/profile/edit')
+                  }
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold backdrop-blur-md transition-all hover:bg-white/30"
+                  style={{
+                    backgroundColor:
+                      'rgba(255,255,255,0.2)',
+                    color: 'white',
+                    border:
+                      '1px solid rgba(255,255,255,0.3)',
+                  }}
+                >
+                  <Edit3
+                    size={12}
+                    className="inline mr-1"
+                  />
+                  Edit
+                </button>
+                <button
+                  onClick={logout}
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold backdrop-blur-md transition-all hover:bg-red-500/40"
+                  style={{
+                    backgroundColor:
+                      'rgba(239,68,68,0.3)',
+                    color: 'white',
+                    border:
+                      '1px solid rgba(255,255,255,0.3)',
+                  }}
+                >
+                  <LogOut
+                    size={12}
+                    className="inline mr-1"
+                  />
+                  Log out
+                </button>
+              </div>
             </div>
 
             <div className="px-4 sm:px-6 pb-5">
@@ -318,7 +339,27 @@ export default function MyProfilePage() {
         <QuickLinks
           role={role}
           unreadCount={unreadCount}
+          logout={logout}
         />
+
+        {/* ═══ LOGOUT ACTION ═══════════════════════════════ */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="pt-2"
+        >
+          <Button
+            variant="outline"
+            fullWidth
+            size="lg"
+            leftIcon={<LogOut size={18} />}
+            onClick={logout}
+            className="!border-[rgba(239,68,68,0.3)] !text-[var(--color-error)] hover:!bg-[rgba(239,68,68,0.08)]"
+          >
+            Log out
+          </Button>
+        </motion.div>
       </div>
     </>
   );
@@ -615,7 +656,7 @@ function ReviewSummaryCard({ summary }) {
 }
 
 // ── Quick Links ──────────────────────────────────────────
-function QuickLinks({ role, unreadCount }) {
+function QuickLinks({ role, unreadCount, logout }) {
   const navigate = useNavigate();
   const { user } = useAuthStore();
 
@@ -773,6 +814,14 @@ function QuickLinks({ role, unreadCount }) {
       color: 'var(--color-text-secondary)',
       desc: 'Update your info',
     },
+    {
+      isLogout: true,
+      onClick: logout,
+      icon: LogOut,
+      label: 'Log out',
+      color: 'var(--color-error)',
+      desc: 'Sign out of your account',
+    },
   ];
 
   return (
@@ -803,69 +852,109 @@ function QuickLinks({ role, unreadCount }) {
             desc,
             badge,
             badgeCount,
-          }) => (
-            <Link
-              key={`${to}-${label}`}
-              to={to}
-              className="flex items-center gap-3 px-3 sm:px-4 py-3 rounded-xl transition-all duration-200 hover:bg-[var(--glass-bg-strong)] group"
-            >
-              <div
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110"
-                style={{
-                  backgroundColor: `${color}15`,
-                  color,
-                }}
+            isLogout,
+            onClick,
+          }) =>
+            isLogout ? (
+              <button
+                key={label}
+                onClick={onClick}
+                className="flex items-center gap-3 px-3 sm:px-4 py-3 rounded-xl transition-all duration-200 hover:bg-red-500/10 group w-full text-left"
               >
-                <Icon size={16} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p
-                  className="text-sm font-medium"
+                <div
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110"
                   style={{
-                    color:
-                      'var(--color-text-primary)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                    color: 'var(--color-error)',
                   }}
                 >
-                  {label}
-                </p>
-                {desc && (
+                  <Icon size={16} />
+                </div>
+                <div className="flex-1 min-w-0">
                   <p
-                    className="text-xs"
+                    className="text-sm font-medium"
                     style={{
-                      color:
-                        'var(--color-text-muted)',
+                      color: 'var(--color-error)',
                     }}
                   >
-                    {desc}
+                    {label}
                   </p>
-                )}
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {badgeCount > 0 && (
-                  <span
-                    className="min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center"
-                    style={{
-                      backgroundColor:
-                        'var(--color-error)',
-                      color: 'white',
-                    }}
-                  >
-                    {badgeCount > 99
-                      ? '99+'
-                      : badgeCount}
-                  </span>
-                )}
+                  {desc && (
+                    <p
+                      className="text-xs"
+                      style={{
+                        color: 'var(--color-text-muted)',
+                      }}
+                    >
+                      {desc}
+                    </p>
+                  )}
+                </div>
                 <ChevronRight
                   size={16}
                   className="transition-transform group-hover:translate-x-0.5"
                   style={{
-                    color:
-                      'var(--color-text-muted)',
+                    color: 'var(--color-text-muted)',
                   }}
                 />
-              </div>
-            </Link>
-          )
+              </button>
+            ) : (
+              <Link
+                key={`${to}-${label}`}
+                to={to}
+                className="flex items-center gap-3 px-3 sm:px-4 py-3 rounded-xl transition-all duration-200 hover:bg-[var(--glass-bg-strong)] group"
+              >
+                <div
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110"
+                  style={{
+                    backgroundColor: `${color}15`,
+                    color,
+                  }}
+                >
+                  <Icon size={16} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p
+                    className="text-sm font-medium"
+                    style={{
+                      color: 'var(--color-text-primary)',
+                    }}
+                  >
+                    {label}
+                  </p>
+                  {desc && (
+                    <p
+                      className="text-xs"
+                      style={{
+                        color: 'var(--color-text-muted)',
+                      }}
+                    >
+                      {desc}
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {badgeCount > 0 && (
+                    <span
+                      className="min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center"
+                      style={{
+                        backgroundColor: 'var(--color-error)',
+                        color: 'white',
+                      }}
+                    >
+                      {badgeCount > 99 ? '99+' : badgeCount}
+                    </span>
+                  )}
+                  <ChevronRight
+                    size={16}
+                    className="transition-transform group-hover:translate-x-0.5"
+                    style={{
+                      color: 'var(--color-text-muted)',
+                    }}
+                  />
+                </div>
+              </Link>
+            )
         )}
       </div>
     </motion.div>

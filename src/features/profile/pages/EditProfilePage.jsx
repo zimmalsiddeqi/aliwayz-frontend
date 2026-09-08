@@ -5,13 +5,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { Camera, Loader2, MapPin, Phone, Shield } from 'lucide-react';
+import { Camera, Loader2, MapPin, Phone, Shield, LogOut } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { updateProfileSchema } from '@lib/validators';
 import UserService from '@api/services/user.service';
 import AuthService from '@api/services/auth.service';
 import { queryKeys } from '@lib/queryClient';
 import useAuthStore from '@store/auth.store';
+import useAuth from '@hooks/useAuth';
 import Input from '@components/ui/Input';
 import Textarea from '@components/ui/Textarea';
 import Button from '@components/ui/Button';
@@ -32,6 +33,7 @@ export default function EditProfilePage() {
   const navigate    = useNavigate();
   const queryClient = useQueryClient();
   const { user, setUser } = useAuthStore();
+  const { logout }  = useAuth();
 
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [avatarFile, setAvatarFile]       = useState(null);
@@ -507,37 +509,46 @@ export default function EditProfilePage() {
           <Card className="p-5">
             <h3
               className="font-semibold text-sm mb-3"
-              style={{ color: 'var(--color-error)' }}
+              style={{ color: 'var(--color-text-primary)' }}
             >
-              Account Management
+              Account Actions
             </h3>
             <p
-              className="text-xs mb-3"
+              className="text-xs mb-4"
               style={{ color: 'var(--color-text-muted)' }}
             >
-              Once you delete your account, there is no
-              going back. All your data will be
-              permanently deleted.
+              Manage your session or permanently delete your account.
             </p>
-            <Button
-              variant="danger"
-              size="sm"
-              onClick={() => {
-                if (
-                  confirm(
-                    'Are you absolutely sure? This cannot be undone.'
-                  )
-                ) {
-                  UserService.deleteAccount().then(
-                    () => {
-                      useAuthStore.getState().logout();
-                    }
-                  );
-                }
-              }}
-            >
-              Delete Account
-            </Button>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                leftIcon={<LogOut size={16} />}
+                onClick={logout}
+                className="!border-[rgba(239,68,68,0.3)] !text-[var(--color-error)] hover:!bg-[rgba(239,68,68,0.08)]"
+              >
+                Log out
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => {
+                  if (
+                    confirm(
+                      'Are you absolutely sure? This cannot be undone.'
+                    )
+                  ) {
+                    UserService.deleteAccount().then(
+                      () => {
+                        logout();
+                      }
+                    );
+                  }
+                }}
+              >
+                Delete Account
+              </Button>
+            </div>
           </Card>
         </motion.div>
       </div>
