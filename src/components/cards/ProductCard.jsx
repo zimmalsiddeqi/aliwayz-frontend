@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Eye, MapPin } from 'lucide-react';
+import { Heart, Eye, MapPin, Home, Check, CheckSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@lib/queryClient';
@@ -93,7 +93,7 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
             onClick={handleFavorite}
             disabled={isPending}
             className={cn(
-              'absolute top-3 right-3 w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200',
+              'absolute top-3 right-3 w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 z-10',
               'backdrop-blur-md border',
               isFav
                 ? 'bg-red-500/20 border-red-500/30 text-red-400'
@@ -109,38 +109,54 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
           </button>
 
           {/* Condition badge / Transaction Type badge */}
-          <div className="absolute top-3 left-3">
-            {product.category_id === CATEGORY_IDS.PROPERTY || product.category_id === CATEGORY_IDS.REAL_ESTATE ? (
-              (() => {
+          <div className="absolute top-3 left-3 z-10">
+            {(() => {
+              const isRealEstate = product.category_id === CATEGORY_IDS.PROPERTY || product.category_id === CATEGORY_IDS.REAL_ESTATE;
+              const isAutomotive = product.category_id === CATEGORY_IDS.VEHICLES || product.category_id === CATEGORY_IDS.AUTOMOTIVE;
+
+              if (isRealEstate) {
                 const attrs = parsePropertyDescription(product.description);
                 let badgeText = 'For Sale';
-                let badgeColor = 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600';
-                if (attrs.intent === 'rent') {
-                  badgeText = 'For Rent';
-                  badgeColor = 'bg-blue-500/10 border-blue-500/30 text-blue-600';
-                } else if (attrs.intent === 'lease') {
-                  badgeText = 'For Lease';
-                  badgeColor = 'bg-purple-500/10 border-purple-500/30 text-purple-600';
-                } else if (attrs.intent === 'vacation') {
-                  badgeText = 'Vacation';
-                  badgeColor = 'bg-amber-500/10 border-amber-500/30 text-amber-600';
-                }
+                if (attrs.intent === 'rent') badgeText = 'For Rent';
+                else if (attrs.intent === 'lease') badgeText = 'For Lease';
+                else if (attrs.intent === 'vacation') badgeText = 'Vacation';
                 return (
-                  <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-semibold border backdrop-blur-md', badgeColor)}>
+                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-[#6366F1] text-white shadow-md backdrop-blur-md">
+                    <Home size={12} className="stroke-[2.5]" />
                     {badgeText}
                   </span>
                 );
-              })()
-            ) : (
-              <span
-                className={cn(
-                  'px-2 py-0.5 rounded-lg text-[10px] font-semibold backdrop-blur-md',
-                  getConditionColor(product.condition)
-                )}
-              >
-                {getConditionLabel(product.condition)}
-              </span>
-            )}
+              }
+
+              if (isAutomotive) {
+                const desc = product.description || '';
+                const mileageMatch = desc.match(/Mileage:\s*([^\n]+)/i);
+                let mileageStr = '';
+                if (mileageMatch) {
+                  const rawNum = mileageMatch[1].replace(/\D/g, '');
+                  if (rawNum) {
+                    const num = Number(rawNum);
+                    mileageStr = num >= 1000 ? `${Math.round(num / 1000)}k miles` : `${num} mi`;
+                  }
+                }
+                const condLabel = product.condition === 'new' ? 'New' : 'Used';
+                const badgeText = mileageStr ? `${condLabel} • ${mileageStr}` : condLabel;
+                return (
+                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-black/60 text-white border border-white/20 shadow-md backdrop-blur-md">
+                    <CheckSquare size={12} className="stroke-[2.5] text-blue-400" />
+                    {badgeText}
+                  </span>
+                );
+              }
+
+              // General Marketplace Item
+              return (
+                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-[#10B981] text-white shadow-md backdrop-blur-md">
+                  <Check size={12} className="stroke-[3]" />
+                  {getConditionLabel(product.condition)}
+                </span>
+              );
+            })()}
           </div>
 
           {/* Featured badge */}
