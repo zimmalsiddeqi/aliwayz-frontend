@@ -509,46 +509,37 @@ export default function EditProfilePage() {
           <Card className="p-5">
             <h3
               className="font-semibold text-sm mb-3"
-              style={{ color: 'var(--color-text-primary)' }}
+              style={{ color: 'var(--color-error)' }}
             >
-              Account Actions
+              Account Management
             </h3>
             <p
-              className="text-xs mb-4"
+              className="text-xs mb-3"
               style={{ color: 'var(--color-text-muted)' }}
             >
-              Manage your session or permanently delete your account.
+              Once you delete your account, there is no
+              going back. All your data will be
+              permanently deleted.
             </p>
-            <div className="flex flex-wrap gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                leftIcon={<LogOut size={16} />}
-                onClick={logout}
-                className="!border-[rgba(239,68,68,0.3)] !text-[var(--color-error)] hover:!bg-[rgba(239,68,68,0.08)]"
-              >
-                Log out
-              </Button>
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={() => {
-                  if (
-                    confirm(
-                      'Are you absolutely sure? This cannot be undone.'
-                    )
-                  ) {
-                    UserService.deleteAccount().then(
-                      () => {
-                        logout();
-                      }
-                    );
-                  }
-                }}
-              >
-                Delete Account
-              </Button>
-            </div>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => {
+                if (
+                  confirm(
+                    'Are you absolutely sure? This cannot be undone.'
+                  )
+                ) {
+                  UserService.deleteAccount().then(
+                    () => {
+                      logout();
+                    }
+                  );
+                }
+              }}
+            >
+              Delete Account
+            </Button>
           </Card>
         </motion.div>
       </div>

@@ -98,44 +98,25 @@ export default function MyProfilePage() {
                       : 'linear-gradient(135deg, #F59E0B 0%, #EF4444 100%)',
               }}
             >
-              <div className="absolute top-3 right-3 flex items-center gap-2">
-                <button
-                  onClick={() =>
-                    navigate('/profile/edit')
-                  }
-                  className="px-3 py-1.5 rounded-xl text-xs font-semibold backdrop-blur-md transition-all hover:bg-white/30"
-                  style={{
-                    backgroundColor:
-                      'rgba(255,255,255,0.2)',
-                    color: 'white',
-                    border:
-                      '1px solid rgba(255,255,255,0.3)',
-                  }}
-                >
-                  <Edit3
-                    size={12}
-                    className="inline mr-1"
-                  />
-                  Edit
-                </button>
-                <button
-                  onClick={logout}
-                  className="px-3 py-1.5 rounded-xl text-xs font-semibold backdrop-blur-md transition-all hover:bg-red-500/40"
-                  style={{
-                    backgroundColor:
-                      'rgba(239,68,68,0.3)',
-                    color: 'white',
-                    border:
-                      '1px solid rgba(255,255,255,0.3)',
-                  }}
-                >
-                  <LogOut
-                    size={12}
-                    className="inline mr-1"
-                  />
-                  Log out
-                </button>
-              </div>
+              <button
+                onClick={() =>
+                  navigate('/profile/edit')
+                }
+                className="absolute top-3 right-3 px-3 py-1.5 rounded-xl text-xs font-semibold backdrop-blur-md transition-all hover:bg-white/30"
+                style={{
+                  backgroundColor:
+                    'rgba(255,255,255,0.2)',
+                  color: 'white',
+                  border:
+                    '1px solid rgba(255,255,255,0.3)',
+                }}
+              >
+                <Edit3
+                  size={12}
+                  className="inline mr-1"
+                />
+                Edit
+              </button>
             </div>
 
             <div className="px-4 sm:px-6 pb-5">
@@ -339,7 +320,6 @@ export default function MyProfilePage() {
         <QuickLinks
           role={role}
           unreadCount={unreadCount}
-          logout={logout}
         />
 
         {/* ═══ LOGOUT ACTION ═══════════════════════════════ */}
@@ -656,7 +636,7 @@ function ReviewSummaryCard({ summary }) {
 }
 
 // ── Quick Links ──────────────────────────────────────────
-function QuickLinks({ role, unreadCount, logout }) {
+function QuickLinks({ role, unreadCount }) {
   const navigate = useNavigate();
   const { user } = useAuthStore();
 
@@ -814,14 +794,6 @@ function QuickLinks({ role, unreadCount, logout }) {
       color: 'var(--color-text-secondary)',
       desc: 'Update your info',
     },
-    {
-      isLogout: true,
-      onClick: logout,
-      icon: LogOut,
-      label: 'Log out',
-      color: 'var(--color-error)',
-      desc: 'Sign out of your account',
-    },
   ];
 
   return (
@@ -852,109 +824,69 @@ function QuickLinks({ role, unreadCount, logout }) {
             desc,
             badge,
             badgeCount,
-            isLogout,
-            onClick,
-          }) =>
-            isLogout ? (
-              <button
-                key={label}
-                onClick={onClick}
-                className="flex items-center gap-3 px-3 sm:px-4 py-3 rounded-xl transition-all duration-200 hover:bg-red-500/10 group w-full text-left"
+          }) => (
+            <Link
+              key={`${to}-${label}`}
+              to={to}
+              className="flex items-center gap-3 px-3 sm:px-4 py-3 rounded-xl transition-all duration-200 hover:bg-[var(--glass-bg-strong)] group"
+            >
+              <div
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110"
+                style={{
+                  backgroundColor: `${color}15`,
+                  color,
+                }}
               >
-                <div
-                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110"
+                <Icon size={16} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p
+                  className="text-sm font-medium"
                   style={{
-                    backgroundColor: 'rgba(239, 68, 68, 0.12)',
-                    color: 'var(--color-error)',
+                    color:
+                      'var(--color-text-primary)',
                   }}
                 >
-                  <Icon size={16} />
-                </div>
-                <div className="flex-1 min-w-0">
+                  {label}
+                </p>
+                {desc && (
                   <p
-                    className="text-sm font-medium"
+                    className="text-xs"
                     style={{
-                      color: 'var(--color-error)',
+                      color:
+                        'var(--color-text-muted)',
                     }}
                   >
-                    {label}
+                    {desc}
                   </p>
-                  {desc && (
-                    <p
-                      className="text-xs"
-                      style={{
-                        color: 'var(--color-text-muted)',
-                      }}
-                    >
-                      {desc}
-                    </p>
-                  )}
-                </div>
+                )}
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {badgeCount > 0 && (
+                  <span
+                    className="min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center"
+                    style={{
+                      backgroundColor:
+                        'var(--color-error)',
+                      color: 'white',
+                    }}
+                  >
+                    {badgeCount > 99
+                      ? '99+'
+                      : badgeCount}
+                  </span>
+                )}
                 <ChevronRight
                   size={16}
                   className="transition-transform group-hover:translate-x-0.5"
                   style={{
-                    color: 'var(--color-text-muted)',
+                    color:
+                      'var(--color-text-muted)',
                   }}
                 />
-              </button>
-            ) : (
-              <Link
-                key={`${to}-${label}`}
-                to={to}
-                className="flex items-center gap-3 px-3 sm:px-4 py-3 rounded-xl transition-all duration-200 hover:bg-[var(--glass-bg-strong)] group"
-              >
-                <div
-                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110"
-                  style={{
-                    backgroundColor: `${color}15`,
-                    color,
-                  }}
-                >
-                  <Icon size={16} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p
-                    className="text-sm font-medium"
-                    style={{
-                      color: 'var(--color-text-primary)',
-                    }}
-                  >
-                    {label}
-                  </p>
-                  {desc && (
-                    <p
-                      className="text-xs"
-                      style={{
-                        color: 'var(--color-text-muted)',
-                      }}
-                    >
-                      {desc}
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {badgeCount > 0 && (
-                    <span
-                      className="min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center"
-                      style={{
-                        backgroundColor: 'var(--color-error)',
-                        color: 'white',
-                      }}
-                    >
-                      {badgeCount > 99 ? '99+' : badgeCount}
-                    </span>
-                  )}
-                  <ChevronRight
-                    size={16}
-                    className="transition-transform group-hover:translate-x-0.5"
-                    style={{
-                      color: 'var(--color-text-muted)',
-                    }}
-                  />
-                </div>
-              </Link>
-            )
+              </div>
+            </Link>
+          )
         )}
       </div>
     </motion.div>
