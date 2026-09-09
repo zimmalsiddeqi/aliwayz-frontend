@@ -3,7 +3,7 @@
 // Changing values here updates all legal documents and metadata site-wide.
 
 export const SITE_NAME      = 'Aliwayz';
-export const SITE_URL       = 'https://aliwayz-frontend.vercel.app';
+export const SITE_URL       = 'https://aliwayz.com';
 export const DEVELOPER_NAME = 'Shawkat Ali';
 export const LAST_UPDATED    = 'October 15, 2026';
 export const LAST_UPDATED_ISO = '2026-10-15';
