@@ -61,9 +61,9 @@ export default function AvatarUploader({ size = '2xl' }) {
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
-    accept: { 'image/*': ['.jpeg', '.jpg', '.png', '.webp'] },
+    accept: { 'image/*': [] },
     maxFiles: 1,
-    maxSize: 10 * 1024 * 1024,
+    maxSize: 15 * 1024 * 1024,
   });
 
   return (

@@ -6,7 +6,6 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
   timeout: 15000,
-  headers: { 'Content-Type': 'application/json' },
   withCredentials: false,
 });
 
@@ -57,10 +56,16 @@ axiosInstance.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // When sending FormData, let the browser/Axios set Content-Type with the correct boundary
+    // When sending FormData, let browser set multipart/form-data with the correct boundary
     if (config.data instanceof FormData) {
-      delete config.headers['Content-Type'];
-      delete config.headers['content-type'];
+      if (config.headers) {
+        if (typeof config.headers.delete === 'function') {
+          config.headers.delete('Content-Type');
+          config.headers.delete('content-type');
+        }
+        delete config.headers['Content-Type'];
+        delete config.headers['content-type'];
+      }
     }
 
     return config;

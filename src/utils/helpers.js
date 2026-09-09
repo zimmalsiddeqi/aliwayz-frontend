@@ -131,12 +131,33 @@ export function getBadgeDisplay(code) {
  * Validate image file before upload
  */
 export function validateImageFile(file) {
-  const ALLOWED = ['image/jpeg', 'image/png', 'image/webp'];
-  const MAX_MB  = 10;
+  if (!file) return { valid: false, error: 'No file selected' };
+  const type = (file.type || '').toLowerCase();
+  const ext = (file.name || '').split('.').pop()?.toLowerCase();
+  const allowedTypes = [
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/webp',
+    'image/pjpeg',
+    'image/x-png',
+    'image/gif',
+    'image/bmp',
+    'image/heic',
+    'image/heif',
+    'image/avif',
+  ];
+  const allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'heic', 'heif', 'avif'];
 
-  if (!ALLOWED.includes(file.type)) {
-    return { valid: false, error: 'Only JPEG, PNG, and WebP images allowed' };
+  const isValidType =
+    type.startsWith('image/') ||
+    allowedTypes.includes(type) ||
+    (ext && allowedExts.includes(ext));
+
+  if (!isValidType) {
+    return { valid: false, error: 'Only image files (JPEG, PNG, WebP) are allowed' };
   }
+  const MAX_MB = 15;
   if (file.size > MAX_MB * 1024 * 1024) {
     return { valid: false, error: `Image must be under ${MAX_MB}MB` };
   }
