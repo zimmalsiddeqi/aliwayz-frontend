@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { cn, getInitials } from '@lib/utils';
 import { generateAvatarColor } from '@utils/helpers';
 
@@ -9,6 +10,12 @@ export default function Avatar({
   online,
   className,
 }) {
+  const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [src]);
+
   const sizes = {
     xs: 'w-6 h-6 text-[10px]',
     sm: 'w-8 h-8 text-xs',
@@ -29,7 +36,7 @@ export default function Avatar({
 
   return (
     <div className={cn('relative flex-shrink-0', className)}>
-      {src ? (
+      {src && !imageError ? (
         <img
           src={src}
           alt={alt || name}
@@ -39,6 +46,7 @@ export default function Avatar({
           )}
           style={{ border: '2px solid var(--color-border)' }}
           loading="lazy"
+          onError={() => setImageError(true)}
         />
       ) : (
         <div

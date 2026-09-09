@@ -73,7 +73,19 @@ export default function EditProfilePage() {
     },
     onSuccess: (res) => {
       const newAvatarUrl = res.data?.avatar_url || res.avatar_url;
-      setUser({ avatar_url: newAvatarUrl });
+      if (newAvatarUrl) {
+        setUser({ avatar_url: newAvatarUrl });
+        queryClient.setQueryData(queryKeys.auth.me(), (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            data: {
+              ...(old.data || {}),
+              avatar_url: newAvatarUrl,
+            },
+          };
+        });
+      }
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.me() });
       queryClient.invalidateQueries({ queryKey: queryKeys.users.me() });
       toast.success('Profile picture updated! 📸');
