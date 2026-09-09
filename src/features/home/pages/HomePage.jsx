@@ -61,10 +61,10 @@ const CATEGORIES = [
     name:        'Marketplace',
     subtitle:    'Shop the best deals',
     icon:        ShoppingBag,
-    image:       'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=85',
-    gradient:    'linear-gradient(180deg, #7C3AED 0%, #6D28D9 50%, #5B21B6 100%)',
-    baseColor:   '#5B21B6',
-    glow:        'rgba(124,58,237,0.45)',
+    image:       'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=90',
+    gradient:    'linear-gradient(180deg, #7C3AED 0%, #6D28D9 45%, #4C1D95 100%)',
+    baseColor:   '#4C1D95',
+    glow:        'rgba(124,58,237,0.5)',
     path:        '/essentials',
     sellPath:    '/sell/create?category=essentials',
   },
@@ -73,10 +73,10 @@ const CATEGORIES = [
     name:        'Automotive',
     subtitle:    'Find your next ride',
     icon:        Car,
-    image:       'https://images.unsplash.com/photo-1617788138017-80ad40651399?w=600&auto=format&fit=crop&q=85',
-    gradient:    'linear-gradient(180deg, #3B82F6 0%, #2563EB 50%, #1D4ED8 100%)',
-    baseColor:   '#1D4ED8',
-    glow:        'rgba(37,99,235,0.45)',
+    image:       'https://images.unsplash.com/photo-1617788138017-80ad40651399?w=800&auto=format&fit=crop&q=90',
+    gradient:    'linear-gradient(180deg, #3B82F6 0%, #2563EB 45%, #1E3A8A 100%)',
+    baseColor:   '#1E3A8A',
+    glow:        'rgba(37,99,235,0.5)',
     path:        '/vehicles',
     sellPath:    '/sell/create?category=vehicles',
   },
@@ -85,10 +85,10 @@ const CATEGORIES = [
     name:        'Real Estate',
     subtitle:    'Buy, Rent or Lease',
     icon:        Home,
-    image:       'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&auto=format&fit=crop&q=85',
-    gradient:    'linear-gradient(180deg, #10B981 0%, #059669 50%, #047857 100%)',
-    baseColor:   '#047857',
-    glow:        'rgba(5,150,105,0.45)',
+    image:       'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&auto=format&fit=crop&q=90',
+    gradient:    'linear-gradient(180deg, #10B981 0%, #059669 45%, #064E3B 100%)',
+    baseColor:   '#064E3B',
+    glow:        'rgba(5,150,105,0.5)',
     path:        '/real-estate',
     sellPath:    '/sell/create?category=real-estate',
   },
@@ -509,57 +509,57 @@ function CategoryCard({ cat, sellerOnly, onNavigate }) {
       className="h-full"
     >
       <motion.div
-        className="relative overflow-hidden rounded-[20px] sm:rounded-[24px] cursor-pointer group flex flex-col justify-between h-[180px] sm:h-[210px] p-3 sm:p-4 text-left shadow-lg border border-white/10"
+        className="relative overflow-hidden rounded-[22px] sm:rounded-[26px] cursor-pointer group flex flex-col justify-between h-[195px] sm:h-[225px] p-3.5 sm:p-4 text-left border border-white/15"
         style={{
           background: cat.gradient,
-          boxShadow: `0 8px 24px ${cat.glow}`,
+          boxShadow: `0 12px 28px -4px ${cat.glow}, 0 4px 12px rgba(0,0,0,0.15)`,
         }}
-        whileHover={{ y: -4, boxShadow: `0 14px 32px ${cat.glow}` }}
+        whileHover={{ y: -5, boxShadow: `0 18px 36px -2px ${cat.glow}, 0 6px 16px rgba(0,0,0,0.2)` }}
         whileTap={{ scale: 0.97 }}
         onClick={() => onNavigate(cat.path)}
       >
         {/* Top 3D / Realistic Category Image */}
         {cat.image && (
-          <div className="absolute top-0 left-0 right-0 h-[58%] overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[62%] overflow-hidden">
             <img
               src={cat.image}
               alt={cat.name}
               className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
               loading="eager"
             />
-            {/* Smooth gradient blend into the card base color */}
+            {/* Deep bottom-half gradient blend */}
             <div
               className="absolute inset-0"
               style={{
-                background: `linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.05) 40%, ${cat.baseColor} 100%)`,
+                background: `linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.15) 30%, ${cat.baseColor} 90%, ${cat.baseColor} 100%)`,
               }}
             />
           </div>
         )}
 
         {/* Top spacer */}
-        <div className="h-[42%]" />
+        <div className="h-[46%]" />
 
         {/* Bottom content section */}
         <div className="relative z-10 text-left flex flex-col justify-end">
           {/* Outline Icon */}
           <div className="text-white mb-1.5 flex items-center">
-            <Icon size={20} className="stroke-[2.2]" />
+            <Icon size={21} className="stroke-[2.2]" />
           </div>
 
           {/* Title */}
-          <h2 className="text-sm sm:text-base font-bold text-white leading-tight tracking-tight drop-shadow-sm">
+          <h2 className="text-sm sm:text-base font-bold text-white leading-tight tracking-tight drop-shadow-md">
             {cat.name}
           </h2>
 
           {/* Subtitle */}
-          <p className="text-[10px] sm:text-[11px] text-white/85 font-medium mt-0.5 line-clamp-1 leading-snug">
+          <p className="text-[10px] sm:text-[11.5px] text-white/90 font-medium mt-0.5 line-clamp-1 leading-snug drop-shadow-sm">
             {cat.subtitle}
           </p>
 
           {/* Arrow */}
-          <div className="mt-1.5 text-white/85 flex items-center">
-            <ArrowRight size={13} className="stroke-[2.5] transition-transform duration-200 group-hover:translate-x-1" />
+          <div className="mt-1.5 text-white/90 flex items-center">
+            <ArrowRight size={13.5} className="stroke-[2.5] transition-transform duration-200 group-hover:translate-x-1" />
           </div>
         </div>
       </motion.div>
