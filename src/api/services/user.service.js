@@ -9,9 +9,7 @@ const UserService = {
     api.put(API.USERS.UPDATE_PROFILE, data).then((r) => r.data),
 
   uploadAvatar: (formData) =>
-    api.put(API.USERS.UPLOAD_AVATAR, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }).then((r) => r.data),
+    api.put(API.USERS.UPLOAD_AVATAR, formData).then((r) => r.data),
 
   updateLocation: (data) =>
     api.put(API.USERS.UPDATE_LOCATION, data).then((r) => r.data),

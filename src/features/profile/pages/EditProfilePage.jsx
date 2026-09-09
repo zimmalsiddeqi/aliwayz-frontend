@@ -72,10 +72,20 @@ export default function EditProfilePage() {
       return UserService.uploadAvatar(formData);
     },
     onSuccess: (res) => {
-      setUser({ avatar_url: res.data.avatar_url });
-      toast.success('Avatar updated!');
+      const newAvatarUrl = res.data?.avatar_url || res.avatar_url;
+      setUser({ avatar_url: newAvatarUrl });
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.me() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.me() });
+      toast.success('Profile picture updated! 📸');
     },
-    onError: (err) => toast.error(getErrorMessage(err)),
+    onError: (err) => {
+      if (avatarPreview) {
+        revokeFilePreview(avatarPreview);
+        setAvatarPreview(null);
+      }
+      setAvatarFile(null);
+      toast.error(getErrorMessage(err));
+    },
   });
 
   const onDrop = useCallback(

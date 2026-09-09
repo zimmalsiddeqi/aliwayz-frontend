@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Camera, Loader2 } from 'lucide-react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@lib/queryClient';
 import UserService from '@api/services/user.service';
 import useAuthStore from '@store/auth.store';
 import Avatar from '@components/ui/Avatar';
@@ -11,6 +12,7 @@ import toast from '@lib/toast';
 
 export default function AvatarUploader({ size = '2xl' }) {
   const { user, setUser } = useAuthStore();
+  const queryClient = useQueryClient();
   const [preview, setPreview] = useState(null);
 
   const mutation = useMutation({
@@ -20,10 +22,19 @@ export default function AvatarUploader({ size = '2xl' }) {
       return UserService.uploadAvatar(formData);
     },
     onSuccess: (res) => {
-      setUser({ avatar_url: res.data.avatar_url });
-      toast.success('Avatar updated!');
+      const newAvatarUrl = res.data?.avatar_url || res.avatar_url;
+      setUser({ avatar_url: newAvatarUrl });
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.me() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.me() });
+      toast.success('Profile picture updated! 📸');
     },
-    onError: (err) => toast.error(getErrorMessage(err)),
+    onError: (err) => {
+      if (preview) {
+        revokeFilePreview(preview);
+        setPreview(null);
+      }
+      toast.error(getErrorMessage(err));
+    },
   });
 
   const onDrop = useCallback((files) => {
