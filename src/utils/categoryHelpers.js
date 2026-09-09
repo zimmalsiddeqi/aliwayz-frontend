@@ -172,76 +172,240 @@ export function getCleanDescriptionText(description) {
  */
 export function parseDescriptionSpecs(description) {
   if (!description) return [];
-  const specs = [];
+  const data = parseStructuredListingData(description);
+  return data.specifications;
+}
+
+/**
+ * Parses full structured listing data from description text, handling
+ * Real Estate, Automotive, and general marketplace listings with clean categorization.
+ */
+export function parseStructuredListingData(description = '', categoryId = null, product = {}) {
+  const result = {
+    isRealEstate: false,
+    isAutomotive: false,
+    highlights: [],
+    specifications: [],
+    features: [],
+    utilitiesIncluded: [],
+    policies: [],
+    narrativeText: '',
+  };
+
+  if (!description && !product) return result;
+  const desc = description || '';
+
+  // Determine category type
+  const isAuto =
+    categoryId === CATEGORY_IDS.AUTOMOTIVE ||
+    categoryId === CATEGORY_IDS.VEHICLES ||
+    /Make:|Mileage:|Transmission:|Drivetrain:|VIN:|Engine:|Fuel:/i.test(desc) ||
+    /car|truck|suv|sedan|motorcycle|vehicle/i.test(product.categories?.name || '');
+
+  const isProp =
+    categoryId === CATEGORY_IDS.PROPERTY ||
+    categoryId === CATEGORY_IDS.REAL_ESTATE ||
+    /Bedrooms?:|Bathrooms?:|Lease Term:|Security Deposit:|Application Fee:|Pet Policy:|Utilities Included:|\[Intent\]:|\[Property_Type\]:/i.test(desc) ||
+    /real estate|property|apartment|house|condo|commercial/i.test(product.categories?.name || '');
+
+  result.isAutomotive = isAuto;
+  result.isRealEstate = isProp;
 
   const formatVal = (str) => {
     if (!str) return '';
     return str
       .replace(/_/g, ' ')
-      .replace(/\b\w/g, (c) => c.toUpperCase());
+      .replace(/\b\w/g, (c) => c.toUpperCase())
+      .trim();
   };
 
-  // Car / Vehicle Specs
-  const yearMatch = description.match(/Year:\s*(\d{4})/i);
-  const makeMatch = description.match(/Make:\s*([^\n]+)/i);
-  const modelMatch = description.match(/Model:\s*([^\n]+)/i);
-  if (yearMatch || makeMatch || modelMatch) {
-    const y = yearMatch ? yearMatch[1] : '';
-    const m = makeMatch ? makeMatch[1].trim() : '';
-    const md = modelMatch ? modelMatch[1].trim() : '';
-    const carTitle = [y, m, md].filter(Boolean).join(' ');
-    if (carTitle) specs.push({ label: 'Vehicle', value: carTitle, icon: '🚗' });
+  // 1. Extract Features
+  const featuresMatch = desc.match(/Features:\s*([^\n]+)/i);
+  if (featuresMatch) {
+    result.features = featuresMatch[1]
+      .split(/,\s*|\s*;\s*/)
+      .map((f) => f.trim())
+      .filter(Boolean);
   }
 
-  const mileageMatch = description.match(/Mileage:\s*([^\n]+)/i);
-  if (mileageMatch) {
-    const val = mileageMatch[1].trim();
-    const rawNum = val.replace(/\D/g, '');
-    const formatted = rawNum ? `${Number(rawNum).toLocaleString()} mi` : val;
-    specs.push({ label: 'Mileage', value: formatted, icon: '📏' });
+  // 2. Extract Utilities Included (Real Estate)
+  const utilMatch = desc.match(/Utilities Included:\s*([^\n]+)/i);
+  if (utilMatch) {
+    result.utilitiesIncluded = utilMatch[1]
+      .split(/,\s*|\s*;\s*/)
+      .map((u) => u.trim())
+      .filter(Boolean);
   }
 
-  const transMatch = description.match(/Transmission:\s*([^\n]+)/i);
-  if (transMatch) specs.push({ label: 'Transmission', value: formatVal(transMatch[1].trim()), icon: '⚙️' });
+  // 3. Extract Real Estate Attributes
+  if (isProp) {
+    const bedsMatch = desc.match(/Bedrooms?:\s*([^\n]+)/i) || desc.match(/Beds?:\s*([^\n]+)/i);
+    const bathsMatch = desc.match(/Bathrooms?:\s*([^\n]+)/i) || desc.match(/Baths?:\s*([^\n]+)/i);
+    const sizeMatch = desc.match(/Size:\s*([^\n]+)/i) || desc.match(/Available Space:\s*([^\n]+)/i);
+    const leaseTermMatch = desc.match(/Lease Term:\s*([^\n]+)/i) || desc.match(/Min Lease Term:\s*([^\n]+)/i);
+    const availDateMatch = desc.match(/Available Date:\s*([^\n]+)/i);
+    const depositMatch = desc.match(/Security Deposit:\s*([^\n]+)/i);
+    const appFeeMatch = desc.match(/Application Fee:\s*([^\n]+)/i);
+    const petPolicyMatch = desc.match(/Pet Policy:\s*([^\n]+)/i);
+    const smokingMatch = desc.match(/Smoking:\s*([^\n]+)/i);
+    const propTypeMatch = desc.match(/\[Property_Type\]:\s*([^\n]+)/i) || desc.match(/Type:\s*([^\n]+)/i);
+    const yearBuiltMatch = desc.match(/Year Built:\s*([^\n]+)/i);
+    const lotSizeMatch = desc.match(/Lot Size:\s*([^\n]+)/i);
+    const buildingSizeMatch = desc.match(/Building Size:\s*([^\n]+)/i);
+    const parkingSpacesMatch = desc.match(/Parking Spaces:\s*([^\n]+)/i);
+    const hoaMatch = desc.match(/HOA Fees:\s*([^\n]+)/i);
+    const taxesMatch = desc.match(/Property Taxes:\s*([^\n]+)/i);
+    const checkInMatch = desc.match(/Check-In:\s*([^\n]+)/i);
+    const checkOutMatch = desc.match(/Check-Out:\s*([^\n]+)/i);
+    const maxGuestsMatch = desc.match(/Max Guests:\s*([^\n]+)/i);
+    const minStayMatch = desc.match(/Min Stay:\s*([^\n]+)/i);
 
-  const fuelMatch = description.match(/Fuel:\s*([^\n]+)/i);
-  if (fuelMatch) specs.push({ label: 'Fuel Type', value: formatVal(fuelMatch[1].trim()), icon: '⛽' });
+    // Highlights
+    if (bedsMatch) {
+      const beds = bedsMatch[1].replace(/beds?|bedrooms?/i, '').trim();
+      result.highlights.push({ label: 'Bedrooms', value: `${beds} ${Number(beds) === 1 ? 'Bed' : 'Beds'}`, icon: 'bed' });
+    }
+    if (bathsMatch) {
+      const baths = bathsMatch[1].replace(/baths?|bathrooms?/i, '').trim();
+      result.highlights.push({ label: 'Bathrooms', value: `${baths} ${Number(baths) === 1 ? 'Bath' : 'Baths'}`, icon: 'bath' });
+    }
+    if (sizeMatch) {
+      const size = sizeMatch[1].trim();
+      result.highlights.push({ label: 'Area Size', value: size.toLowerCase().includes('sqft') ? size : `${size} sqft`, icon: 'maximize' });
+    }
+    if (leaseTermMatch) {
+      result.highlights.push({ label: 'Lease Term', value: leaseTermMatch[1].trim(), icon: 'calendar' });
+    } else if (availDateMatch) {
+      result.highlights.push({ label: 'Available', value: availDateMatch[1].trim(), icon: 'calendar' });
+    }
 
-  const bodyMatch = description.match(/Body:\s*([^\n]+)/i);
-  if (bodyMatch) specs.push({ label: 'Body Style', value: formatVal(bodyMatch[1].trim()), icon: '🏎️' });
+    // Specifications
+    if (depositMatch) result.specifications.push({ label: 'Security Deposit', value: depositMatch[1].trim(), icon: 'dollar' });
+    if (appFeeMatch) result.specifications.push({ label: 'Application Fee', value: appFeeMatch[1].trim(), icon: 'dollar' });
+    if (availDateMatch) result.specifications.push({ label: 'Available Date', value: availDateMatch[1].trim(), icon: 'calendar' });
+    if (leaseTermMatch) result.specifications.push({ label: 'Lease Term', value: leaseTermMatch[1].trim(), icon: 'clock' });
+    if (propTypeMatch) result.specifications.push({ label: 'Property Type', value: formatVal(propTypeMatch[1]), icon: 'home' });
+    if (yearBuiltMatch) result.specifications.push({ label: 'Year Built', value: yearBuiltMatch[1].trim(), icon: 'calendar' });
+    if (lotSizeMatch) result.specifications.push({ label: 'Lot Size', value: lotSizeMatch[1].trim(), icon: 'layers' });
+    if (buildingSizeMatch) result.specifications.push({ label: 'Building Size', value: buildingSizeMatch[1].trim(), icon: 'maximize' });
+    if (parkingSpacesMatch) result.specifications.push({ label: 'Parking Spaces', value: parkingSpacesMatch[1].trim(), icon: 'car' });
+    if (hoaMatch) result.specifications.push({ label: 'HOA Fees', value: hoaMatch[1].trim(), icon: 'dollar' });
+    if (taxesMatch) result.specifications.push({ label: 'Property Taxes', value: taxesMatch[1].trim(), icon: 'dollar' });
+    if (maxGuestsMatch) result.specifications.push({ label: 'Max Guests', value: maxGuestsMatch[1].trim(), icon: 'users' });
+    if (minStayMatch) result.specifications.push({ label: 'Min Stay', value: minStayMatch[1].trim(), icon: 'moon' });
 
-  const titleStatusMatch = description.match(/Title Status:\s*([^\n]+)/i);
-  if (titleStatusMatch) specs.push({ label: 'Title Status', value: formatVal(titleStatusMatch[1].trim()), icon: '📋' });
+    // Policies
+    if (petPolicyMatch) {
+      const rawPet = petPolicyMatch[1].trim();
+      const petLabel = /none|no\s*pets|not\s*allowed/i.test(rawPet)
+        ? 'No Pets Allowed'
+        : `Pets: ${formatVal(rawPet)}`;
+      result.policies.push({ label: 'Pet Policy', value: petLabel, allowed: !/none|no/i.test(rawPet), icon: 'pet' });
+    }
+    if (smokingMatch) {
+      const rawSmoking = smokingMatch[1].trim();
+      const smokeLabel = /no\s*smoking|not\s*allowed|none/i.test(rawSmoking)
+        ? 'No Smoking'
+        : `Smoking: ${formatVal(rawSmoking)}`;
+      result.policies.push({ label: 'Smoking Policy', value: smokeLabel, allowed: !/no/i.test(rawSmoking), icon: 'smoke' });
+    }
+    if (checkInMatch) result.policies.push({ label: 'Check-In', value: checkInMatch[1].trim(), icon: 'clock' });
+    if (checkOutMatch) result.policies.push({ label: 'Check-Out', value: checkOutMatch[1].trim(), icon: 'clock' });
+  }
 
-  const colorMatch = description.match(/Color:\s*([^\n]+)/i);
-  if (colorMatch) specs.push({ label: 'Color', value: formatVal(colorMatch[1].trim()), icon: '🎨' });
+  // 4. Extract Automotive Attributes
+  if (isAuto) {
+    const makeMatch = desc.match(/Make:\s*([^\n]+)/i);
+    const modelMatch = desc.match(/Model:\s*([^\n]+)/i);
+    const yearMatch = desc.match(/Year:\s*(\d{4})/i);
+    const mileageMatch = desc.match(/Mileage:\s*([^\n]+)/i);
+    const fuelMatch = desc.match(/Fuel:\s*([^\n]+)/i);
+    const transMatch = desc.match(/Transmission:\s*([^\n]+)/i);
+    const drivetrainMatch = desc.match(/Drivetrain:\s*([^\n]+)/i);
+    const bodyMatch = desc.match(/Body:\s*([^\n]+)/i);
+    const engineMatch = desc.match(/Engine:\s*([^\n]+)/i);
+    const colorMatch = desc.match(/Color:\s*([^\n]+)/i);
+    const ownersMatch = desc.match(/Previous Owners:\s*([^\n]+)/i);
+    const titleStatusMatch = desc.match(/Title Status:\s*([^\n]+)/i);
+    const sellerTypeMatch = desc.match(/Seller:\s*([^\n]+)/i);
+    const registrationMatch = desc.match(/Registration:\s*([^\n]+)/i);
+    const vinMatch = desc.match(/VIN:\s*([^\n]+)/i);
 
-  // Property / Real Estate Specs
-  const propTypeMatch = description.match(/\[Property_Type\]:\s*([^\n]+)/i) || description.match(/Type:\s*([^\n]+)/i);
-  if (propTypeMatch) specs.push({ label: 'Property Type', value: formatVal(propTypeMatch[1].trim()), icon: '🏠' });
+    // Highlights
+    if (mileageMatch) {
+      const rawNum = mileageMatch[1].replace(/\D/g, '');
+      const mileageVal = rawNum ? `${Number(rawNum).toLocaleString()} mi` : mileageMatch[1].trim();
+      result.highlights.push({ label: 'Mileage', value: mileageVal, icon: 'gauge' });
+    }
+    if (fuelMatch) {
+      result.highlights.push({ label: 'Fuel Type', value: formatVal(fuelMatch[1]), icon: 'fuel' });
+    }
+    if (transMatch) {
+      result.highlights.push({ label: 'Transmission', value: formatVal(transMatch[1]), icon: 'cog' });
+    }
+    if (drivetrainMatch || bodyMatch) {
+      const driveOrBody = drivetrainMatch ? formatVal(drivetrainMatch[1].split('(')[0]) : formatVal(bodyMatch[1]);
+      result.highlights.push({ label: 'Drivetrain', value: driveOrBody, icon: 'car' });
+    }
 
-  const intentMatch = description.match(/\[Intent\]:\s*([^\n]+)/i) || description.match(/Listing:\s*([^\n]+)/i);
-  if (intentMatch) specs.push({ label: 'Listing Type', value: formatVal(intentMatch[1].trim()), icon: '🔑' });
+    // Specifications
+    if (makeMatch) result.specifications.push({ label: 'Make', value: formatVal(makeMatch[1]), icon: 'car' });
+    if (modelMatch) result.specifications.push({ label: 'Model', value: formatVal(modelMatch[1]), icon: 'car' });
+    if (yearMatch) result.specifications.push({ label: 'Year', value: yearMatch[1], icon: 'calendar' });
+    if (mileageMatch) result.specifications.push({ label: 'Mileage', value: mileageMatch[1].trim(), icon: 'gauge' });
+    if (fuelMatch) result.specifications.push({ label: 'Fuel Type', value: formatVal(fuelMatch[1]), icon: 'fuel' });
+    if (transMatch) result.specifications.push({ label: 'Transmission', value: formatVal(transMatch[1]), icon: 'cog' });
+    if (drivetrainMatch) result.specifications.push({ label: 'Drivetrain', value: drivetrainMatch[1].trim(), icon: 'layers' });
+    if (bodyMatch) result.specifications.push({ label: 'Body Style', value: formatVal(bodyMatch[1]), icon: 'car' });
+    if (engineMatch) result.specifications.push({ label: 'Engine', value: engineMatch[1].trim(), icon: 'zap' });
+    if (colorMatch) result.specifications.push({ label: 'Exterior Color', value: formatVal(colorMatch[1]), icon: 'palette' });
+    if (ownersMatch) result.specifications.push({ label: 'Previous Owners', value: ownersMatch[1].trim(), icon: 'users' });
+    if (titleStatusMatch) result.specifications.push({ label: 'Title Status', value: formatVal(titleStatusMatch[1]), icon: 'shield' });
+    if (sellerTypeMatch) result.specifications.push({ label: 'Seller Type', value: formatVal(sellerTypeMatch[1]), icon: 'user' });
+    if (registrationMatch) result.specifications.push({ label: 'Registration', value: registrationMatch[1].trim(), icon: 'map-pin' });
+    if (vinMatch) result.specifications.push({ label: 'VIN', value: vinMatch[1].trim(), icon: 'hash' });
+  }
 
-  const bedsMatch = description.match(/Beds?:\s*([^\n]+)/i) || description.match(/Bedrooms?:\s*([^\n]+)/i);
-  if (bedsMatch) specs.push({ label: 'Bedrooms', value: `${bedsMatch[1].trim()} Bd`, icon: '🛏️' });
+  // 5. Extract remaining narrative / story text
+  // Remove known key-value lines and bracket tags to leave only the real user description
+  const lines = desc.split('\n');
+  const narrativeLines = [];
+  let inDescriptionSection = false;
 
-  const bathsMatch = description.match(/Baths?:\s*([^\n]+)/i) || description.match(/Bathrooms?:\s*([^\n]+)/i);
-  if (bathsMatch) specs.push({ label: 'Bathrooms', value: `${bathsMatch[1].trim()} Ba`, icon: '自由' });
+  const keyPattern = /^(Make|Model|Year|Mileage|Fuel|Transmission|Drivetrain|Body|Engine|Color|Previous Owners|Title Status|Seller|VIN|Registration|Features|Bedrooms?|Bathrooms?|Beds?|Baths?|Size|Security Deposit|Application Fee|Available Date|Lease Term|Pet Policy|Smoking|Utilities Included|Pricing Type|Available Space|Min Lease Term|Max Lease Term|Building Size|Ceiling Height|Parking Spaces|Loading Dock|Zoning|HVAC|Utilities|Restrooms|Signage|Accessibility|CAM\/NNN|Build-out Allowance|Renewal Options|Tenant Improvements|Weekend Rate|Cleaning Fee|Additional Guest Fee|Min Stay|Max Guests|Check-In|Check-Out|Lot Size|Year Built|HOA Fees|Property Taxes|Special Assessment|Listing|Type|\[.*?\]):/i;
 
-  const sizeMatch = description.match(/Size:\s*([^\n]+)/i) || description.match(/Available Space:\s*([^\n]+)/i);
-  if (sizeMatch) specs.push({ label: 'Area Size', value: sizeMatch[1].trim(), icon: '📐' });
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      if (inDescriptionSection || narrativeLines.length > 0) {
+        narrativeLines.push('');
+      }
+      continue;
+    }
 
-  const acreageMatch = description.match(/Acreage:\s*([^\n]+)/i);
-  if (acreageMatch) specs.push({ label: 'Acreage', value: `${acreageMatch[1].trim()} acres`, icon: '🏞️' });
+    if (/^Description:\s*$/i.test(trimmed)) {
+      inDescriptionSection = true;
+      continue;
+    }
 
-  // Condition (if in bracket tag or key)
-  const condMatch = description.match(/\[Condition\]:\s*([^\n]+)/i) || description.match(/Condition:\s*([^\n]+)/i);
-  if (condMatch) specs.push({ label: 'Condition', value: formatVal(condMatch[1].trim()), icon: '✨' });
+    if (inDescriptionSection) {
+      if (!keyPattern.test(trimmed) && !trimmed.startsWith('[')) {
+        narrativeLines.push(trimmed);
+      } else {
+        inDescriptionSection = false;
+      }
+      continue;
+    }
 
-  // Features
-  const featuresMatch = description.match(/Features:\s*([^\n]+)/i);
-  if (featuresMatch) specs.push({ label: 'Features', value: featuresMatch[1].trim(), icon: '⭐' });
+    if (!keyPattern.test(trimmed) && !trimmed.startsWith('[')) {
+      narrativeLines.push(trimmed);
+    }
+  }
 
-  return specs;
+  result.narrativeText = narrativeLines
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
+  return result;
 }

@@ -43,6 +43,7 @@ import { getPrimaryImage, getAllImageUrls } from '@utils/helpers';
 import toast from '@lib/toast';
 import { parsePropertyDescription, stripPrivateTags, getCleanDescriptionText, parseDescriptionSpecs } from '@utils/categoryHelpers';
 import { CATEGORY_IDS } from '@utils/constants';
+import ListingStructuredOverview from '../components/ListingStructuredOverview';
 
 const STARTER_MESSAGES = [
   'Hi! Is this still available?',
@@ -417,37 +418,8 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* ── Product Description ────────────────────────── */}
-            {(() => {
-              const cleanDesc = getCleanDescriptionText(product.description);
-              if (!cleanDesc) return null;
-              return (
-                <div
-                  className="space-y-3 p-4 sm:p-5 rounded-2xl border transition-all"
-                  style={{
-                    backgroundColor: 'var(--color-surface)',
-                    borderColor: 'var(--color-border)',
-                  }}
-                >
-                  <h3
-                    className="text-sm sm:text-base font-semibold"
-                    style={{
-                      color: 'var(--color-text-primary)',
-                    }}
-                  >
-                    Description
-                  </h3>
-                  <div
-                    className="whitespace-pre-line text-sm leading-relaxed font-normal"
-                    style={{
-                      color: 'var(--color-text-secondary)',
-                    }}
-                  >
-                    {cleanDesc}
-                  </div>
-                </div>
-              );
-            })()}
+            {/* ── Product Overview, Specs & Description ──────────── */}
+            <ListingStructuredOverview product={product} />
 
             {/* ── Private Real Estate Info (Seller Only) ──── */}
             {isOwner && (product.category_id === CATEGORY_IDS.PROPERTY || product.category_id === CATEGORY_IDS.REAL_ESTATE) && (() => {
@@ -479,72 +451,88 @@ export default function ProductDetailPage() {
               return null;
             })()}
 
-            {/* ── Details ────────────────────────────────── */}
-            <div
-              className="space-y-3 rounded-2xl p-4"
-              style={{
-                backgroundColor: 'var(--color-surface-elevated)',
-                border: '1px solid var(--color-border)',
-              }}
-            >
-              <h3
-                className="text-sm font-semibold"
-                style={{
-                  color: 'var(--color-text-primary)',
-                }}
-              >
-                Details
-              </h3>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                {[
-                  {
-                    label: 'Condition',
-                    value: getConditionLabel(product.condition),
-                  },
-                  {
-                    label: 'Brand',
-                    value: product.brand || 'Not specified',
-                  },
-                  {
-                    label: 'Color',
-                    value: product.color || 'Not specified',
-                  },
-                  {
-                    label: 'Quantity',
-                    value: product.quantity,
-                  },
-                  {
-                    label: 'Category',
-                    value: product.categories?.name,
-                  },
-                  {
-                    label: 'Listed',
-                    value: formatDate(product.created_at),
-                  },
-                ]
-                  .filter((d) => d.value)
-                  .map((detail) => (
-                    <div key={detail.label}>
-                      <p
-                        className="text-xs"
-                        style={{
-                          color: 'var(--color-text-muted)',
-                        }}
-                      >
-                        {detail.label}
-                      </p>
-                      <p
-                        className="font-medium"
-                        style={{
-                          color: 'var(--color-text-primary)',
-                        }}
-                      >
-                        {detail.value}
-                      </p>
-                    </div>
-                  ))}
-              </div>
-            </div>
+            {/* ── Listing Metadata Details ───────────────────────── */}
+            {(() => {
+              const isAutoOrRealEstate =
+                product.category_id === CATEGORY_IDS.AUTOMOTIVE ||
+                product.category_id === CATEGORY_IDS.VEHICLES ||
+                product.category_id === CATEGORY_IDS.PROPERTY ||
+                product.category_id === CATEGORY_IDS.REAL_ESTATE ||
+                /Make:|Mileage:|Bedrooms?:|Bathrooms?:/i.test(product.description || '');
+
+              const details = [
+                {
+                  label: 'Condition',
+                  value: getConditionLabel(product.condition),
+                  hide: isAutoOrRealEstate && (!product.condition || product.condition === 'good'),
+                },
+                {
+                  label: 'Brand',
+                  value: product.brand && product.brand !== 'Not specified' ? product.brand : null,
+                  hide: isAutoOrRealEstate,
+                },
+                {
+                  label: 'Color',
+                  value: product.color && product.color !== 'Not specified' ? product.color : null,
+                  hide: isAutoOrRealEstate,
+                },
+                {
+                  label: 'Quantity',
+                  value: product.quantity && product.quantity > 1 ? product.quantity : (!isAutoOrRealEstate && product.quantity ? product.quantity : null),
+                },
+                {
+                  label: 'Category',
+                  value: product.categories?.name,
+                },
+                {
+                  label: 'Listed',
+                  value: formatDate(product.created_at),
+                },
+              ].filter((d) => d.value && !d.hide);
+
+              if (details.length === 0) return null;
+
+              return (
+                <div
+                  className="space-y-3 rounded-2xl p-4"
+                  style={{
+                    backgroundColor: 'var(--color-surface-elevated)',
+                    border: '1px solid var(--color-border)',
+                  }}
+                >
+                  <h3
+                    className="text-sm font-semibold"
+                    style={{
+                      color: 'var(--color-text-primary)',
+                    }}
+                  >
+                    Listing Details
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    {details.map((detail) => (
+                      <div key={detail.label}>
+                        <p
+                          className="text-xs"
+                          style={{
+                            color: 'var(--color-text-muted)',
+                          }}
+                        >
+                          {detail.label}
+                        </p>
+                        <p
+                          className="font-medium"
+                          style={{
+                            color: 'var(--color-text-primary)',
+                          }}
+                        >
+                          {detail.value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* ── Seller Card ────────────────────────────── */}
             {store && (
