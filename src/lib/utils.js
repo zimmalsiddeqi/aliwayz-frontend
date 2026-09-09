@@ -213,14 +213,17 @@ export function parsePagination(pagination) {
  * Get product condition label
  */
 export function getConditionLabel(condition) {
+  if (!condition) return '';
   const labels = {
+    brand_new: 'Brand New',
     new:       'Brand New',
     like_new:  'Like New',
     good:      'Good',
     fair:      'Fair',
+    used:      'Used',
     poor:      'For Parts / Repair',
   };
-  return labels[condition] || condition;
+  return labels[condition?.toLowerCase()] || condition;
 }
 
 /**

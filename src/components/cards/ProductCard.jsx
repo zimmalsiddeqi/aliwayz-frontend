@@ -231,9 +231,9 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
                   }
                 }
 
-                const isNew = product.condition === 'new' || product.condition === 'brand_new';
-                const condLabel = isNew ? 'New' : 'Used';
-                const badgeText = mileageStr ? `${condLabel} • ${mileageStr}` : (isNew ? 'Brand New' : 'Used');
+                // Dynamic real condition from listing
+                const condLabel = getConditionLabel(product.condition) || 'Brand New';
+                const badgeText = mileageStr ? `${condLabel} • ${mileageStr}` : condLabel;
                 return (
                   <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-black/75 text-white border border-white/20 shadow-md backdrop-blur-md">
                     <CheckSquare size={12} className="stroke-[2.5] text-blue-400" />
