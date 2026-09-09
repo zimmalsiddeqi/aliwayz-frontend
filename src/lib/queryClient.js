@@ -47,10 +47,11 @@ export const queryKeys = {
 
   // Users
   users: {
-    all:     ()           => ['users'],
-    profile: (username)   => ['users', 'profile', username],
-    badges:  (userId)     => ['users', 'badges', userId],
-    reviews: (userId)     => ['users', 'reviews', userId],
+    all:       ()         => ['users'],
+    me:        ()         => ['users', 'me'],
+    profile:   (username) => ['users', 'profile', username],
+    badges:    (userId)   => ['users', 'badges', userId],
+    reviews:   (userId)   => ['users', 'reviews', userId],
     purchases: ()         => ['users', 'purchases'],
     favorites: ()         => ['users', 'favorites'],
     following: ()         => ['users', 'following'],
