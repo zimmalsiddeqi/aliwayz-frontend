@@ -148,18 +148,70 @@ export function stripPrivateTags(description) {
  * Strips all internal tags, raw key-value lines, brackets, and underscores from description
  * to produce clean, professional body text for display.
  */
+/**
+ * Cleans and formats raw attribute strings into human-readable display values.
+ * Removes underscores, bracket tags, capitalizes words, and formats numbers/labels.
+ */
+export function cleanDisplayValue(str) {
+  if (!str) return '';
+  let val = String(str).trim();
+
+  // Strip bracket wrappers [ ... ]
+  val = val.replace(/^\[+|\]+$/g, '');
+
+  // Strip inline bracket tags e.g. [Property_Type]: Single_Family
+  val = val.replace(/\[.*?\]:\s*/gi, '');
+
+  // Replace all underscores with spaces
+  val = val.replace(/_+/g, ' ');
+
+  // Standardized friendly phrases
+  if (/^dogs?\s+cats?$/i.test(val) || /^dogs?,?\s*cats?$/i.test(val)) return 'Dogs & Cats Allowed';
+  if (/^dogs?$/i.test(val)) return 'Dogs Allowed';
+  if (/^cats?$/i.test(val)) return 'Cats Allowed';
+  if (/^no\s*pets$/i.test(val) || /^none$/i.test(val) || /^not\s*allowed$/i.test(val)) return 'No Pets Allowed';
+  if (/^no\s*smoking$/i.test(val)) return 'No Smoking';
+  if (/^smoking\s*allowed$/i.test(val)) return 'Smoking Allowed';
+  if (/^clean\s*title$/i.test(val)) return 'Clean Title';
+  if (/^salvage\s*title$/i.test(val)) return 'Salvage Title';
+  if (/^rebuilt\s*title$/i.test(val)) return 'Rebuilt Title';
+  if (/^fwd(\s*\(.*\))?$/i.test(val) || /^front\s*wheel\s*drive$/i.test(val)) return 'FWD (Front-Wheel Drive)';
+  if (/^rwd(\s*\(.*\))?$/i.test(val) || /^rear\s*wheel\s*drive$/i.test(val)) return 'RWD (Rear-Wheel Drive)';
+  if (/^awd(\s*\(.*\))?$/i.test(val) || /^all\s*wheel\s*drive$/i.test(val)) return 'AWD (All-Wheel Drive)';
+  if (/^4wd(\s*\(.*\))?$/i.test(val) || /^four\s*wheel\s*drive$/i.test(val)) return '4WD (Four-Wheel Drive)';
+
+  // Format month counts cleanly (e.g. 12 months, 6 months)
+  const monthMatch = val.match(/^(\d+)\s*months?$/i);
+  if (monthMatch) return `${monthMatch[1]} Months`;
+
+  // Format year counts (e.g. 1 year, 2 years)
+  const yearMatch = val.match(/^(\d+)\s*years?$/i);
+  if (yearMatch) return `${yearMatch[1]} ${Number(yearMatch[1]) === 1 ? 'Year' : 'Years'}`;
+
+  // Capitalize title-case if not a price or date
+  if (!/^\$|\d{4}-\d{2}-\d{2}|^\d+\s*mi/i.test(val)) {
+    val = val.replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
+  return val.trim();
+}
+
+/**
+ * Strips all internal tags, raw key-value lines, brackets, and underscores from description
+ * to produce clean, professional body text for display.
+ */
 export function getCleanDescriptionText(description) {
   if (!description) return '';
 
   let cleaned = description
     // Strip system metadata bracket tags (e.g. [Private_Address]: 123, [Intent]: rent, etc.)
-    .replace(/\[(Private_Address|Private_Lat|Private_Lng|Address_Visibility|Intent|Property_Type)\]:[^\n]*/gi, '')
-    // Remove standalone metadata brackets
-    .replace(/\[(Private_Address|Private_Lat|Private_Lng|Address_Visibility)\]/gi, '')
+    .replace(/\[(Private_Address|Private_Lat|Private_Lng|Address_Visibility|Intent|Property_Type|Condition)\]:[^\n]*/gi, '')
+    // Remove standalone metadata brackets [ ... ]
+    .replace(/\[.*?\]/g, '')
+    // Replace raw system underscores between words (e.g. 12_months -> 12 months, brand_new -> brand new, single_family -> single family)
+    .replace(/([a-zA-Z0-9])_([a-zA-Z0-9])/g, '$1 $2')
+    .replace(/_+/g, ' ')
     .trim();
-
-  // Replace raw system underscores between words (e.g. brand_new -> brand new, single_family -> single family)
-  cleaned = cleaned.replace(/([a-zA-Z0-9])_([a-zA-Z0-9])/g, '$1 $2');
 
   // Collapse excessive blank lines
   cleaned = cleaned.replace(/\n{3,}/g, '\n\n').trim();
@@ -211,20 +263,12 @@ export function parseStructuredListingData(description = '', categoryId = null, 
   result.isAutomotive = isAuto;
   result.isRealEstate = isProp;
 
-  const formatVal = (str) => {
-    if (!str) return '';
-    return str
-      .replace(/_/g, ' ')
-      .replace(/\b\w/g, (c) => c.toUpperCase())
-      .trim();
-  };
-
   // 1. Extract Features
   const featuresMatch = desc.match(/Features:\s*([^\n]+)/i);
   if (featuresMatch) {
     result.features = featuresMatch[1]
       .split(/,\s*|\s*;\s*/)
-      .map((f) => f.trim())
+      .map((f) => cleanDisplayValue(f))
       .filter(Boolean);
   }
 
@@ -233,7 +277,7 @@ export function parseStructuredListingData(description = '', categoryId = null, 
   if (utilMatch) {
     result.utilitiesIncluded = utilMatch[1]
       .split(/,\s*|\s*;\s*/)
-      .map((u) => u.trim())
+      .map((u) => cleanDisplayValue(u))
       .filter(Boolean);
   }
 
@@ -262,55 +306,55 @@ export function parseStructuredListingData(description = '', categoryId = null, 
 
     // Highlights
     if (bedsMatch) {
-      const beds = bedsMatch[1].replace(/beds?|bedrooms?/i, '').trim();
+      const beds = cleanDisplayValue(bedsMatch[1]).replace(/beds?|bedrooms?/i, '').trim();
       result.highlights.push({ label: 'Bedrooms', value: `${beds} ${Number(beds) === 1 ? 'Bed' : 'Beds'}`, icon: 'bed' });
     }
     if (bathsMatch) {
-      const baths = bathsMatch[1].replace(/baths?|bathrooms?/i, '').trim();
+      const baths = cleanDisplayValue(bathsMatch[1]).replace(/baths?|bathrooms?/i, '').trim();
       result.highlights.push({ label: 'Bathrooms', value: `${baths} ${Number(baths) === 1 ? 'Bath' : 'Baths'}`, icon: 'bath' });
     }
     if (sizeMatch) {
-      const size = sizeMatch[1].trim();
+      const size = cleanDisplayValue(sizeMatch[1]);
       result.highlights.push({ label: 'Area Size', value: size.toLowerCase().includes('sqft') ? size : `${size} sqft`, icon: 'maximize' });
     }
     if (leaseTermMatch) {
-      result.highlights.push({ label: 'Lease Term', value: leaseTermMatch[1].trim(), icon: 'calendar' });
+      result.highlights.push({ label: 'Lease Term', value: cleanDisplayValue(leaseTermMatch[1]), icon: 'calendar' });
     } else if (availDateMatch) {
-      result.highlights.push({ label: 'Available', value: availDateMatch[1].trim(), icon: 'calendar' });
+      result.highlights.push({ label: 'Available', value: cleanDisplayValue(availDateMatch[1]), icon: 'calendar' });
     }
 
     // Specifications
-    if (depositMatch) result.specifications.push({ label: 'Security Deposit', value: depositMatch[1].trim(), icon: 'dollar' });
-    if (appFeeMatch) result.specifications.push({ label: 'Application Fee', value: appFeeMatch[1].trim(), icon: 'dollar' });
-    if (availDateMatch) result.specifications.push({ label: 'Available Date', value: availDateMatch[1].trim(), icon: 'calendar' });
-    if (leaseTermMatch) result.specifications.push({ label: 'Lease Term', value: leaseTermMatch[1].trim(), icon: 'clock' });
-    if (propTypeMatch) result.specifications.push({ label: 'Property Type', value: formatVal(propTypeMatch[1]), icon: 'home' });
-    if (yearBuiltMatch) result.specifications.push({ label: 'Year Built', value: yearBuiltMatch[1].trim(), icon: 'calendar' });
-    if (lotSizeMatch) result.specifications.push({ label: 'Lot Size', value: lotSizeMatch[1].trim(), icon: 'layers' });
-    if (buildingSizeMatch) result.specifications.push({ label: 'Building Size', value: buildingSizeMatch[1].trim(), icon: 'maximize' });
-    if (parkingSpacesMatch) result.specifications.push({ label: 'Parking Spaces', value: parkingSpacesMatch[1].trim(), icon: 'car' });
-    if (hoaMatch) result.specifications.push({ label: 'HOA Fees', value: hoaMatch[1].trim(), icon: 'dollar' });
-    if (taxesMatch) result.specifications.push({ label: 'Property Taxes', value: taxesMatch[1].trim(), icon: 'dollar' });
-    if (maxGuestsMatch) result.specifications.push({ label: 'Max Guests', value: maxGuestsMatch[1].trim(), icon: 'users' });
-    if (minStayMatch) result.specifications.push({ label: 'Min Stay', value: minStayMatch[1].trim(), icon: 'moon' });
+    if (depositMatch) result.specifications.push({ label: 'Security Deposit', value: cleanDisplayValue(depositMatch[1]), icon: 'dollar' });
+    if (appFeeMatch) result.specifications.push({ label: 'Application Fee', value: cleanDisplayValue(appFeeMatch[1]), icon: 'dollar' });
+    if (availDateMatch) result.specifications.push({ label: 'Available Date', value: cleanDisplayValue(availDateMatch[1]), icon: 'calendar' });
+    if (leaseTermMatch) result.specifications.push({ label: 'Lease Term', value: cleanDisplayValue(leaseTermMatch[1]), icon: 'clock' });
+    if (propTypeMatch) result.specifications.push({ label: 'Property Type', value: cleanDisplayValue(propTypeMatch[1]), icon: 'home' });
+    if (yearBuiltMatch) result.specifications.push({ label: 'Year Built', value: cleanDisplayValue(yearBuiltMatch[1]), icon: 'calendar' });
+    if (lotSizeMatch) result.specifications.push({ label: 'Lot Size', value: cleanDisplayValue(lotSizeMatch[1]), icon: 'layers' });
+    if (buildingSizeMatch) result.specifications.push({ label: 'Building Size', value: cleanDisplayValue(buildingSizeMatch[1]), icon: 'maximize' });
+    if (parkingSpacesMatch) result.specifications.push({ label: 'Parking Spaces', value: cleanDisplayValue(parkingSpacesMatch[1]), icon: 'car' });
+    if (hoaMatch) result.specifications.push({ label: 'HOA Fees', value: cleanDisplayValue(hoaMatch[1]), icon: 'dollar' });
+    if (taxesMatch) result.specifications.push({ label: 'Property Taxes', value: cleanDisplayValue(taxesMatch[1]), icon: 'dollar' });
+    if (maxGuestsMatch) result.specifications.push({ label: 'Max Guests', value: cleanDisplayValue(maxGuestsMatch[1]), icon: 'users' });
+    if (minStayMatch) result.specifications.push({ label: 'Min Stay', value: cleanDisplayValue(minStayMatch[1]), icon: 'moon' });
 
     // Policies
     if (petPolicyMatch) {
       const rawPet = petPolicyMatch[1].trim();
       const petLabel = /none|no\s*pets|not\s*allowed/i.test(rawPet)
         ? 'No Pets Allowed'
-        : `Pets: ${formatVal(rawPet)}`;
+        : `Pets: ${cleanDisplayValue(rawPet)}`;
       result.policies.push({ label: 'Pet Policy', value: petLabel, allowed: !/none|no/i.test(rawPet), icon: 'pet' });
     }
     if (smokingMatch) {
       const rawSmoking = smokingMatch[1].trim();
       const smokeLabel = /no\s*smoking|not\s*allowed|none/i.test(rawSmoking)
         ? 'No Smoking'
-        : `Smoking: ${formatVal(rawSmoking)}`;
+        : `Smoking: ${cleanDisplayValue(rawSmoking)}`;
       result.policies.push({ label: 'Smoking Policy', value: smokeLabel, allowed: !/no/i.test(rawSmoking), icon: 'smoke' });
     }
-    if (checkInMatch) result.policies.push({ label: 'Check-In', value: checkInMatch[1].trim(), icon: 'clock' });
-    if (checkOutMatch) result.policies.push({ label: 'Check-Out', value: checkOutMatch[1].trim(), icon: 'clock' });
+    if (checkInMatch) result.policies.push({ label: 'Check-In', value: cleanDisplayValue(checkInMatch[1]), icon: 'clock' });
+    if (checkOutMatch) result.policies.push({ label: 'Check-Out', value: cleanDisplayValue(checkOutMatch[1]), icon: 'clock' });
   }
 
   // 4. Extract Automotive Attributes
@@ -334,36 +378,36 @@ export function parseStructuredListingData(description = '', categoryId = null, 
     // Highlights
     if (mileageMatch) {
       const rawNum = mileageMatch[1].replace(/\D/g, '');
-      const mileageVal = rawNum ? `${Number(rawNum).toLocaleString()} mi` : mileageMatch[1].trim();
+      const mileageVal = rawNum ? `${Number(rawNum).toLocaleString()} mi` : cleanDisplayValue(mileageMatch[1]);
       result.highlights.push({ label: 'Mileage', value: mileageVal, icon: 'gauge' });
     }
     if (fuelMatch) {
-      result.highlights.push({ label: 'Fuel Type', value: formatVal(fuelMatch[1]), icon: 'fuel' });
+      result.highlights.push({ label: 'Fuel Type', value: cleanDisplayValue(fuelMatch[1]), icon: 'fuel' });
     }
     if (transMatch) {
-      result.highlights.push({ label: 'Transmission', value: formatVal(transMatch[1]), icon: 'cog' });
+      result.highlights.push({ label: 'Transmission', value: cleanDisplayValue(transMatch[1]), icon: 'cog' });
     }
     if (drivetrainMatch || bodyMatch) {
-      const driveOrBody = drivetrainMatch ? formatVal(drivetrainMatch[1].split('(')[0]) : formatVal(bodyMatch[1]);
+      const driveOrBody = drivetrainMatch ? cleanDisplayValue(drivetrainMatch[1].split('(')[0]) : cleanDisplayValue(bodyMatch[1]);
       result.highlights.push({ label: 'Drivetrain', value: driveOrBody, icon: 'car' });
     }
 
     // Specifications
-    if (makeMatch) result.specifications.push({ label: 'Make', value: formatVal(makeMatch[1]), icon: 'car' });
-    if (modelMatch) result.specifications.push({ label: 'Model', value: formatVal(modelMatch[1]), icon: 'car' });
-    if (yearMatch) result.specifications.push({ label: 'Year', value: yearMatch[1], icon: 'calendar' });
-    if (mileageMatch) result.specifications.push({ label: 'Mileage', value: mileageMatch[1].trim(), icon: 'gauge' });
-    if (fuelMatch) result.specifications.push({ label: 'Fuel Type', value: formatVal(fuelMatch[1]), icon: 'fuel' });
-    if (transMatch) result.specifications.push({ label: 'Transmission', value: formatVal(transMatch[1]), icon: 'cog' });
-    if (drivetrainMatch) result.specifications.push({ label: 'Drivetrain', value: drivetrainMatch[1].trim(), icon: 'layers' });
-    if (bodyMatch) result.specifications.push({ label: 'Body Style', value: formatVal(bodyMatch[1]), icon: 'car' });
-    if (engineMatch) result.specifications.push({ label: 'Engine', value: engineMatch[1].trim(), icon: 'zap' });
-    if (colorMatch) result.specifications.push({ label: 'Exterior Color', value: formatVal(colorMatch[1]), icon: 'palette' });
-    if (ownersMatch) result.specifications.push({ label: 'Previous Owners', value: ownersMatch[1].trim(), icon: 'users' });
-    if (titleStatusMatch) result.specifications.push({ label: 'Title Status', value: formatVal(titleStatusMatch[1]), icon: 'shield' });
-    if (sellerTypeMatch) result.specifications.push({ label: 'Seller Type', value: formatVal(sellerTypeMatch[1]), icon: 'user' });
-    if (registrationMatch) result.specifications.push({ label: 'Registration', value: registrationMatch[1].trim(), icon: 'map-pin' });
-    if (vinMatch) result.specifications.push({ label: 'VIN', value: vinMatch[1].trim(), icon: 'hash' });
+    if (makeMatch) result.specifications.push({ label: 'Make', value: cleanDisplayValue(makeMatch[1]), icon: 'car' });
+    if (modelMatch) result.specifications.push({ label: 'Model', value: cleanDisplayValue(modelMatch[1]), icon: 'car' });
+    if (yearMatch) result.specifications.push({ label: 'Year', value: cleanDisplayValue(yearMatch[1]), icon: 'calendar' });
+    if (mileageMatch) result.specifications.push({ label: 'Mileage', value: cleanDisplayValue(mileageMatch[1]), icon: 'gauge' });
+    if (fuelMatch) result.specifications.push({ label: 'Fuel Type', value: cleanDisplayValue(fuelMatch[1]), icon: 'fuel' });
+    if (transMatch) result.specifications.push({ label: 'Transmission', value: cleanDisplayValue(transMatch[1]), icon: 'cog' });
+    if (drivetrainMatch) result.specifications.push({ label: 'Drivetrain', value: cleanDisplayValue(drivetrainMatch[1]), icon: 'layers' });
+    if (bodyMatch) result.specifications.push({ label: 'Body Style', value: cleanDisplayValue(bodyMatch[1]), icon: 'car' });
+    if (engineMatch) result.specifications.push({ label: 'Engine', value: cleanDisplayValue(engineMatch[1]), icon: 'zap' });
+    if (colorMatch) result.specifications.push({ label: 'Exterior Color', value: cleanDisplayValue(colorMatch[1]), icon: 'palette' });
+    if (ownersMatch) result.specifications.push({ label: 'Previous Owners', value: cleanDisplayValue(ownersMatch[1]), icon: 'users' });
+    if (titleStatusMatch) result.specifications.push({ label: 'Title Status', value: cleanDisplayValue(titleStatusMatch[1]), icon: 'shield' });
+    if (sellerTypeMatch) result.specifications.push({ label: 'Seller Type', value: cleanDisplayValue(sellerTypeMatch[1]), icon: 'user' });
+    if (registrationMatch) result.specifications.push({ label: 'Registration', value: cleanDisplayValue(registrationMatch[1]), icon: 'map-pin' });
+    if (vinMatch) result.specifications.push({ label: 'VIN', value: cleanDisplayValue(vinMatch[1]), icon: 'hash' });
   }
 
   // 5. Extract remaining narrative / story text
@@ -390,7 +434,7 @@ export function parseStructuredListingData(description = '', categoryId = null, 
 
     if (inDescriptionSection) {
       if (!keyPattern.test(trimmed) && !trimmed.startsWith('[')) {
-        narrativeLines.push(trimmed);
+        narrativeLines.push(trimmed.replace(/_/g, ' '));
       } else {
         inDescriptionSection = false;
       }
@@ -398,7 +442,7 @@ export function parseStructuredListingData(description = '', categoryId = null, 
     }
 
     if (!keyPattern.test(trimmed) && !trimmed.startsWith('[')) {
-      narrativeLines.push(trimmed);
+      narrativeLines.push(trimmed.replace(/_/g, ' '));
     }
   }
 
