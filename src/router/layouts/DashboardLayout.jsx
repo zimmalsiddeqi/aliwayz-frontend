@@ -7,7 +7,7 @@ import {
   PlusCircle,
   BarChart3,
   Settings,
-  Menu,
+  LayoutDashboard,
   X,
   ChevronRight,
   AlertCircle,
@@ -37,13 +37,25 @@ export default function DashboardLayout() {
       <Navbar />
 
       <div className="flex flex-1 pt-navbar">
-        {/* Mobile sidebar toggle */}
-        <button
+        {/* Mobile floating Seller Dashboard button */}
+        <motion.button
           onClick={() => setSidebarOpen(true)}
-          className="btn-brand fixed bottom-20 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-xl shadow-lg lg:hidden"
+          className="fixed bottom-20 right-4 z-40 flex items-center gap-2 rounded-full px-3.5 py-2.5 shadow-2xl border border-white/20 text-white lg:hidden backdrop-blur-md"
+          style={{
+            background: 'linear-gradient(135deg, #7C3AED 0%, #6366F1 100%)',
+            boxShadow: '0 10px 25px -3px rgba(124, 58, 237, 0.5), 0 4px 10px rgba(0, 0, 0, 0.2)',
+          }}
+          whileHover={{ scale: 1.05, y: -2 }}
+          whileTap={{ scale: 0.95 }}
+          aria-label="Open Seller Dashboard Menu"
         >
-          <Menu size={20} />
-        </button>
+          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20">
+            <LayoutDashboard size={14} className="text-white stroke-[2.4]" />
+          </div>
+          <span className="text-xs font-bold tracking-tight text-white drop-shadow-sm pr-1">
+            Dashboard
+          </span>
+        </motion.button>
 
         {/* Mobile overlay */}
         <AnimatePresence>
@@ -57,20 +69,30 @@ export default function DashboardLayout() {
                 onClick={() => setSidebarOpen(false)}
               />
               <motion.aside
-                className="fixed bottom-0 left-0 top-0 z-50 w-72 overflow-y-auto p-5 pt-20 lg:hidden"
+                className="fixed bottom-0 left-0 top-0 z-50 w-72 overflow-y-auto p-5 pt-6 lg:hidden shadow-2xl border-r border-[var(--color-border)]"
                 style={{ backgroundColor: 'var(--color-surface)' }}
                 initial={{ x: '-100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '-100%' }}
                 transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               >
-                <button
-                  onClick={() => setSidebarOpen(false)}
-                  className="absolute right-4 top-4 rounded-lg p-2"
-                  style={{ color: 'var(--color-text-muted)' }}
-                >
-                  <X size={18} />
-                </button>
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-[var(--color-border)]">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-brand)] text-white shadow-sm">
+                      <LayoutDashboard size={16} />
+                    </div>
+                    <span className="font-bold text-sm text-[var(--color-text-primary)]">
+                      Seller Dashboard
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setSidebarOpen(false)}
+                    className="rounded-lg p-1.5 hover:bg-[var(--glass-bg-strong)] transition-colors"
+                    style={{ color: 'var(--color-text-muted)' }}
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
                 <SellerSidebar
                   store={store}
                   hasStore={hasStore}
