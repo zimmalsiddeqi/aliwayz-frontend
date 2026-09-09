@@ -32,12 +32,9 @@ const ProductService = {
   delete: (id) =>
     api.delete(API.PRODUCTS.DELETE(id)).then((r) => r.data),
 
-  // ✅ FIX: Correct image upload with proper headers + timeout
+  // ✅ FIX: Correct image upload with proper timeout
   uploadImages: (id, formData) =>
     api.post(API.PRODUCTS.UPLOAD_IMAGES(id), formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
       timeout: 120000, // 2 min timeout for large uploads
       onUploadProgress: (progressEvent) => {
         const pct = Math.round(
@@ -53,7 +50,6 @@ const ProductService = {
 
   uploadVideo: (id, formData) =>
     api.post(API.PRODUCTS.UPLOAD_VIDEO(id), formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
       timeout: 300000, // 5 min for video
     }).then((r) => r.data),
 

@@ -6,9 +6,7 @@ const VerificationService = {
     api.get(API.VERIFICATION.STATUS).then((r) => r.data),
 
   submitVerification: (formData) =>
-    api.post(API.VERIFICATION.SUBMIT, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }).then((r) => r.data),
+    api.post(API.VERIFICATION.SUBMIT, formData).then((r) => r.data),
 };
 
 export default VerificationService;

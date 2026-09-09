@@ -16,14 +16,10 @@ const StoreService = {
     api.put(API.STORES.UPDATE(id), data).then((r) => r.data),
 
   uploadLogo: (id, formData) =>
-    api.put(API.STORES.UPLOAD_LOGO(id), formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }).then((r) => r.data),
+    api.put(API.STORES.UPLOAD_LOGO(id), formData).then((r) => r.data),
 
   uploadBanner: (id, formData) =>
-    api.put(API.STORES.UPLOAD_BANNER(id), formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }).then((r) => r.data),
+    api.put(API.STORES.UPLOAD_BANNER(id), formData).then((r) => r.data),
 
   getProducts: (slug, params) =>
     api.get(API.STORES.PRODUCTS(slug), { params }).then((r) => r.data),
