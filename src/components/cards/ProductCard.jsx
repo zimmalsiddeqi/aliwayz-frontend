@@ -188,10 +188,11 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
               }
 
               if (isAutomotive) {
-                const mileageMatch = desc.match(/Mileage:\s*([^\n\r]+)/i) || desc.match(/(\d+[\d,]*\s*k?\s*miles?)/i);
+                const directMileage = product.mileage || product.attributes?.mileage;
                 let mileageStr = '';
-                if (mileageMatch) {
-                  const rawNum = mileageMatch[1].replace(/\D/g, '');
+
+                if (directMileage) {
+                  const rawNum = String(directMileage).replace(/\D/g, '');
                   if (rawNum) {
                     const num = Number(rawNum);
                     if (num >= 1000) {
@@ -201,9 +202,35 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
                       mileageStr = `${num} miles`;
                     }
                   } else {
-                    mileageStr = mileageMatch[1].trim();
+                    mileageStr = String(directMileage);
+                  }
+                } else {
+                  const mileageMatch =
+                    desc.match(/Mileage:\s*([^\n\r]+)/i) ||
+                    desc.match(/(\d+[\d,.]*\s*k?\s*(?:miles?|mi)\b)/i) ||
+                    title.match(/(\d+[\d,.]*\s*k?\s*(?:miles?|mi)\b)/i);
+
+                  if (mileageMatch) {
+                    const matchText = mileageMatch[1].trim();
+                    const isK = /k/i.test(matchText);
+                    const rawNum = matchText.replace(/[^\d.]/g, '');
+                    if (rawNum) {
+                      let num = parseFloat(rawNum);
+                      if (isK && num < 1000) {
+                        num = num * 1000;
+                      }
+                      if (num >= 1000) {
+                        const inK = num / 1000;
+                        mileageStr = `${inK % 1 === 0 ? inK : inK.toFixed(1)}k miles`;
+                      } else {
+                        mileageStr = `${num} miles`;
+                      }
+                    } else {
+                      mileageStr = matchText;
+                    }
                   }
                 }
+
                 const isNew = product.condition === 'new' || product.condition === 'brand_new';
                 const condLabel = isNew ? 'New' : 'Used';
                 const badgeText = mileageStr ? `${condLabel} • ${mileageStr}` : (isNew ? 'Brand New' : 'Used');
