@@ -1,7 +1,7 @@
 import axios from 'axios';
 import toast from '@lib/toast';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://aliwayz-backend-production-eff1.up.railway.app/api/v1';
 
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
