@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
@@ -47,6 +47,14 @@ export default function MyWantedRequestsPage() {
     return true;
   });
 
+  const handlePostWantedClick = () => {
+    if (!isAuthenticated) {
+      navigate('/login?redirect=/wanted/create');
+    } else {
+      navigate('/wanted/create');
+    }
+  };
+
   return (
     <>
       <Helmet>
@@ -67,7 +75,7 @@ export default function MyWantedRequestsPage() {
           </div>
 
           <button
-            onClick={() => navigate('/wanted/create')}
+            onClick={handlePostWantedClick}
             className="flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 px-4 py-2 text-xs sm:text-sm font-bold text-white shadow-md shadow-blue-500/20 transition-all"
           >
             <PlusCircle size={15} />
@@ -116,7 +124,7 @@ export default function MyWantedRequestsPage() {
               Post what you want to buy or rent and let local sellers propose matches.
             </p>
             <button
-              onClick={() => navigate('/wanted/create')}
+              onClick={handlePostWantedClick}
               className="rounded-xl bg-blue-600 hover:bg-blue-700 px-5 py-2.5 text-xs font-bold text-white shadow-md transition-all"
             >
               Post a Request

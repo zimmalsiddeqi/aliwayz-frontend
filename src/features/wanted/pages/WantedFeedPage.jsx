@@ -17,6 +17,7 @@ import {
   Search,
 } from 'lucide-react';
 import WantedService from '@api/services/wanted.service';
+import useAuthStore from '@store/auth.store';
 import WantedNavTabs from '../components/WantedNavTabs';
 import WantedCard from '../components/WantedCard';
 import IHaveThisModal from '../components/IHaveThisModal';
@@ -28,6 +29,7 @@ import { WANTED_CATEGORIES, PHILLY_NEIGHBORHOODS } from '../constants/wantedCate
 
 export default function WantedFeedPage() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuthStore();
   // Default to 'all' categories
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -38,6 +40,14 @@ export default function WantedFeedPage() {
   const [selectedSort, setSelectedSort] = useState('newest');
   const [filterNearMe, setFilterNearMe] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+
+  const handlePostWantedClick = () => {
+    if (!isAuthenticated) {
+      navigate('/login?redirect=/wanted/create');
+    } else {
+      navigate('/wanted/create');
+    }
+  };
 
   const hasActiveFilters =
     selectedLocation !== 'all' ||
@@ -100,7 +110,7 @@ export default function WantedFeedPage() {
             </p>
           </div>
           <button
-            onClick={() => navigate('/wanted/create')}
+            onClick={handlePostWantedClick}
             className="flex items-center gap-1.5 rounded-2xl bg-[#5046e5] hover:bg-[#4338ca] px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-indigo-500/20 whitespace-nowrap transition-all"
           >
             <PlusCircle size={16} />
@@ -224,7 +234,7 @@ export default function WantedFeedPage() {
               Check back soon or try selecting a different category.
             </p>
             <button
-              onClick={() => navigate('/wanted/create')}
+              onClick={handlePostWantedClick}
               className="rounded-xl bg-[#5046e5] hover:bg-[#4338ca] px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md transition-all"
             >
               Post Wanted Request

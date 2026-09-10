@@ -1,7 +1,8 @@
-﻿import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
+import { ArrowLeft, X } from 'lucide-react';
 import WantedService from '@api/services/wanted.service';
 import useAuthStore from '@store/auth.store';
 import WantedNavTabs from '../components/WantedNavTabs';
@@ -17,6 +18,14 @@ export default function PostWantedPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { isAuthenticated } = useAuthStore();
+
+  // Redirect to login if user is not authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      toast.error('Please log in to post a wanted request');
+      navigate('/login?redirect=/wanted/create', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const categoryParam = searchParams.get('category');
   const [selectedCategory, setSelectedCategory] = useState(categoryParam || 'real_estate');
@@ -48,15 +57,49 @@ export default function PostWantedPage() {
     createMutation.mutate(formData);
   };
 
+  if (!isAuthenticated) {
+    return null; // Will redirect via useEffect
+  }
+
   return (
     <>
       <Helmet>
         <title>Post a Wanted Request — Aliwayz</title>
       </Helmet>
 
-      <WantedNavTabs />
+      {/* Desktop header navigation only - hidden on mobile view to give full screen space */}
+      <div className="hidden md:block">
+        <WantedNavTabs />
+      </div>
 
-      <div className="container-app py-4 sm:py-6 pb-24">
+      {/* Mobile-only compact wizard header with clean back/cancel action */}
+      <div className="md:hidden sticky top-14 z-30 bg-[var(--color-bg)]/95 backdrop-blur-md border-b border-[var(--color-border)] px-4 py-2.5 flex items-center justify-between">
+        <button
+          onClick={() => {
+            if (isCategoryChosen) {
+              setIsCategoryChosen(false);
+            } else {
+              navigate('/wanted');
+            }
+          }}
+          className="flex items-center gap-1.5 text-xs font-bold text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+        >
+          <ArrowLeft size={16} />
+          <span>{isCategoryChosen ? 'Back' : 'Wanted'}</span>
+        </button>
+        <span className="text-xs font-black text-[var(--color-text-primary)]">
+          Post Wanted
+        </span>
+        <button
+          onClick={() => navigate('/wanted')}
+          className="p-1 text-[var(--color-text-muted)] hover:text-red-500 rounded-lg"
+          title="Cancel"
+        >
+          <X size={17} />
+        </button>
+      </div>
+
+      <div className="container-app py-3 sm:py-6 pb-24">
         {createdRequest ? (
           <WantedSuccessStep
             createdRequest={createdRequest}

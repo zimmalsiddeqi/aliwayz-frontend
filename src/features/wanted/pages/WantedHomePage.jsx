@@ -27,6 +27,7 @@ import {
   Laptop,
 } from 'lucide-react';
 import ProductService from '@api/services/product.service';
+import useAuthStore from '@store/auth.store';
 import WantedNavTabs from '../components/WantedNavTabs';
 import WantedFilterModal from '../components/WantedFilterModal';
 import Spinner from '@components/ui/Spinner';
@@ -221,6 +222,7 @@ function WantedProductListCard({ product }) {
 
 export default function WantedHomePage() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuthStore();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('all');
@@ -229,6 +231,14 @@ export default function WantedHomePage() {
   const [selectedCondition, setSelectedCondition] = useState('all');
   const [selectedSort, setSelectedSort] = useState('newest');
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+
+  const handlePostWantedClick = () => {
+    if (!isAuthenticated) {
+      navigate('/login?redirect=/wanted/create');
+    } else {
+      navigate('/wanted/create');
+    }
+  };
 
   const hasActiveFilters =
     selectedLocation !== 'all' ||
@@ -302,7 +312,7 @@ export default function WantedHomePage() {
             />
           </div>
           <button
-            onClick={() => navigate('/wanted/create')}
+            onClick={handlePostWantedClick}
             className="flex items-center gap-1.5 rounded-2xl bg-[#5046e5] hover:bg-[#4338ca] text-white px-4 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-bold shadow-md shadow-indigo-500/20 whitespace-nowrap transition-all transform active:scale-95"
           >
             <PlusCircle size={17} />
@@ -413,7 +423,7 @@ export default function WantedHomePage() {
                 </p>
                 <div className="pt-2">
                   <button
-                    onClick={() => navigate('/wanted/create')}
+                    onClick={handlePostWantedClick}
                     className="inline-flex items-center gap-2 rounded-xl bg-[#5046e5] hover:bg-[#4338ca] px-4 py-2 text-xs sm:text-sm font-bold text-white shadow-md shadow-indigo-500/20 transition-all transform active:scale-95"
                   >
                     <span>Post a Wanted Request</span>
@@ -467,7 +477,7 @@ export default function WantedHomePage() {
                 Can't find what you need? Post a Wanted request and local sellers will find you!
               </p>
               <button
-                onClick={() => navigate('/wanted/create')}
+                onClick={handlePostWantedClick}
                 className="rounded-xl bg-[#5046e5] hover:bg-[#4338ca] px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md transition-all"
               >
                 Post Wanted Request
