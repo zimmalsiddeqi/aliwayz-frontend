@@ -4,15 +4,6 @@ import Modal from '@components/ui/Modal';
 import Button from '@components/ui/Button';
 import { PHILLY_NEIGHBORHOODS } from '../constants/wantedCategories';
 
-const BUDGET_PRESETS = [
-  { label: 'Any', min: '', max: '' },
-  { label: 'Under $100', min: '0', max: '100' },
-  { label: '$100 – $500', min: '100', max: '500' },
-  { label: '$500 – $1,000', min: '500', max: '1000' },
-  { label: '$1,000 – $5,000', min: '1000', max: '5000' },
-  { label: '$5,000+', min: '5000', max: '' },
-];
-
 // Smart Universal Condition / Listing Status Options
 const STATUS_OPTIONS = [
   { id: 'all', label: 'Any Status / Condition' },
@@ -51,11 +42,6 @@ export default function WantedFilterModal({
     }
   }, [isOpen, filters]);
 
-  const handlePresetBudget = (preset) => {
-    setMinPrice(preset.min);
-    setMaxPrice(preset.max);
-  };
-
   const handleReset = () => {
     setLocalLocation('all');
     setMinPrice('');
@@ -78,10 +64,10 @@ export default function WantedFilterModal({
   if (!isOpen) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="md">
-      <div className="p-4 sm:p-6 space-y-5">
-        {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-[var(--color-border)] pb-3.5">
+    <Modal isOpen={isOpen} onClose={onClose} size="md" showClose={false}>
+      <div className="p-4 sm:p-5 space-y-4 sm:space-y-5">
+        {/* Single Clean Modal Header with only ONE close button */}
+        <div className="flex items-center justify-between border-b border-[var(--color-border)] pb-3">
           <div className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 shadow-sm">
               <SlidersHorizontal size={18} />
@@ -97,9 +83,10 @@ export default function WantedFilterModal({
           </div>
           <button
             onClick={onClose}
-            className="rounded-xl p-1.5 text-[var(--color-text-muted)] hover:bg-[var(--color-bg-secondary)] transition-colors"
+            className="rounded-xl p-1.5 text-[var(--color-text-muted)] hover:bg-[var(--color-bg-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+            title="Close"
           >
-            <X size={19} />
+            <X size={18} />
           </button>
         </div>
 
@@ -125,14 +112,14 @@ export default function WantedFilterModal({
             </select>
           </div>
 
-          {/* 2. Custom Budget Range + Presets */}
-          <div className="space-y-2">
+          {/* 2. Custom Budget Range (Min & Max only) */}
+          <div className="space-y-1.5">
             <label className="text-xs font-bold text-[var(--color-text-primary)] flex items-center gap-1.5">
               <DollarSign size={13} className="text-indigo-600" />
               <span>Budget Range ($)</span>
             </label>
 
-            {/* Custom Min/Max Inputs */}
+            {/* Clean Min/Max Inputs */}
             <div className="grid grid-cols-2 gap-2.5">
               <div className="relative">
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">$</span>
@@ -142,7 +129,7 @@ export default function WantedFilterModal({
                   placeholder="Min Price"
                   value={minPrice}
                   onChange={(e) => setMinPrice(e.target.value)}
-                  className="w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] pl-7 pr-3 py-2 text-xs sm:text-sm font-semibold text-[var(--color-text-primary)] focus:border-indigo-600 focus:outline-none"
+                  className="w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] pl-7 pr-3 py-2.5 text-xs sm:text-sm font-semibold text-[var(--color-text-primary)] focus:border-indigo-600 focus:outline-none"
                 />
               </div>
               <div className="relative">
@@ -153,30 +140,9 @@ export default function WantedFilterModal({
                   placeholder="Max Price"
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(e.target.value)}
-                  className="w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] pl-7 pr-3 py-2 text-xs sm:text-sm font-semibold text-[var(--color-text-primary)] focus:border-indigo-600 focus:outline-none"
+                  className="w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] pl-7 pr-3 py-2.5 text-xs sm:text-sm font-semibold text-[var(--color-text-primary)] focus:border-indigo-600 focus:outline-none"
                 />
               </div>
-            </div>
-
-            {/* Quick Budget Presets */}
-            <div className="flex flex-wrap gap-1.5 pt-0.5">
-              {BUDGET_PRESETS.map((p, idx) => {
-                const isMatch = minPrice === p.min && maxPrice === p.max;
-                return (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => handlePresetBudget(p)}
-                    className={`rounded-xl px-2.5 py-1 text-[11px] font-semibold transition-all border ${
-                      isMatch
-                        ? 'border-indigo-600 bg-indigo-600 text-white shadow-sm'
-                        : 'border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:border-gray-400'
-                    }`}
-                  >
-                    {p.label}
-                  </button>
-                );
-              })}
             </div>
           </div>
 
