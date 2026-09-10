@@ -59,6 +59,10 @@ import {
   SafetyGuidelinesPage,
   ContactUsPage,
   AboutPage,
+  WantedHomePage,
+  WantedFeedPage,
+  PostWantedPage,
+  MyWantedRequestsPage,
 } from './routes';
 
 const router = createBrowserRouter(
@@ -152,6 +156,19 @@ const router = createBrowserRouter(
         { path: '/legal/about',                 element: <AboutPage /> },
         { path: '/about',                       element: <AboutPage /> },
         { path: '/about-us',                    element: <AboutPage /> },
+
+        // Wanted Hub
+        { path: '/wanted',              element: <WantedHomePage /> },
+        { path: '/wanted/feed',         element: <WantedFeedPage /> },
+        { path: '/wanted/create',       element: <PostWantedPage /> },
+        {
+          path: '/wanted/my-requests',
+          element: (
+            <AuthGuard>
+              <MyWantedRequestsPage />
+            </AuthGuard>
+          ),
+        },
 
         // Public
         { path: '/marketplace', element: <MarketplacePage /> },

@@ -75,6 +75,12 @@ const SafetyGuidelinesPage     = lazy(() => import('@features/legal/pages/Safety
 const ContactUsPage            = lazy(() => import('@features/legal/pages/ContactUsPage'));
 const AboutPage                = lazy(() => import('@features/legal/pages/AboutPage'));
 
+// Wanted
+const WantedHomePage        = lazy(() => import('@features/wanted/pages/WantedHomePage'));
+const WantedFeedPage        = lazy(() => import('@features/wanted/pages/WantedFeedPage'));
+const PostWantedPage        = lazy(() => import('@features/wanted/pages/PostWantedPage'));
+const MyWantedRequestsPage  = lazy(() => import('@features/wanted/pages/MyWantedRequestsPage'));
+
 export {
   LoginPage, RegisterPage, VerifyEmailPage, ForgotPasswordPage,
   ResetPasswordPage, CompleteProfilePage,
@@ -96,4 +102,5 @@ export {
   ProhibitedItemsPage, AccountDeletionPage, DataDeletionPage,
   ReportAbusePage, IntellectualPropertyPage, CopyrightPage,
   DisclaimerPage, SafetyGuidelinesPage, ContactUsPage, AboutPage,
+  WantedHomePage, WantedFeedPage, PostWantedPage, MyWantedRequestsPage,
 };

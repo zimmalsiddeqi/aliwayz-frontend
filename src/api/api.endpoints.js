@@ -170,6 +170,16 @@ export const API = {
     SUBMIT: '/verification/submit',
   },
 
+  // ── Wanted Workflow ──────────────────────────────────────────
+  WANTED: {
+    CREATE: '/wanted',
+    BROWSE: '/wanted',
+    MY_REQUESTS: '/wanted/my',
+    BY_ID: (id) => `/wanted/${id}`,
+    UPDATE_STATUS: (id) => `/wanted/${id}/status`,
+    SUBMIT_MATCH: (id) => `/wanted/${id}/match`,
+  },
+
   // ── Admin ─────────────────────────────────────────────────────
   ADMIN: {
     DASHBOARD: '/admin/dashboard',

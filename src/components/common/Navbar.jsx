@@ -87,12 +87,8 @@ export default function Navbar() {
       : '/login';
     items.push({ to: sellLink, icon: PlusCircle, label: 'Sell', highlight: true });
 
-    // 4. Notifications (Alerts)
-    if (isAuthenticated) {
-      items.push({ to: '/notifications', icon: Bell, label: 'Alerts', badge: unreadCount });
-    } else {
-      items.push({ to: '/login', icon: Bell, label: 'Alerts' });
-    }
+    // 4. Wanted
+    items.push({ to: '/wanted', icon: Compass, label: 'Wanted' });
 
     // 5. Profile or Login
     if (isAuthenticated) {
@@ -111,6 +107,9 @@ export default function Navbar() {
   // ── Desktop nav items ──────────────────────────────────
   const getDesktopNavItems = () => {
     const items = [];
+
+    // Wanted Hub
+    items.push({ to: '/wanted', icon: Compass, label: 'Wanted' });
 
     // Sell — NOT for admin
     if (isAuthenticated && role !== 'admin') {
