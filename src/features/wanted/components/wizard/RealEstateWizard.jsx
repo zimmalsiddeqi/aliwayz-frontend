@@ -5,16 +5,9 @@ import {
   Building,
   Map,
   Store,
-  MoreHorizontal,
-  Car,
+  Briefcase,
   Warehouse,
-  Trees,
-  Waves,
-  Wind,
-  Layers,
-  Sparkles,
-  PawPrint,
-  Plus,
+  Palmtree,
   ArrowRight,
   ArrowLeft,
   MapPin,
@@ -24,41 +17,86 @@ import {
   Search,
 } from 'lucide-react';
 import { cn } from '@lib/utils';
-import Button from '@components/ui/Button';
 import WizardProgressBar from './WizardProgressBar';
 import {
-  REAL_ESTATE_INTENTS,
   REAL_ESTATE_TYPES,
   REAL_ESTATE_FEATURES,
-  DURATION_OPTIONS,
-  PHILLY_NEIGHBORHOODS,
-} from '../../constants/wantedCategories';
+  BEDROOM_OPTIONS,
+  BATHROOM_OPTIONS,
+  LEASE_TERMS,
+  PET_POLICY,
+} from '@utils/constants';
+import { DURATION_OPTIONS, PHILLY_NEIGHBORHOODS } from '../../constants/wantedCategories';
+
+const PURPOSE_OPTIONS = [
+  { value: 'sale', label: 'Buy / Purchase' },
+  { value: 'rent', label: 'Rent' },
+  { value: 'lease', label: 'Commercial Lease' },
+  { value: 'vacation', label: 'Vacation Rental' },
+];
 
 export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCategory }) {
   const [step, setStep] = useState(1);
 
-  // Form State - empty defaults with placeholders
-  const [intent, setIntent] = useState('');
-  const [propertyType, setPropertyType] = useState('');
+  // Core classification
+  const [intent, setIntent] = useState('sale');
+  const [propertyType, setPropertyType] = useState('single_family');
+
+  // Budget & Financials
   const [budgetMin, setBudgetMin] = useState('');
   const [budgetMax, setBudgetMax] = useState('');
+  const [maxHoa, setMaxHoa] = useState('');
+
+  // Residential Specs
   const [bedrooms, setBedrooms] = useState('');
   const [bathrooms, setBathrooms] = useState('');
-  const [propertySize, setPropertySize] = useState('');
-  const [parkingImportant, setParkingImportant] = useState(false);
+  const [areaSize, setAreaSize] = useState('');
+  const [minYearBuilt, setMinYearBuilt] = useState('');
+  const [parkingSpaces, setParkingSpaces] = useState('');
 
+  // Rent specific specs
+  const [leaseTerm, setLeaseTerm] = useState('');
+  const [petPolicy, setPetPolicy] = useState('');
+  const [moveInDate, setMoveInDate] = useState('');
+  const [utilitiesIncluded, setUtilitiesIncluded] = useState([]);
+
+  // Commercial / Industrial specs
+  const [ceilingHeight, setCeilingHeight] = useState('');
+  const [loadingDock, setLoadingDock] = useState('');
+  const [zoningCode, setZoningCode] = useState('');
+
+  // Land specs
+  const [acreage, setAcreage] = useState('');
+  const [lotSize, setLotSize] = useState('');
+  const [roadAccess, setRoadAccess] = useState('');
+  const [waterAccess, setWaterAccess] = useState('');
+  const [sewerAccess, setSewerAccess] = useState('');
+  const [electricityAccess, setElectricityAccess] = useState('');
+
+  // Features & Description
   const [selectedFeatures, setSelectedFeatures] = useState([]);
   const [additionalPreferences, setAdditionalPreferences] = useState('');
 
+  // Location & Duration
   const [locationCity, setLocationCity] = useState('');
   const [locationRadius, setLocationRadius] = useState(10);
   const [selectedAreas, setSelectedAreas] = useState([]);
-
   const [durationDays, setDurationDays] = useState(30);
 
-  const toggleFeature = (id) => {
+  const isLand = propertyType === 'land';
+  const isCommercial = intent === 'lease' || ['commercial', 'office', 'industrial'].includes(propertyType);
+  const isRent = intent === 'rent';
+  const isVacation = intent === 'vacation';
+
+  const toggleFeature = (key) => {
     setSelectedFeatures((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+      prev.includes(key) ? prev.filter((item) => item !== key) : [...prev, key]
+    );
+  };
+
+  const toggleUtility = (util) => {
+    setUtilitiesIncluded((prev) =>
+      prev.includes(util) ? prev.filter((item) => item !== util) : [...prev, util]
     );
   };
 
@@ -69,13 +107,74 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
   };
 
   const generateTitle = () => {
-    const typeObj = REAL_ESTATE_TYPES.find((t) => t.id === propertyType);
-    const typeLabel = typeObj ? typeObj.label : 'Property';
-    const bedsText = bedrooms ? `${bedrooms} Bedroom ` : '';
-    return `${bedsText}${typeLabel}`;
+    const propTypeObj = REAL_ESTATE_TYPES.find((t) => t.value === propertyType);
+    const typeLabel = propTypeObj ? propTypeObj.label : 'Property';
+
+    let purposeLabel = 'For Sale';
+    if (intent === 'rent') purposeLabel = 'For Rent';
+    else if (intent === 'lease') purposeLabel = 'For Lease';
+    else if (intent === 'vacation') purposeLabel = 'Vacation Rental';
+
+    if (isLand) {
+      const acreText = acreage ? `${acreage} Acre ` : '';
+      return `${acreText}Land Wanted ${purposeLabel}`;
+    }
+
+    if (isCommercial) {
+      const sizeText = areaSize ? `${areaSize} SF ` : '';
+      return `${sizeText}${typeLabel} Wanted (${purposeLabel})`;
+    }
+
+    const bedsText = bedrooms ? `${bedrooms} Bd ` : '';
+    const bathsText = bathrooms ? `${bathrooms} Ba ` : '';
+    return `${bedsText}${bathsText}${typeLabel} Wanted (${purposeLabel})`.replace(/\s+/g, ' ').trim();
   };
 
   const handleSubmit = () => {
+    const details = [];
+    details.push(`[Intent]: ${intent}`);
+    details.push(`[Property_Type]: ${propertyType}`);
+
+    if (isLand) {
+      if (acreage) details.push(`Target Acreage: ${acreage} acres`);
+      if (lotSize) details.push(`Lot Size: ${lotSize}`);
+      if (zoningCode) details.push(`Zoning: ${zoningCode}`);
+      if (roadAccess) details.push(`Road Access: ${roadAccess}`);
+      if (waterAccess) details.push(`Water: ${waterAccess}`);
+      if (sewerAccess) details.push(`Sewer: ${sewerAccess}`);
+      if (electricityAccess) details.push(`Electricity: ${electricityAccess}`);
+    } else if (isCommercial) {
+      if (areaSize) details.push(`Target Space: ${areaSize} sqft`);
+      if (ceilingHeight) details.push(`Ceiling Height: ${ceilingHeight} ft`);
+      if (loadingDock) details.push(`Loading Dock: ${loadingDock}`);
+      if (parkingSpaces) details.push(`Parking Spaces: ${parkingSpaces}`);
+      if (zoningCode) details.push(`Zoning: ${zoningCode}`);
+    } else {
+      if (bedrooms) details.push(`Bedrooms: ${bedrooms}`);
+      if (bathrooms) details.push(`Bathrooms: ${bathrooms}`);
+      if (areaSize) details.push(`Square Feet: ${areaSize} sqft`);
+      if (minYearBuilt) details.push(`Min Year Built: ${minYearBuilt}`);
+      if (parkingSpaces) details.push(`Parking Spaces: ${parkingSpaces}`);
+      if (maxHoa) details.push(`Max HOA: $${maxHoa}/month`);
+      if (isRent) {
+        if (leaseTerm) details.push(`Lease Term: ${leaseTerm}`);
+        if (petPolicy) details.push(`Pet Policy: ${petPolicy}`);
+        if (moveInDate) details.push(`Move-in Date: ${moveInDate}`);
+        if (utilitiesIncluded.length > 0) details.push(`Utilities Included: ${utilitiesIncluded.join(', ')}`);
+      }
+    }
+
+    if (selectedFeatures.length > 0) {
+      const featNames = selectedFeatures
+        .map((k) => REAL_ESTATE_FEATURES.find((f) => f.key === k)?.label)
+        .filter(Boolean);
+      details.push(`Must-Have Features: ${featNames.join(', ')}`);
+    }
+
+    if (additionalPreferences) {
+      details.push(`\nAdditional Notes:\n${additionalPreferences}`);
+    }
+
     const payload = {
       category: 'real_estate',
       title: generateTitle(),
@@ -83,26 +182,42 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
       item_type: propertyType,
       budget_min: Number(budgetMin) || 0,
       budget_max: Number(budgetMax) || 0,
-      bedrooms,
-      bathrooms,
-      property_size: propertySize,
-      parking_important: parkingImportant,
-      features: selectedFeatures.map((f) => {
-        const featObj = REAL_ESTATE_FEATURES.find((item) => item.id === f);
-        return featObj ? featObj.label : f;
+      bedrooms: bedrooms || undefined,
+      bathrooms: bathrooms || undefined,
+      property_size: areaSize || undefined,
+      description: details.join('\n'),
+      features: selectedFeatures.map((k) => {
+        const fObj = REAL_ESTATE_FEATURES.find((f) => f.key === k);
+        return fObj ? fObj.label : k;
       }),
-      description: additionalPreferences,
-      location_city: locationCity,
+      location_city: locationCity || 'Philadelphia, PA',
       location_radius: Number(locationRadius) || 10,
       preferred_areas: selectedAreas,
       duration_days: Number(durationDays) || 30,
       metadata: {
         intent,
         propertyType,
+        budgetMin,
+        budgetMax,
         bedrooms,
         bathrooms,
-        propertySize,
-        parkingImportant,
+        areaSize,
+        acreage,
+        lotSize,
+        zoningCode,
+        roadAccess,
+        waterAccess,
+        sewerAccess,
+        electricityAccess,
+        ceilingHeight,
+        loadingDock,
+        parkingSpaces,
+        minYearBuilt,
+        maxHoa,
+        leaseTerm,
+        petPolicy,
+        moveInDate,
+        utilitiesIncluded,
         selectedAreas,
       },
     };
@@ -110,8 +225,33 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
     onSubmit(payload);
   };
 
+  const getPropIcon = (val) => {
+    switch (val) {
+      case 'single_family':
+      case 'townhome':
+        return Home;
+      case 'condo':
+        return Building2;
+      case 'apartment':
+      case 'multi_family':
+        return Building;
+      case 'land':
+        return Map;
+      case 'commercial':
+        return Store;
+      case 'office':
+        return Briefcase;
+      case 'industrial':
+        return Warehouse;
+      case 'vacation':
+        return Palmtree;
+      default:
+        return Home;
+    }
+  };
+
   // ─────────────────────────────────────────────────────────────
-  // STEP 1: What are you looking for? (Basics)
+  // STEP 1: Purpose & Property Type
   // ─────────────────────────────────────────────────────────────
   if (step === 1) {
     return (
@@ -119,35 +259,35 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
         <WizardProgressBar currentStep={1} />
 
         <div className="text-center">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg shadow-blue-500/30">
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25">
             <Home size={26} />
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-[var(--color-text-primary)]">
-            What are you looking for?
+            What real estate are you looking for?
           </h2>
           <p className="mt-1 text-xs sm:text-sm text-[var(--color-text-muted)]">
-            Choose the type of real estate request you want to post.
+            Select your acquisition purpose and property category.
           </p>
         </div>
 
-        {/* Intent Pills: Buy / Rent / Lease */}
+        {/* Purpose / Intent Selector */}
         <div className="space-y-2">
           <label className="block text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">
-            Looking for
+            Purpose / Intent
           </label>
-          <div className="flex rounded-2xl bg-[var(--color-bg-secondary)] p-1.5 max-w-sm mx-auto">
-            {REAL_ESTATE_INTENTS.map((item) => {
-              const isSelected = intent === item.id;
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {PURPOSE_OPTIONS.map((item) => {
+              const isSelected = intent === item.value;
               return (
                 <button
-                  key={item.id}
+                  key={item.value}
                   type="button"
-                  onClick={() => setIntent(item.id)}
+                  onClick={() => setIntent(item.value)}
                   className={cn(
-                    'flex-1 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all',
+                    'py-2.5 px-3 text-xs sm:text-sm font-bold rounded-xl transition-all border text-center',
                     isSelected
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-500/20'
+                      : 'border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:border-gray-400'
                   )}
                 >
                   {item.label}
@@ -157,35 +297,24 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
           </div>
         </div>
 
-        {/* Property Type Cards Grid */}
+        {/* Property Type Grid */}
         <div className="space-y-2">
           <label className="block text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">
             Property Type
           </label>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
             {REAL_ESTATE_TYPES.map((type) => {
-              const isSelected = propertyType === type.id;
-              const Icon =
-                type.id === 'house'
-                  ? Home
-                  : type.id === 'condo'
-                  ? Building2
-                  : type.id === 'apartment'
-                  ? Building
-                  : type.id === 'land'
-                  ? Map
-                  : type.id === 'commercial'
-                  ? Store
-                  : MoreHorizontal;
+              const isSelected = propertyType === type.value;
+              const Icon = getPropIcon(type.value);
 
               return (
                 <div
-                  key={type.id}
-                  onClick={() => setPropertyType(type.id)}
+                  key={type.value}
+                  onClick={() => setPropertyType(type.value)}
                   className={cn(
-                    'relative cursor-pointer rounded-2xl border-2 p-4 text-center transition-all',
+                    'relative cursor-pointer rounded-2xl border-2 p-3.5 text-center transition-all',
                     isSelected
-                      ? 'border-blue-600 bg-blue-50/60 dark:bg-blue-950/30 shadow-sm ring-2 ring-blue-600/20'
+                      ? 'border-blue-600 bg-blue-50/70 dark:bg-blue-950/40 shadow-sm ring-2 ring-blue-600/20'
                       : 'border-[var(--color-border)] bg-[var(--color-bg-card)] hover:border-gray-400'
                   )}
                 >
@@ -194,10 +323,10 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
                       <CheckCircle2 size={13} />
                     </div>
                   )}
-                  <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)]">
+                  <div className="mx-auto mb-1.5 flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)]">
                     <Icon size={20} />
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-[var(--color-text-primary)]">
+                  <span className="text-xs sm:text-sm font-bold text-[var(--color-text-primary)] block leading-tight">
                     {type.label}
                   </span>
                 </div>
@@ -218,11 +347,7 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
           </button>
           <button
             type="button"
-            onClick={() => {
-              if (!intent) setIntent('buy');
-              if (!propertyType) setPropertyType('house');
-              setStep(2);
-            }}
+            onClick={() => setStep(2)}
             className="flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-blue-500/20 transition-all transform active:scale-95"
           >
             <span>Next</span>
@@ -234,7 +359,7 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
   }
 
   // ─────────────────────────────────────────────────────────────
-  // STEP 2: Budget & Property Details (Screen 3)
+  // STEP 2: Real Listing Attributes & Pricing
   // ─────────────────────────────────────────────────────────────
   if (step === 2) {
     return (
@@ -243,21 +368,27 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
 
         <div className="text-center">
           <h2 className="text-xl sm:text-2xl font-black text-[var(--color-text-primary)]">
-            Budget & Details
+            Pricing & Property Attributes
           </h2>
           <p className="mt-1 text-xs sm:text-sm text-[var(--color-text-muted)]">
-            Set your target price range and preferred room specifications.
+            Fill in the exact specifications you require sellers or agents to match.
           </p>
         </div>
 
-        {/* Budget Range */}
+        {/* Pricing Card */}
         <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4 sm:p-5 space-y-3">
           <label className="block text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">
-            Budget Range {intent === 'rent' ? '(Monthly)' : ''}
+            {isRent
+              ? 'Monthly Rent Budget ($)'
+              : isCommercial
+              ? 'Lease Rate Budget ($)'
+              : isVacation
+              ? 'Nightly Budget ($)'
+              : 'Target Purchase Price Range ($)'}
           </label>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <span className="block text-xs text-[var(--color-text-muted)] mb-1">Minimum Price</span>
+              <span className="block text-xs text-[var(--color-text-muted)] mb-1">Minimum</span>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-[var(--color-text-muted)]">
                   $
@@ -266,14 +397,14 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
                   type="number"
                   value={budgetMin}
                   onChange={(e) => setBudgetMin(e.target.value)}
-                  placeholder="400,000"
+                  placeholder={isRent ? '1,500' : '350,000'}
                   className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] pl-7 pr-3 py-2.5 text-sm font-bold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
                 />
               </div>
             </div>
 
             <div>
-              <span className="block text-xs text-[var(--color-text-muted)] mb-1">Maximum Price</span>
+              <span className="block text-xs text-[var(--color-text-muted)] mb-1">Maximum</span>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-[var(--color-text-muted)]">
                   $
@@ -282,7 +413,7 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
                   type="number"
                   value={budgetMax}
                   onChange={(e) => setBudgetMax(e.target.value)}
-                  placeholder="550,000"
+                  placeholder={isRent ? '2,800' : '650,000'}
                   className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] pl-7 pr-3 py-2.5 text-sm font-bold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
                 />
               </div>
@@ -290,98 +421,345 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
           </div>
         </div>
 
-        {/* Rooms & Specs */}
+        {/* Dynamic Property Attributes based on Category & Intent */}
         <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4 sm:p-5 space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label className="block text-xs font-bold text-[var(--color-text-secondary)] mb-1">
-                Bedrooms
-              </label>
-              <select
-                value={bedrooms}
-                onChange={(e) => setBedrooms(e.target.value)}
-                className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
-              >
-                <option value="">Select Bedrooms</option>
-                <option value="Studio">Studio</option>
-                <option value="1+">1+ Bedroom</option>
-                <option value="2+">2+ Bedrooms</option>
-                <option value="3+">3+ Bedrooms</option>
-                <option value="4+">4+ Bedrooms</option>
-                <option value="5+">5+ Bedrooms</option>
-              </select>
+          <label className="block text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">
+            Property Specifications
+          </label>
+
+          {isLand ? (
+            /* Land Specifications */
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <span className="block text-xs text-[var(--color-text-muted)] mb-1">Target Acreage (Acres)</span>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={acreage}
+                    onChange={(e) => setAcreage(e.target.value)}
+                    placeholder="e.g. 2.5"
+                    className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <span className="block text-xs text-[var(--color-text-muted)] mb-1">Lot Dimensions</span>
+                  <input
+                    type="text"
+                    value={lotSize}
+                    onChange={(e) => setLotSize(e.target.value)}
+                    placeholder="e.g. 100 x 250 ft"
+                    className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <span className="block text-xs text-[var(--color-text-muted)] mb-1">Zoning Code / Type</span>
+                  <input
+                    type="text"
+                    value={zoningCode}
+                    onChange={(e) => setZoningCode(e.target.value)}
+                    placeholder="e.g. Residential, Commercial"
+                    className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <span className="block text-xs text-[var(--color-text-muted)] mb-1">Road Access</span>
+                  <select
+                    value={roadAccess}
+                    onChange={(e) => setRoadAccess(e.target.value)}
+                    className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
+                  >
+                    <option value="">Select Road Access</option>
+                    <option value="paved">Paved Road</option>
+                    <option value="dirt">Dirt Road</option>
+                    <option value="none">No Road Access</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-2">
+                <div>
+                  <span className="block text-xs text-[var(--color-text-muted)] mb-1">Water</span>
+                  <select
+                    value={waterAccess}
+                    onChange={(e) => setWaterAccess(e.target.value)}
+                    className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2 text-xs font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
+                  >
+                    <option value="">Any</option>
+                    <option value="available">Must be Available</option>
+                    <option value="none">Not Needed</option>
+                  </select>
+                </div>
+                <div>
+                  <span className="block text-xs text-[var(--color-text-muted)] mb-1">Sewer</span>
+                  <select
+                    value={sewerAccess}
+                    onChange={(e) => setSewerAccess(e.target.value)}
+                    className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2 text-xs font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
+                  >
+                    <option value="">Any</option>
+                    <option value="available">Must be Available</option>
+                    <option value="none">Not Needed</option>
+                  </select>
+                </div>
+                <div>
+                  <span className="block text-xs text-[var(--color-text-muted)] mb-1">Electricity</span>
+                  <select
+                    value={electricityAccess}
+                    onChange={(e) => setElectricityAccess(e.target.value)}
+                    className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2 text-xs font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
+                  >
+                    <option value="">Any</option>
+                    <option value="available">Must be Available</option>
+                    <option value="none">Not Needed</option>
+                  </select>
+                </div>
+              </div>
             </div>
+          ) : isCommercial ? (
+            /* Commercial / Industrial Specifications */
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <span className="block text-xs text-[var(--color-text-muted)] mb-1">Target Space (sq ft)</span>
+                  <input
+                    type="number"
+                    value={areaSize}
+                    onChange={(e) => setAreaSize(e.target.value)}
+                    placeholder="e.g. 3,500"
+                    className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <span className="block text-xs text-[var(--color-text-muted)] mb-1">Min Ceiling Height (ft)</span>
+                  <input
+                    type="number"
+                    value={ceilingHeight}
+                    onChange={(e) => setCeilingHeight(e.target.value)}
+                    placeholder="e.g. 18"
+                    className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
+                  />
+                </div>
+              </div>
 
-            <div>
-              <label className="block text-xs font-bold text-[var(--color-text-secondary)] mb-1">
-                Bathrooms
-              </label>
-              <select
-                value={bathrooms}
-                onChange={(e) => setBathrooms(e.target.value)}
-                className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
-              >
-                <option value="">Select Bathrooms</option>
-                <option value="1+">1+ Bathroom</option>
-                <option value="1.5+">1.5+ Bathrooms</option>
-                <option value="2+">2+ Bathrooms</option>
-                <option value="2.5+">2.5+ Bathrooms</option>
-                <option value="3+">3+ Bathrooms</option>
-                <option value="4+">4+ Bathrooms</option>
-              </select>
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                <div>
+                  <span className="block text-xs text-[var(--color-text-muted)] mb-1">Loading Dock</span>
+                  <select
+                    value={loadingDock}
+                    onChange={(e) => setLoadingDock(e.target.value)}
+                    className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-xs sm:text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
+                  >
+                    <option value="">Select</option>
+                    <option value="Required">Required</option>
+                    <option value="Preferred">Preferred</option>
+                    <option value="Not Needed">Not Needed</option>
+                  </select>
+                </div>
+                <div>
+                  <span className="block text-xs text-[var(--color-text-muted)] mb-1">Parking Spaces</span>
+                  <input
+                    type="number"
+                    value={parkingSpaces}
+                    onChange={(e) => setParkingSpaces(e.target.value)}
+                    placeholder="e.g. 10"
+                    className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-xs sm:text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <span className="block text-xs text-[var(--color-text-muted)] mb-1">Zoning Code</span>
+                  <input
+                    type="text"
+                    value={zoningCode}
+                    onChange={(e) => setZoningCode(e.target.value)}
+                    placeholder="e.g. CMX-2"
+                    className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-xs sm:text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
+                  />
+                </div>
+              </div>
             </div>
-          </div>
+          ) : (
+            /* Residential Specifications (House, Condo, Townhome, Multi-Family, Apartment) */
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <span className="block text-xs text-[var(--color-text-muted)] mb-1">Bedrooms</span>
+                  <select
+                    value={bedrooms}
+                    onChange={(e) => setBedrooms(e.target.value)}
+                    className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
+                  >
+                    <option value="">Select Bedrooms</option>
+                    {BEDROOM_OPTIONS.map((b) => (
+                      <option key={b.value} value={b.value}>
+                        {b.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-          <div>
-            <label className="block text-xs font-bold text-[var(--color-text-secondary)] mb-1">
-              Property Size (sq ft)
-            </label>
-            <select
-              value={propertySize}
-              onChange={(e) => setPropertySize(e.target.value)}
-              className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
-            >
-              <option value="">Select Property Size</option>
-              <option value="750+">750+ sq ft</option>
-              <option value="1,000+">1,000+ sq ft</option>
-              <option value="1,400+">1,400+ sq ft</option>
-              <option value="1,800+">1,800+ sq ft</option>
-              <option value="2,500+">2,500+ sq ft</option>
-              <option value="3,500+">3,500+ sq ft</option>
-            </select>
-          </div>
+                <div>
+                  <span className="block text-xs text-[var(--color-text-muted)] mb-1">Bathrooms</span>
+                  <select
+                    value={bathrooms}
+                    onChange={(e) => setBathrooms(e.target.value)}
+                    className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
+                  >
+                    <option value="">Select Bathrooms</option>
+                    {BATHROOM_OPTIONS.map((ba) => (
+                      <option key={ba.value} value={ba.value}>
+                        {ba.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
 
-          {/* Toggle: Is parking important? */}
-          <div className="flex items-center justify-between pt-2 border-t border-[var(--color-border)]">
-            <span className="text-sm font-bold text-[var(--color-text-primary)]">
-              Is parking important?
-            </span>
-            <button
-              type="button"
-              onClick={() => setParkingImportant(!parkingImportant)}
-              className={cn(
-                'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none',
-                parkingImportant ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-700'
-              )}
-            >
-              <span
-                className={cn(
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  parkingImportant ? 'translate-x-5' : 'translate-x-0'
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <span className="block text-xs text-[var(--color-text-muted)] mb-1">Target Size (sq ft)</span>
+                  <input
+                    type="number"
+                    value={areaSize}
+                    onChange={(e) => setAreaSize(e.target.value)}
+                    placeholder="e.g. 1,600"
+                    className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
+                  />
+                </div>
+
+                {isRent ? (
+                  <div>
+                    <span className="block text-xs text-[var(--color-text-muted)] mb-1">Lease Term</span>
+                    <select
+                      value={leaseTerm}
+                      onChange={(e) => setLeaseTerm(e.target.value)}
+                      className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
+                    >
+                      <option value="">Select Lease Term</option>
+                      {LEASE_TERMS.map((term) => (
+                        <option key={term.value} value={term.value}>
+                          {term.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div>
+                    <span className="block text-xs text-[var(--color-text-muted)] mb-1">Min Year Built</span>
+                    <input
+                      type="number"
+                      value={minYearBuilt}
+                      onChange={(e) => setMinYearBuilt(e.target.value)}
+                      placeholder="e.g. 2015"
+                      className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
+                    />
+                  </div>
                 )}
-              />
-            </button>
-          </div>
+              </div>
+
+              {isRent && (
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <span className="block text-xs text-[var(--color-text-muted)] mb-1">Pet Policy</span>
+                    <select
+                      value={petPolicy}
+                      onChange={(e) => setPetPolicy(e.target.value)}
+                      className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
+                    >
+                      <option value="">Select Pet Preference</option>
+                      {PET_POLICY.map((pet) => (
+                        <option key={pet.value} value={pet.value}>
+                          {pet.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <span className="block text-xs text-[var(--color-text-muted)] mb-1">Target Move-in Date</span>
+                    <input
+                      type="date"
+                      value={moveInDate}
+                      onChange={(e) => setMoveInDate(e.target.value)}
+                      className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {isRent && (
+                <div className="space-y-2 pt-2 border-t border-[var(--color-border)]">
+                  <span className="block text-xs font-bold text-[var(--color-text-secondary)]">
+                    Desired Utilities Included
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {['Water', 'Electricity', 'Gas', 'Internet', 'Trash'].map((util) => {
+                      const isSel = utilitiesIncluded.includes(util);
+                      return (
+                        <button
+                          key={util}
+                          type="button"
+                          onClick={() => toggleUtility(util)}
+                          className={cn(
+                            'rounded-xl px-3 py-1.5 text-xs font-bold transition-all border',
+                            isSel
+                              ? 'bg-blue-600 text-white border-blue-600'
+                              : 'border-[var(--color-border)] bg-[var(--color-bg-input)] text-[var(--color-text-secondary)] hover:border-gray-400'
+                          )}
+                        >
+                          {util}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {intent === 'sale' && (
+                <div className="grid grid-cols-2 gap-3 pt-1 border-t border-[var(--color-border)]">
+                  <div>
+                    <span className="block text-xs text-[var(--color-text-muted)] mb-1">Max HOA Fee ($/mo)</span>
+                    <input
+                      type="number"
+                      value={maxHoa}
+                      onChange={(e) => setMaxHoa(e.target.value)}
+                      placeholder="e.g. 300"
+                      className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <span className="block text-xs text-[var(--color-text-muted)] mb-1">Parking Spaces</span>
+                    <input
+                      type="number"
+                      value={parkingSpaces}
+                      onChange={(e) => setParkingSpaces(e.target.value)}
+                      placeholder="e.g. 2"
+                      className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Buttons */}
         <div className="flex items-center justify-between pt-4">
-          <Button variant="ghost" onClick={() => setStep(1)}>
-            &larr; Back
-          </Button>
           <button
+            type="button"
+            onClick={() => setStep(1)}
+            className="flex items-center gap-1.5 rounded-xl border border-[var(--color-border)] px-5 py-2.5 text-xs sm:text-sm font-bold text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] transition-all"
+          >
+            <ArrowLeft size={16} />
+            <span>Back</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setStep(3)}
-            className="flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 px-6 py-3 text-sm font-bold text-white shadow-md shadow-blue-500/20 transition-all transform active:scale-95"
+            className="flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-blue-500/20 transition-all transform active:scale-95"
           >
             <span>Next</span>
             <ArrowRight size={16} />
@@ -392,7 +770,7 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
   }
 
   // ─────────────────────────────────────────────────────────────
-  // STEP 3: Must-Have Features & Preferences (Screen 4)
+  // STEP 3: Must-Have Features & Preferences
   // ─────────────────────────────────────────────────────────────
   if (step === 3) {
     return (
@@ -401,72 +779,54 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
 
         <div className="text-center">
           <h2 className="text-xl sm:text-2xl font-black text-[var(--color-text-primary)]">
-            Must-Have Features <span className="text-xs font-normal text-[var(--color-text-muted)]">(Optional)</span>
+            Features & Amenities <span className="text-xs font-normal text-[var(--color-text-muted)]">(Optional)</span>
           </h2>
           <p className="mt-1 text-xs sm:text-sm text-[var(--color-text-muted)]">
-            Select essential amenities and any custom preferences for local sellers.
+            Select essential features and any custom requirements for matching properties.
           </p>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
-          {REAL_ESTATE_FEATURES.map((feat) => {
-            const isSelected = selectedFeatures.includes(feat.id);
-            const Icon =
-              feat.id === 'parking'
-                ? Car
-                : feat.id === 'garage'
-                ? Warehouse
-                : feat.id === 'backyard'
-                ? Trees
-                : feat.id === 'pool'
-                ? Waves
-                : feat.id === 'central_air'
-                ? Wind
-                : feat.id === 'basement'
-                ? Layers
-                : feat.id === 'new_construction'
-                ? Sparkles
-                : feat.id === 'pet_friendly'
-                ? PawPrint
-                : Plus;
+        {/* Real Estate Features from Constants */}
+        {!isLand && (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {REAL_ESTATE_FEATURES.map((feat) => {
+              const isSelected = selectedFeatures.includes(feat.key);
 
-            return (
-              <div
-                key={feat.id}
-                onClick={() => toggleFeature(feat.id)}
-                className={cn(
-                  'cursor-pointer rounded-2xl border-2 p-3 text-center transition-all',
-                  isSelected
-                    ? 'border-blue-600 bg-blue-50/70 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 font-bold shadow-sm'
-                    : 'border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:border-gray-400'
-                )}
-              >
-                <div className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-bg-secondary)]">
-                  <Icon size={18} />
+              return (
+                <div
+                  key={feat.key}
+                  onClick={() => toggleFeature(feat.key)}
+                  className={cn(
+                    'cursor-pointer rounded-2xl border-2 p-3 text-center transition-all flex items-center gap-2.5',
+                    isSelected
+                      ? 'border-blue-600 bg-blue-50/70 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 font-bold shadow-sm'
+                      : 'border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:border-gray-400'
+                  )}
+                >
+                  <span className="text-base">{feat.emoji}</span>
+                  <span className="text-xs font-semibold leading-tight text-left">
+                    {feat.label}
+                  </span>
                 </div>
-                <span className="text-xs font-semibold leading-tight block">
-                  {feat.label}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Additional Preferences Textarea */}
         <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4 sm:p-5 space-y-2">
           <label className="block text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">
-            Additional Preferences
+            Additional Notes & Requirements
           </label>
           <textarea
             value={additionalPreferences}
-            onChange={(e) => setAdditionalPreferences(e.target.value.slice(0, 500))}
-            placeholder="e.g. Quiet neighborhood, close to schools, renovated kitchen, natural lighting..."
+            onChange={(e) => setAdditionalPreferences(e.target.value.slice(0, 1000))}
+            placeholder="e.g. Prefer corner lot, high walk score, updated kitchen, natural light, school district..."
             rows={3}
             className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-3 text-xs sm:text-sm text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
           />
           <div className="text-right text-[11px] text-[var(--color-text-muted)]">
-            {additionalPreferences.length}/500
+            {additionalPreferences.length}/1000
           </div>
         </div>
 
@@ -494,7 +854,7 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
   }
 
   // ─────────────────────────────────────────────────────────────
-  // STEP 4: Location & Radius (Screen 5)
+  // STEP 4: Location & Radius
   // ─────────────────────────────────────────────────────────────
   if (step === 4) {
     return (
@@ -513,7 +873,7 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
         {/* Location Input */}
         <div className="space-y-2">
           <label className="block text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">
-            Location
+            City or Zip Code
           </label>
           <div className="relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -521,7 +881,7 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
               type="text"
               value={locationCity}
               onChange={(e) => setLocationCity(e.target.value)}
-              placeholder="Search for a neighborhood or address"
+              placeholder="e.g. Philadelphia, PA or 19103"
               className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] pl-10 pr-4 py-3 text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
             />
           </div>
@@ -530,7 +890,7 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
         {/* Radius Dropdown */}
         <div className="space-y-2">
           <label className="block text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">
-            Radius
+            Search Radius
           </label>
           <select
             value={locationRadius}
@@ -548,7 +908,7 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
         {/* Preferred Areas Chips */}
         <div className="space-y-2">
           <label className="block text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">
-            Preferred Areas (Optional)
+            Preferred Neighborhoods (Optional)
           </label>
           <div className="flex flex-wrap gap-2">
             {PHILLY_NEIGHBORHOODS.map((nh) => {
@@ -572,8 +932,8 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
           </div>
         </div>
 
-        {/* Location Pin Confirmation Card */}
-        <div className="relative rounded-2xl border border-[var(--color-border)] bg-blue-50/50 dark:bg-blue-950/20 p-4 flex items-center justify-between">
+        {/* Confirmation */}
+        <div className="rounded-2xl border border-[var(--color-border)] bg-blue-50/50 dark:bg-blue-950/20 p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white">
               <MapPin size={20} />
@@ -611,9 +971,11 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
   }
 
   // ─────────────────────────────────────────────────────────────
-  // STEP 5: Review & Post (Screen 6)
-  // ─────────────────────────────────────────────────────────────
   // STEP 5: Review & Post
+  // ─────────────────────────────────────────────────────────────
+  const propTypeObj = REAL_ESTATE_TYPES.find((t) => t.value === propertyType);
+  const purposeObj = PURPOSE_OPTIONS.find((p) => p.value === intent);
+
   return (
     <div className="mx-auto max-w-xl space-y-6">
       <WizardProgressBar currentStep={5} />
@@ -623,7 +985,7 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
           Review Your Request
         </h2>
         <p className="mt-1 text-xs sm:text-sm text-[var(--color-text-muted)]">
-          Ensure all details are accurate before posting to local sellers and agents.
+          Ensure all specifications are accurate before broadcasting to sellers and real estate agents.
         </p>
       </div>
 
@@ -635,7 +997,7 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
               <Home size={18} />
             </div>
             <span className="font-bold text-sm sm:text-base text-[var(--color-text-primary)]">
-              Request Details
+              {generateTitle()}
             </span>
           </div>
           <button
@@ -649,47 +1011,75 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
         </div>
 
         <div className="grid grid-cols-2 gap-y-2.5 text-xs sm:text-sm">
-          <span className="text-[var(--color-text-muted)]">Request Type:</span>
+          <span className="text-[var(--color-text-muted)]">Purpose:</span>
           <span className="font-bold text-[var(--color-text-primary)] text-right capitalize">
-            {intent || 'Buy'}
+            {purposeObj?.label || intent}
           </span>
 
           <span className="text-[var(--color-text-muted)]">Property Type:</span>
-          <span className="font-bold text-[var(--color-text-primary)] text-right capitalize">
-            {propertyType || 'House'}
+          <span className="font-bold text-[var(--color-text-primary)] text-right">
+            {propTypeObj?.label || propertyType}
           </span>
 
-          <span className="text-[var(--color-text-muted)]">Budget:</span>
+          <span className="text-[var(--color-text-muted)]">Budget Range:</span>
           <span className="font-bold text-blue-600 dark:text-blue-400 text-right">
             {budgetMin || budgetMax
               ? `$${Number(budgetMin || 0).toLocaleString()} - $${Number(budgetMax || 0).toLocaleString()}`
               : 'Flexible'}
           </span>
 
-          <span className="text-[var(--color-text-muted)]">Bedrooms:</span>
-          <span className="font-bold text-[var(--color-text-primary)] text-right">
-            {bedrooms || 'Any'}
-          </span>
+          {!isLand && bedrooms && (
+            <>
+              <span className="text-[var(--color-text-muted)]">Bedrooms:</span>
+              <span className="font-bold text-[var(--color-text-primary)] text-right">
+                {BEDROOM_OPTIONS.find((b) => b.value === bedrooms)?.label || bedrooms}
+              </span>
+            </>
+          )}
 
-          <span className="text-[var(--color-text-muted)]">Bathrooms:</span>
-          <span className="font-bold text-[var(--color-text-primary)] text-right">
-            {bathrooms || 'Any'}
-          </span>
+          {!isLand && bathrooms && (
+            <>
+              <span className="text-[var(--color-text-muted)]">Bathrooms:</span>
+              <span className="font-bold text-[var(--color-text-primary)] text-right">
+                {BATHROOM_OPTIONS.find((b) => b.value === bathrooms)?.label || bathrooms}
+              </span>
+            </>
+          )}
 
-          <span className="text-[var(--color-text-muted)]">Size:</span>
-          <span className="font-bold text-[var(--color-text-primary)] text-right">
-            {propertySize ? `${propertySize} sqft` : 'Any'}
-          </span>
+          {areaSize && (
+            <>
+              <span className="text-[var(--color-text-muted)]">Target Size:</span>
+              <span className="font-bold text-[var(--color-text-primary)] text-right">
+                {Number(areaSize).toLocaleString()} sq ft
+              </span>
+            </>
+          )}
+
+          {isLand && acreage && (
+            <>
+              <span className="text-[var(--color-text-muted)]">Target Acreage:</span>
+              <span className="font-bold text-[var(--color-text-primary)] text-right">
+                {acreage} Acres
+              </span>
+            </>
+          )}
 
           <span className="text-[var(--color-text-muted)]">Location:</span>
           <span className="font-bold text-[var(--color-text-primary)] text-right">
             {locationCity || 'Philadelphia, PA'} ({locationRadius} mi)
           </span>
 
-          <span className="text-[var(--color-text-muted)]">Features:</span>
-          <span className="font-semibold text-[var(--color-text-primary)] text-right truncate">
-            {selectedFeatures.length > 0 ? selectedFeatures.join(', ') : 'None specified'}
-          </span>
+          {selectedFeatures.length > 0 && (
+            <>
+              <span className="text-[var(--color-text-muted)]">Features:</span>
+              <span className="font-semibold text-[var(--color-text-primary)] text-right truncate">
+                {selectedFeatures
+                  .map((k) => REAL_ESTATE_FEATURES.find((f) => f.key === k)?.label)
+                  .filter(Boolean)
+                  .join(', ')}
+              </span>
+            </>
+          )}
         </div>
       </div>
 
@@ -702,7 +1092,7 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
               Request Duration
             </span>
           </div>
-          <span className="text-xs text-[var(--color-text-muted)]">Active time</span>
+          <span className="text-xs text-[var(--color-text-muted)]">Active broadcast time</span>
         </div>
 
         <select
@@ -741,3 +1131,4 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
     </div>
   );
 }
+
