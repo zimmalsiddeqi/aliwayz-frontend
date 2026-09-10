@@ -1,4 +1,5 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import {
@@ -11,8 +12,9 @@ import {
   LayoutGrid,
   MapPin,
   Sparkles,
-  DollarSign,
-  ArrowUpDown,
+  ChevronDown,
+  PlusCircle,
+  Search,
 } from 'lucide-react';
 import WantedService from '@api/services/wanted.service';
 import WantedNavTabs from '../components/WantedNavTabs';
@@ -21,114 +23,356 @@ import IHaveThisModal from '../components/IHaveThisModal';
 import WantedMatchesModal from '../components/WantedMatchesModal';
 import Spinner from '@components/ui/Spinner';
 import { cn } from '@lib/utils';
-import { WANTED_CATEGORIES } from '../constants/wantedCategories';
+import { WANTED_CATEGORIES, PHILLY_NEIGHBORHOODS } from '../constants/wantedCategories';
+
+// Sample fallback buyer requests across categories if backend is empty
+const INITIAL_SAMPLE_FEED = [
+  {
+    id: 'sample-1',
+    title: 'iPhone 15 Pro Max',
+    category: 'electronics',
+    budget_min: 800,
+    budget_max: 1000,
+    location_city: 'Philadelphia, PA',
+    location_radius: 10,
+    posted_ago: 'Posted 2h ago',
+    views: 24,
+    status: 'active',
+    wanted_matches: [{}, {}, {}, {}, {}],
+    images: ['https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=300&auto=format&fit=crop&q=70'],
+  },
+  {
+    id: 'sample-2',
+    title: 'Toyota Camry 2021+',
+    category: 'automotive',
+    budget_min: 20000,
+    budget_max: 25000,
+    location_city: 'Philadelphia, PA',
+    location_radius: 20,
+    posted_ago: 'Posted 5h ago',
+    views: 42,
+    status: 'active',
+    wanted_matches: [{}, {}, {}, {}, {}, {}, {}, {}],
+    images: ['https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=300&auto=format&fit=crop&q=70'],
+  },
+  {
+    id: 'sample-3',
+    title: 'Sectional Sofa',
+    category: 'home',
+    budget_min: 300,
+    budget_max: 600,
+    location_neighborhood: 'Northeast Philadelphia',
+    location_city: 'PA',
+    location_radius: 15,
+    posted_ago: 'Posted 1d ago',
+    views: 67,
+    status: 'active',
+    wanted_matches: [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
+    images: ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=300&auto=format&fit=crop&q=70'],
+  },
+  {
+    id: 'sample-4',
+    title: 'PS5 Console',
+    category: 'electronics',
+    budget_min: 350,
+    budget_max: 600,
+    location_city: 'Philadelphia, PA',
+    location_radius: 10,
+    posted_ago: 'Posted 1d ago',
+    views: 53,
+    status: 'active',
+    wanted_matches: [{}, {}, {}, {}],
+    images: ['https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=300&auto=format&fit=crop&q=70'],
+  },
+  {
+    id: 'sample-5',
+    title: 'Dining Table for 6',
+    category: 'home',
+    budget_min: 200,
+    budget_max: 500,
+    location_neighborhood: 'South Philadelphia',
+    location_city: 'PA',
+    location_radius: 15,
+    posted_ago: 'Posted 2d ago',
+    views: 88,
+    status: 'paused',
+    wanted_matches: [],
+    images: ['https://images.unsplash.com/photo-1617806118233-18e1de247200?w=300&auto=format&fit=crop&q=70'],
+  },
+  {
+    id: 'sample-6',
+    title: '2-Bedroom Apartment in Center City',
+    category: 'real_estate',
+    intent: 'rent',
+    budget_min: 1800,
+    budget_max: 2400,
+    location_neighborhood: 'Center City',
+    location_city: 'Philadelphia, PA',
+    location_radius: 5,
+    posted_ago: 'Posted 3d ago',
+    views: 112,
+    status: 'active',
+    wanted_matches: [{}, {}, {}],
+    images: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=300&auto=format&fit=crop&q=70'],
+  },
+];
 
 export default function WantedFeedPage() {
-  const [selectedCategory, setSelectedCategory] = useState('real_estate');
-  const [selectedSort, setSelectedSort] = useState('newest'); // 'newest' | 'budget_high' | 'budget_low'
+  const navigate = useNavigate();
+  // Default to 'all' categories
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState('all');
+  const [selectedBudget, setSelectedBudget] = useState('all');
+  const [selectedCondition, setSelectedCondition] = useState('all');
+  const [selectedSort, setSelectedSort] = useState('newest');
   const [filterNearMe, setFilterNearMe] = useState(false);
+
   const [activeRequestForMatch, setActiveRequestForMatch] = useState(null);
   const [activeRequestForView, setActiveRequestForView] = useState(null);
 
   const { data: responseData, isLoading } = useQuery({
-    queryKey: ['wanted-feed-requests', selectedCategory, selectedSort, filterNearMe],
+    queryKey: ['wanted-feed-requests', selectedCategory, selectedSort, filterNearMe, searchTerm],
     queryFn: () =>
       WantedService.browse({
         category: selectedCategory === 'all' ? undefined : selectedCategory,
+        search: searchTerm || undefined,
         sort: selectedSort,
         limit: 30,
       }),
   });
 
-  const requests = Array.isArray(responseData?.data)
+  const rawRequests = Array.isArray(responseData?.data)
     ? responseData.data
     : (Array.isArray(responseData) ? responseData : []);
+
+  const displayRequests = rawRequests.length > 0 ? rawRequests : INITIAL_SAMPLE_FEED;
+
+  const filteredRequests = displayRequests.filter((item) => {
+    if (selectedCategory !== 'all' && item.category !== selectedCategory) return false;
+    if (searchTerm && !item.title?.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    if (selectedLocation !== 'all') {
+      const locStr = `${item.location_neighborhood || ''} ${item.location_city || ''}`.toLowerCase();
+      if (!locStr.includes(selectedLocation.toLowerCase())) return false;
+    }
+    if (selectedBudget !== 'all') {
+      const maxB = item.budget_max || item.budget_min || 0;
+      if (selectedBudget === 'under_100' && maxB > 100) return false;
+      if (selectedBudget === '100_500' && (maxB < 100 || maxB > 500)) return false;
+      if (selectedBudget === '500_1k' && (maxB < 500 || maxB > 1000)) return false;
+      if (selectedBudget === '1k_5k' && (maxB < 1000 || maxB > 5000)) return false;
+      if (selectedBudget === '5k_plus' && maxB < 5000) return false;
+    }
+    return true;
+  });
 
   return (
     <>
       <Helmet>
-        <title>Buyer Requests & Wanted Items — Aliwayz</title>
+        <title>All Wanted Requests — Aliwayz</title>
+        <meta
+          name="description"
+          content="Browse all buyer wanted requests in Philadelphia across electronics, vehicles, real estate, fashion, and home goods."
+        />
       </Helmet>
 
+      {/* Top 3-tab navigation bar */}
       <WantedNavTabs />
 
-      <div className="container-app py-3 sm:py-5 space-y-4 pb-24">
-        <div className="flex items-center justify-between">
+      <div className="container-app py-2 sm:py-4 space-y-4 pb-24 max-w-4xl mx-auto">
+        {/* Header Title + Post Button */}
+        <div className="flex items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl sm:text-2xl font-black text-[var(--color-text-primary)] flex items-center gap-2">
-              <span>Buyer Requests</span>
+            <h1 className="text-xl sm:text-2xl font-black text-[var(--color-text-primary)]">
+              Buyer Requests
             </h1>
-            <p className="text-xs sm:text-sm text-[var(--color-text-muted)] mt-0.5">
-              Browse buyer requests and match with your active listings or new properties.
+            <p className="text-xs sm:text-sm text-[var(--color-text-muted)]">
+              Browse all wanted items posted by buyers in Philadelphia.
             </p>
           </div>
+          <button
+            onClick={() => navigate('/wanted/create')}
+            className="flex items-center gap-1.5 rounded-2xl bg-[#5046e5] hover:bg-[#4338ca] px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-indigo-500/20 whitespace-nowrap transition-all"
+          >
+            <PlusCircle size={16} />
+            <span className="hidden sm:inline">Post Wanted</span>
+            <span className="sm:hidden">Post</span>
+          </button>
         </div>
 
-        {/* Filter Pills / Action Bar (Screen 9 Reference) */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-          {/* Category Selector */}
-          {WANTED_CATEGORIES.map((cat) => {
-            const isSelected = selectedCategory === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={cn(
-                  'rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all whitespace-nowrap border',
-                  isSelected
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                    : 'border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:border-gray-400'
-                )}
-              >
-                {cat.label}
-              </button>
-            );
-          })}
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={17} />
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search wanted products and requests..."
+            className="w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] pl-10 pr-4 py-2.5 text-xs sm:text-sm text-[var(--color-text-primary)] shadow-sm focus:border-blue-600 focus:outline-none transition-all"
+          />
+        </div>
+
+        {/* 1. FILTER CONTROLS ROW (PLACED ABOVE CATEGORIES) */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+          {/* Location Dropdown */}
+          <div className="relative">
+            <select
+              value={selectedLocation}
+              onChange={(e) => setSelectedLocation(e.target.value)}
+              className="appearance-none rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] pl-3.5 pr-8 py-2 text-xs font-semibold text-[var(--color-text-secondary)] hover:border-gray-400 focus:outline-none focus:border-blue-600 transition-all cursor-pointer"
+            >
+              <option value="all">Location</option>
+              <option value="all">All Philadelphia</option>
+              {PHILLY_NEIGHBORHOODS.map((nh) => (
+                <option key={nh} value={nh}>
+                  {nh}
+                </option>
+              ))}
+            </select>
+            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          </div>
+
+          {/* Budget Dropdown */}
+          <div className="relative">
+            <select
+              value={selectedBudget}
+              onChange={(e) => setSelectedBudget(e.target.value)}
+              className="appearance-none rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] pl-3.5 pr-8 py-2 text-xs font-semibold text-[var(--color-text-secondary)] hover:border-gray-400 focus:outline-none focus:border-blue-600 transition-all cursor-pointer"
+            >
+              <option value="all">Budget</option>
+              <option value="under_100">Under $100</option>
+              <option value="100_500">$100 – $500</option>
+              <option value="500_1k">$500 – $1,000</option>
+              <option value="1k_5k">$1,000 – $5,000</option>
+              <option value="5k_plus">$5,000+</option>
+            </select>
+            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          </div>
+
+          {/* Condition Dropdown */}
+          <div className="relative">
+            <select
+              value={selectedCondition}
+              onChange={(e) => setSelectedCondition(e.target.value)}
+              className="appearance-none rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] pl-3.5 pr-8 py-2 text-xs font-semibold text-[var(--color-text-secondary)] hover:border-gray-400 focus:outline-none focus:border-blue-600 transition-all cursor-pointer"
+            >
+              <option value="all">Condition</option>
+              <option value="all">Any Condition</option>
+              <option value="new">Brand New</option>
+              <option value="like_new">Like New</option>
+              <option value="good">Good</option>
+              <option value="fair">Fair</option>
+            </select>
+            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          </div>
+
+          {/* Sort Dropdown */}
+          <div className="relative">
+            <select
+              value={selectedSort}
+              onChange={(e) => setSelectedSort(e.target.value)}
+              className="appearance-none rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] pl-3.5 pr-8 py-2 text-xs font-semibold text-[var(--color-text-secondary)] hover:border-gray-400 focus:outline-none focus:border-blue-600 transition-all cursor-pointer"
+            >
+              <option value="newest">Sort by</option>
+              <option value="newest">Newest First</option>
+              <option value="matches">Most Matches</option>
+              <option value="budget_high">Highest Budget</option>
+              <option value="budget_low">Lowest Budget</option>
+            </select>
+            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          </div>
 
           {/* Near Me Toggle */}
           <button
             onClick={() => setFilterNearMe(!filterNearMe)}
             className={cn(
-              'flex items-center gap-1 rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all whitespace-nowrap border',
+              'flex items-center gap-1.5 rounded-2xl px-3.5 py-2 text-xs font-semibold transition-all whitespace-nowrap border',
               filterNearMe
-                ? 'bg-emerald-600 text-white border-emerald-600'
-                : 'border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-secondary)]'
+                ? 'bg-[#5046e5] text-white border-[#5046e5]'
+                : 'border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:border-gray-400'
             )}
           >
             <MapPin size={13} />
             <span>Near Me</span>
           </button>
 
-          {/* Sort Dropdown */}
-          <select
-            value={selectedSort}
-            onChange={(e) => setSelectedSort(e.target.value)}
-            className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] px-3 py-1.5 text-xs font-bold text-[var(--color-text-secondary)] focus:outline-none"
+          {/* Reset Filters */}
+          <button
+            onClick={() => {
+              setSelectedCategory('all');
+              setSelectedLocation('all');
+              setSelectedBudget('all');
+              setSelectedCondition('all');
+              setSelectedSort('newest');
+              setFilterNearMe(false);
+              setSearchTerm('');
+            }}
+            title="Reset Filters"
+            className="flex items-center justify-center h-9 w-9 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:border-gray-400 transition-all shrink-0"
           >
-            <option value="newest">Newest First</option>
-            <option value="budget_high">Highest Budget</option>
-            <option value="budget_low">Lowest Budget</option>
-          </select>
+            <SlidersHorizontal size={14} />
+          </button>
         </div>
 
-        {/* Requests Feed */}
+        {/* 2. CATEGORIES ROW (PLACED BENEATH FILTERS) */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+          {WANTED_CATEGORIES.map((cat) => {
+            const isSelected = selectedCategory === cat.id;
+            const Icon =
+              cat.id === 'electronics'
+                ? Smartphone
+                : cat.id === 'automotive'
+                ? Car
+                : cat.id === 'real_estate'
+                ? Home
+                : cat.id === 'fashion'
+                ? Shirt
+                : cat.id === 'home'
+                ? Sofa
+                : LayoutGrid;
+
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={cn(
+                  'flex items-center gap-1.5 rounded-2xl px-4 py-2 text-xs sm:text-sm font-semibold whitespace-nowrap transition-all border',
+                  isSelected
+                    ? 'bg-[#5046e5] text-white border-[#5046e5] shadow-sm'
+                    : 'border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:border-gray-400'
+                )}
+              >
+                <Icon size={14} />
+                <span>{cat.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Requests Feed List */}
         {isLoading ? (
           <div className="flex justify-center py-12">
             <Spinner size="lg" />
           </div>
-        ) : requests.length === 0 ? (
+        ) : filteredRequests.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-[var(--color-border)] p-8 text-center bg-[var(--color-bg-card)]">
-            <Sparkles className="mx-auto mb-3 text-blue-600" size={36} />
+            <Sparkles className="mx-auto mb-3 text-indigo-600" size={36} />
             <h3 className="text-base font-bold text-[var(--color-text-primary)]">
-              No buyer requests found in this category
+              No buyer requests found
             </h3>
-            <p className="text-xs sm:text-sm text-[var(--color-text-muted)] mt-1">
-              Check back soon or browse other categories.
+            <p className="text-xs sm:text-sm text-[var(--color-text-muted)] mt-1 mb-4 max-w-sm mx-auto">
+              Check back soon or try selecting a different category.
             </p>
+            <button
+              onClick={() => navigate('/wanted/create')}
+              className="rounded-xl bg-[#5046e5] hover:bg-[#4338ca] px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md transition-all"
+            >
+              Post Wanted Request
+            </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {requests.map((req) => (
+          <div className="space-y-3 pt-1">
+            {filteredRequests.map((req) => (
               <WantedCard
                 key={req.id}
                 request={req}

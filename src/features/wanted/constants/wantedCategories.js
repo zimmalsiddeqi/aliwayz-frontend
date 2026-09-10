@@ -1,8 +1,8 @@
-﻿export const WANTED_CATEGORIES = [
+export const WANTED_CATEGORIES = [
   { id: 'all', label: 'All', icon: 'LayoutGrid' },
-  { id: 'real_estate', label: 'Real Estate', icon: 'Home' },
-  { id: 'automotive', label: 'Vehicles', icon: 'Car' },
   { id: 'electronics', label: 'Electronics', icon: 'Smartphone' },
+  { id: 'automotive', label: 'Vehicles', icon: 'Car' },
+  { id: 'real_estate', label: 'Real Estate', icon: 'Home' },
   { id: 'fashion', label: 'Fashion', icon: 'Shirt' },
   { id: 'home', label: 'Home', icon: 'Sofa' },
 ];
