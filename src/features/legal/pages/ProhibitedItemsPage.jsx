@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { SUPPORT_EMAILS } from '../data/legalPages';
 import LegalLayout from '../components/LegalLayout';
 import LegalSection from '../components/LegalSection';
+import LegalContactDesks from '../components/LegalContactDesks';
 
 /**
  * ProhibitedItemsPage - Lists items, goods, and services banned from the Aliwayz marketplace.
@@ -120,14 +121,7 @@ export default function ProhibitedItemsPage() {
         <p className="mb-4">
           If you are unsure whether an item is allowed or want to appeal a listing removal, please contact:
         </p>
-        <div className="p-4 rounded-xl border space-y-2" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-          <p className="text-xs">
-            <strong>Listing Moderation Desk:</strong> <a href={`mailto:${SUPPORT_EMAILS.general}`} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.general}</a>
-          </p>
-          <p className="text-xs">
-            <strong>Compliance Operations:</strong> <a href={`mailto:${SUPPORT_EMAILS.legal}`} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.legal}</a>
-          </p>
-        </div>
+        <LegalContactDesks desks={['general', 'legal']} />
       </LegalSection>
     </LegalLayout>
   );

@@ -147,7 +147,11 @@ const router = createBrowserRouter(
         { path: '/legal/disclaimer',            element: <DisclaimerPage /> },
         { path: '/legal/safety-guidelines',     element: <SafetyGuidelinesPage /> },
         { path: '/legal/contact',               element: <ContactUsPage /> },
+        { path: '/contact',                     element: <ContactUsPage /> },
+        { path: '/contact-us',                  element: <ContactUsPage /> },
         { path: '/legal/about',                 element: <AboutPage /> },
+        { path: '/about',                       element: <AboutPage /> },
+        { path: '/about-us',                    element: <AboutPage /> },
 
         // Public
         { path: '/marketplace', element: <MarketplacePage /> },

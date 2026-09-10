@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { SUPPORT_EMAILS } from '../data/legalPages';
 import LegalLayout from '../components/LegalLayout';
 import LegalSection from '../components/LegalSection';
+import ContactEmailLink from '../components/ContactEmailLink';
+import LegalContactDesks from '../components/LegalContactDesks';
 
 /**
  * IntellectualPropertyPage - Outlines trademark, patent, and brand property policies
@@ -81,7 +83,7 @@ export default function IntellectualPropertyPage() {
           </ul>
         </div>
         <p>
-          Submit these requests directly to <a href={`mailto:${SUPPORT_EMAILS.legal}`} className="underline text-[var(--color-brand)]">legal@aliwayz.com</a>. 
+          Submit these requests directly to <ContactEmailLink email={SUPPORT_EMAILS.legal} showCopyIcon />. 
           For copyright (DMCA) claims, please consult our dedicated <Link to="/legal/copyright" className="underline text-[var(--color-brand)]">Copyright Notice</Link>.
         </p>
       </LegalSection>
@@ -97,7 +99,7 @@ export default function IntellectualPropertyPage() {
           jurisdiction of the federal court systems.
         </p>
         <p>
-          Submit your counter-notification email to <a href={`mailto:${SUPPORT_EMAILS.legal}`} className="underline text-[var(--color-brand)]">legal@aliwayz.com</a>. 
+          Submit your counter-notification email to <ContactEmailLink email={SUPPORT_EMAILS.legal} showCopyIcon />. 
           We will review the materials and resolve the dispute according to applicable regulations.
         </p>
       </LegalSection>
@@ -118,14 +120,7 @@ export default function IntellectualPropertyPage() {
         <p className="mb-4">
           If you have questions regarding brand licensing, trademark guidelines, or reporting procedures, please contact:
         </p>
-        <div className="p-4 rounded-xl border space-y-2" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-          <p className="text-xs">
-            <strong>Legal Operations Desk:</strong> <a href={`mailto:${SUPPORT_EMAILS.legal}`} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.legal}</a>
-          </p>
-          <p className="text-xs">
-            <strong>IP Moderation:</strong> <a href={`mailto:${SUPPORT_EMAILS.general}`} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.general}</a>
-          </p>
-        </div>
+        <LegalContactDesks desks={['legal', 'general']} />
       </LegalSection>
     </LegalLayout>
   );

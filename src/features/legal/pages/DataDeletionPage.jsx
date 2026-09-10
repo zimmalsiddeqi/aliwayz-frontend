@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { SUPPORT_EMAILS } from '../data/legalPages';
 import LegalLayout from '../components/LegalLayout';
 import LegalSection from '../components/LegalSection';
+import ContactEmailLink from '../components/ContactEmailLink';
+import LegalContactDesks from '../components/LegalContactDesks';
 
 /**
  * DataDeletionPage - Explains data rights, manual data purge requests,
@@ -43,7 +45,8 @@ export default function DataDeletionPage() {
           </li>
           <li>
             <strong>Manual Data Purge Request:</strong> You can submit a manual deletion request by sending an email 
-            to our Privacy Request Desk at <a href={`mailto:${SUPPORT_EMAILS.privacy}`} className="underline text-[var(--color-brand)]">privacy@aliwayz.com</a>. 
+            to our Privacy Request Desk at <ContactEmailLink email={SUPPORT_EMAILS.privacy} showCopyIcon /> or via our{' '}
+            <Link to="/legal/contact?dept=privacy" className="underline text-[var(--color-brand)] font-medium">Contact Form</Link>. 
             Please include your account username and the registered email address.
           </li>
         </ul>
@@ -112,14 +115,7 @@ export default function DataDeletionPage() {
         <p className="mb-4">
           If you have questions about our data deletion practices or wish to submit a privacy request, please contact:
         </p>
-        <div className="p-4 rounded-xl border space-y-2" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-          <p className="text-xs">
-            <strong>Privacy Request Desk:</strong> <a href={`mailto:${SUPPORT_EMAILS.privacy}`} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.privacy}</a>
-          </p>
-          <p className="text-xs">
-            <strong>General Support:</strong> <a href={`mailto:${SUPPORT_EMAILS.general}`} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.general}</a>
-          </p>
-        </div>
+        <LegalContactDesks desks={['privacy', 'general']} />
       </LegalSection>
     </LegalLayout>
   );

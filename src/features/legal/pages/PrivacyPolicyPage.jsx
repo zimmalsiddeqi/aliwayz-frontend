@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { SUPPORT_EMAILS } from '../data/legalPages';
 import LegalLayout from '../components/LegalLayout';
 import LegalSection from '../components/LegalSection';
+import ContactEmailLink from '../components/ContactEmailLink';
+import LegalContactDesks from '../components/LegalContactDesks';
 
 /**
  * PrivacyPolicyPage - Google Play & App Store compliant privacy disclosures for Aliwayz.
@@ -243,7 +245,7 @@ export default function PrivacyPolicyPage() {
           <li><strong>Location Controls:</strong> You can decline browser location prompts or modify search coordinates in the location selector.</li>
         </ul>
         <p className="mt-4">
-          To exercise your rights, please email us at <a href={`mailto:${SUPPORT_EMAILS.privacy}`} className="underline text-[var(--color-brand)]">privacy@aliwayz.com</a>.
+          To exercise your rights, please email us at <ContactEmailLink email={SUPPORT_EMAILS.privacy} showCopyIcon /> or use our <Link to="/legal/contact?dept=privacy" className="underline text-[var(--color-brand)] font-medium">Contact Form</Link>.
         </p>
       </LegalSection>
 
@@ -261,7 +263,8 @@ export default function PrivacyPolicyPage() {
         </ul>
         <p className="mt-4">
           If you wish to submit a privacy request under these regulations, please contact us at{' '}
-          <a href={`mailto:${SUPPORT_EMAILS.privacy}`} className="underline text-[var(--color-brand)]">privacy@aliwayz.com</a>.
+          <ContactEmailLink email={SUPPORT_EMAILS.privacy} showCopyIcon /> or submit a request via our{' '}
+          <Link to="/legal/contact?dept=privacy" className="underline text-[var(--color-brand)] font-medium">Privacy Request Desk</Link>.
         </p>
       </LegalSection>
 
@@ -317,31 +320,7 @@ export default function PrivacyPolicyPage() {
         <p className="mb-4">
           If you have questions about this policy, data collection, or wish to exercise your privacy rights, please contact our team:
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 rounded-xl border space-y-1.5" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-muted)]">General Support</h4>
-            <p className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-              <a href={`mailto:${SUPPORT_EMAILS.general}`} className="hover:underline text-[var(--color-brand)]">{SUPPORT_EMAILS.general}</a>
-            </p>
-            <p className="text-[10px]" style={{ color: 'var(--color-text-secondary)' }}>For general inquiries and app troubleshooting.</p>
-          </div>
-          
-          <div className="p-4 rounded-xl border space-y-1.5" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-muted)]">Privacy Requests</h4>
-            <p className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-              <a href={`mailto:${SUPPORT_EMAILS.privacy}`} className="hover:underline text-[var(--color-brand)]">{SUPPORT_EMAILS.privacy}</a>
-            </p>
-            <p className="text-[10px]" style={{ color: 'var(--color-text-secondary)' }}>For exercising data deletion or CCPA rights.</p>
-          </div>
-          
-          <div className="p-4 rounded-xl border space-y-1.5" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-muted)]">Legal Notices</h4>
-            <p className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-              <a href={`mailto:${SUPPORT_EMAILS.legal}`} className="hover:underline text-[var(--color-brand)]">{SUPPORT_EMAILS.legal}</a>
-            </p>
-            <p className="text-[10px]" style={{ color: 'var(--color-text-secondary)' }}>For legal inquiries or regulatory compliance issues.</p>
-          </div>
-        </div>
+        <LegalContactDesks desks={['general', 'privacy', 'legal']} />
       </LegalSection>
     </LegalLayout>
   );

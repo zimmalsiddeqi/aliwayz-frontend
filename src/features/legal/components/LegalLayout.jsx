@@ -471,6 +471,9 @@ export default function LegalLayout({ slug, children }) {
               </div>
 
               <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                <Link to="/legal/contact" className="btn-primary rounded-xl text-xs sm:text-sm inline-flex items-center gap-1.5">
+                  <Mail size={14} /> Contact Help Desk
+                </Link>
                 <Link to="/legal" className="btn-secondary rounded-xl text-xs sm:text-sm inline-flex items-center gap-1.5">
                   <ArrowLeft size={14} /> Back to Legal Center
                 </Link>

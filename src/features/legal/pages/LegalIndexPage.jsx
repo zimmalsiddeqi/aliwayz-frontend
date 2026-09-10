@@ -475,6 +475,12 @@ export default function LegalIndexPage() {
               </a>
             </div>
 
+            <div className="pt-3 flex justify-center">
+              <Link to="/legal/contact" className="btn-primary rounded-xl text-xs sm:text-sm inline-flex items-center gap-1.5 px-5 py-2.5">
+                <Mail size={15} /> Open Help & Contact Center
+              </Link>
+            </div>
+
             <div className="text-[10px] pt-4" style={{ color: 'var(--color-text-muted)' }}>
               Last updated site-wide: {LAST_UPDATED}
             </div>

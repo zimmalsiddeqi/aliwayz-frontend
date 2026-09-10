@@ -1,7 +1,10 @@
 
+import { Link } from 'react-router-dom';
 import { SUPPORT_EMAILS } from '../data/legalPages';
 import LegalLayout from '../components/LegalLayout';
 import LegalSection from '../components/LegalSection';
+import ContactEmailLink from '../components/ContactEmailLink';
+import LegalContactDesks from '../components/LegalContactDesks';
 
 /**
  * AccountDeletionPage - Details self-service account deletion and data retention schedules.
@@ -33,7 +36,8 @@ export default function AccountDeletionPage() {
         </ol>
         <p>
           If you are unable to access your profile or need assistance, you can also submit a manual deletion 
-          request by emailing us at <a href={`mailto:${SUPPORT_EMAILS.privacy}`} className="underline text-[var(--color-brand)]">privacy@aliwayz.com</a>.
+          request by emailing us at <ContactEmailLink email={SUPPORT_EMAILS.privacy} showCopyIcon /> or via our{' '}
+          <Link to="/legal/contact?dept=privacy" className="underline text-[var(--color-brand)] font-medium">Contact Form</Link>.
         </p>
       </LegalSection>
 
@@ -97,14 +101,7 @@ export default function AccountDeletionPage() {
         <p className="mb-4">
           If you have questions regarding data removal or need assistance deleting your account, please reach out:
         </p>
-        <div className="p-4 rounded-xl border space-y-2" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-          <p className="text-xs">
-            <strong>Privacy Request Desk:</strong> <a href={`mailto:${SUPPORT_EMAILS.privacy}`} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.privacy}</a>
-          </p>
-          <p className="text-xs">
-            <strong>Support Desk:</strong> <a href={`mailto:${SUPPORT_EMAILS.general}`} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.general}</a>
-          </p>
-        </div>
+        <LegalContactDesks desks={['privacy', 'general']} />
       </LegalSection>
     </LegalLayout>
   );

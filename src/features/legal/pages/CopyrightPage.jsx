@@ -2,6 +2,8 @@
 import { SUPPORT_EMAILS } from '../data/legalPages';
 import LegalLayout from '../components/LegalLayout';
 import LegalSection from '../components/LegalSection';
+import ContactEmailLink from '../components/ContactEmailLink';
+import LegalContactDesks from '../components/LegalContactDesks';
 
 /**
  * CopyrightPage - Detailing platform copyright terms and US DMCA notice templates.
@@ -92,7 +94,7 @@ export default function CopyrightPage() {
         </div>
         <p>
           Please email your complete notice to our Designated Agent at{' '}
-          <a href={`mailto:${SUPPORT_EMAILS.legal}`} className="underline text-[var(--color-brand)]">legal@aliwayz.com</a>. 
+          <ContactEmailLink email={SUPPORT_EMAILS.legal} showCopyIcon />. 
           We process verified notices promptly and deactivate infringing listings.
         </p>
       </LegalSection>
@@ -101,14 +103,7 @@ export default function CopyrightPage() {
         <p className="mb-4">
           If you have questions regarding brand licensing, copyright authorizations, or wish to follow up on a DMCA notice, please contact:
         </p>
-        <div className="p-4 rounded-xl border space-y-2" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-          <p className="text-xs">
-            <strong>Designated Copyright Agent:</strong> <a href={`mailto:${SUPPORT_EMAILS.legal}`} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.legal}</a>
-          </p>
-          <p className="text-xs">
-            <strong>Compliance Operations:</strong> <a href={`mailto:${SUPPORT_EMAILS.general}`} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.general}</a>
-          </p>
-        </div>
+        <LegalContactDesks desks={['legal', 'general']} />
       </LegalSection>
     </LegalLayout>
   );

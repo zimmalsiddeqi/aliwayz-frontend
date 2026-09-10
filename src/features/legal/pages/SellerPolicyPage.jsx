@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { SUPPORT_EMAILS } from '../data/legalPages';
 import LegalLayout from '../components/LegalLayout';
 import LegalSection from '../components/LegalSection';
+import LegalContactDesks from '../components/LegalContactDesks';
 
 /**
  * SellerPolicyPage - Rules and guidelines for sellers on the Aliwayz marketplace.
@@ -156,14 +157,7 @@ export default function SellerPolicyPage() {
         <p className="mb-4">
           If you have questions regarding seller registration, store settings, or listing compliance, please reach out to us:
         </p>
-        <div className="p-4 rounded-xl border space-y-2" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-          <p className="text-xs">
-            <strong>Seller Support Desk:</strong> <a href={`mailto:${SUPPORT_EMAILS.general}`} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.general}</a>
-          </p>
-          <p className="text-xs">
-            <strong>Compliance Operations:</strong> <a href={`mailto:${SUPPORT_EMAILS.legal}`} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.legal}</a>
-          </p>
-        </div>
+        <LegalContactDesks desks={['general', 'legal']} />
       </LegalSection>
     </LegalLayout>
   );

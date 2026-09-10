@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
-import { SUPPORT_EMAILS } from '../data/legalPages';
 import LegalLayout from '../components/LegalLayout';
 import LegalSection from '../components/LegalSection';
+import LegalContactDesks from '../components/LegalContactDesks';
 
 /**
  * AboutPage - Describes Aliwayz mission, core features (meetup marketplace, QR scans),
@@ -74,29 +74,38 @@ export default function AboutPage() {
         </ul>
       </LegalSection>
 
-      <LegalSection id="our-commitment" title="5. Our Commitment">
+      <LegalSection id="platform-architecture" title="5. Platform Architecture">
         <p className="mb-4">
-          We are committed to maintaining a safe and compliant marketplace:
+          Aliwayz is built on modern web technologies to ensure optimal performance, security, and reliability:
         </p>
         <ul className="list-disc pl-5 space-y-1">
-          <li><strong>No Payment Risks:</strong> By not processing payments inside the platform, we eliminate credit card scams and processing risks.</li>
-          <li><strong>Active Moderation:</strong> We review reported items and enforce our guidelines to keep the platform clean.</li>
-          <li><strong>Data Privacy:</strong> We protect your account details and do not sell your personal information.</li>
+          <li><strong>Frontend:</strong> React 18, Vite, and Tailwind CSS.</li>
+          <li><strong>Backend:</strong> Node.js, Express, and PostgreSQL.</li>
+          <li><strong>Authentication & Storage:</strong> Supabase authentication and secure storage buckets.</li>
+          <li><strong>Hosting:</strong> Scalable cloud infrastructure.</li>
         </ul>
       </LegalSection>
 
-      <LegalSection id="contact-us" title="6. Contact Us">
+      <LegalSection id="safety-principles" title="6. Safety Principles">
+        <p className="mb-4">
+          We encourage all buyers and sellers to prioritize safety by following our recommendations:
+        </p>
+        <ul className="list-disc pl-5 space-y-1">
+          <li>Always meet in well-lit, public spaces during daylight hours.</li>
+          <li>Inspect items thoroughly before handing over payment.</li>
+          <li>Never share sensitive financial or personal information in chats.</li>
+          <li>Report suspicious listings or behavior immediately.</li>
+        </ul>
+        <p className="mt-4">
+          To read our complete safety guide, visit our <Link to="/legal/safety-guidelines" className="underline text-[var(--color-brand)]">Safety Guidelines</Link>.
+        </p>
+      </LegalSection>
+
+      <LegalSection id="contact-us" title="7. Contact Us">
         <p className="mb-4">
           If you want to learn more about the platform, press inquiries, or partnerships, please contact:
         </p>
-        <div className="p-4 rounded-xl border space-y-2" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-          <p className="text-xs">
-            <strong>General Inquiries:</strong> <a href={`mailto:${SUPPORT_EMAILS.general}`} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.general}</a>
-          </p>
-          <p className="text-xs">
-            <strong>Legal and Compliance:</strong> <a href={`mailto:${SUPPORT_EMAILS.legal}`} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.legal}</a>
-          </p>
-        </div>
+        <LegalContactDesks desks={['general', 'legal']} />
       </LegalSection>
     </LegalLayout>
   );

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
-import { SUPPORT_EMAILS } from '../data/legalPages';
 import LegalLayout from '../components/LegalLayout';
 import LegalSection from '../components/LegalSection';
+import LegalContactDesks from '../components/LegalContactDesks';
 
 /**
  * DisclaimerPage - Outlines limitations of liability, no-warranty disclaimers,
@@ -12,10 +12,10 @@ export default function DisclaimerPage() {
     <LegalLayout slug="disclaimer">
       <div className="mb-6 p-4 rounded-xl border print:border-none" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
         <p className="text-sm font-semibold mb-1" style={{ color: 'var(--color-text-primary)' }}>
-          Effective Date: October 15, 2026
+          Legal Disclaimer
         </p>
         <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-          This page contains critical disclaimers limiting our liability regarding your use of Aliwayz.
+          Please read these liability limitations and platform definitions carefully before using Aliwayz.
         </p>
       </div>
 
@@ -72,14 +72,14 @@ export default function DisclaimerPage() {
         </p>
       </LegalSection>
 
-      <LegalSection id="third-party-links" title="5. Third-Party Links">
+      <LegalSection id="user-responsibility" title="5. User Diligence & Safety">
         <p className="mb-4">
-          Our platform may contain links to external, third-party websites or services that are not owned 
-          or controlled by Aliwayz.
+          Users are solely responsible for exercising common sense, prudent caution, and personal diligence when interacting 
+          with other marketplace users and attending meetups.
         </p>
         <p>
-          We hold no responsibility for the content, privacy policies, or business practices of any third-party 
-          sites. We encourage you to inspect the terms of any external links you choose to click.
+          We strongly urge all users to meet in high-visibility public places, test goods thoroughly before payment, 
+          and avoid sending electronic wire payments to strangers prior to inspecting goods.
         </p>
       </LegalSection>
 
@@ -100,14 +100,7 @@ export default function DisclaimerPage() {
         <p className="mb-4">
           If you have questions regarding these disclaimers or require compliance information, please contact:
         </p>
-        <div className="p-4 rounded-xl border space-y-2" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-          <p className="text-xs">
-            <strong>Legal Operations Desk:</strong> <a href={`mailto:${SUPPORT_EMAILS.legal}`} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.legal}</a>
-          </p>
-          <p className="text-xs">
-            <strong>General Support:</strong> <a href={`mailto:${SUPPORT_EMAILS.general}`} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.general}</a>
-          </p>
-        </div>
+        <LegalContactDesks desks={['legal', 'general']} />
       </LegalSection>
     </LegalLayout>
   );

@@ -2,6 +2,7 @@
 import { SUPPORT_EMAILS } from '../data/legalPages';
 import LegalLayout from '../components/LegalLayout';
 import LegalSection from '../components/LegalSection';
+import LegalContactDesks from '../components/LegalContactDesks';
 
 /**
  * CookiePolicyPage - Explains cookie usage, browser storage (localStorage, session),
@@ -107,14 +108,7 @@ export default function CookiePolicyPage() {
         <p className="mb-4">
           If you have questions about how we use cookies, local storage, or security identifiers, please contact:
         </p>
-        <div className="p-4 rounded-xl border space-y-2" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-          <p className="text-xs">
-            <strong>Privacy Request Desk:</strong> <a href={`mailto:${SUPPORT_EMAILS.privacy}`} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.privacy}</a>
-          </p>
-          <p className="text-xs">
-            <strong>General Support:</strong> <a href={`mailto:${SUPPORT_EMAILS.general}`} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.general}</a>
-          </p>
-        </div>
+        <LegalContactDesks desks={['privacy', 'general']} />
       </LegalSection>
     </LegalLayout>
   );

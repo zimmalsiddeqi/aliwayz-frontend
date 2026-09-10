@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { SUPPORT_EMAILS } from '../data/legalPages';
 import LegalLayout from '../components/LegalLayout';
 import LegalSection from '../components/LegalSection';
+import ContactEmailLink from '../components/ContactEmailLink';
+import LegalContactDesks from '../components/LegalContactDesks';
 
 /**
  * ReportAbusePage - Explains user reporting mechanisms, moderation processes,
@@ -48,11 +50,11 @@ export default function ReportAbusePage() {
           </li>
           <li>
             <strong>Reporting Chat Abuse:</strong> Flag specific messages in the chat panel or take screenshots and email them 
-            to <a href={`mailto:${SUPPORT_EMAILS.general}`} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.general}</a>.
+            to <ContactEmailLink email={SUPPORT_EMAILS.general} showCopyIcon />.
           </li>
           <li>
             <strong>Reporting IP Infringements:</strong> Submit formal copyright or trademark infringement reports to{' '}
-            <a href={`mailto:${SUPPORT_EMAILS.legal}`} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.legal}</a>.
+            <ContactEmailLink email={SUPPORT_EMAILS.legal} showCopyIcon />.
           </li>
         </ul>
       </LegalSection>
@@ -63,19 +65,18 @@ export default function ReportAbusePage() {
         </p>
         <ul className="list-disc pl-5 space-y-1">
           <li><strong>Review Phase:</strong> We inspect the reported listing, chat logs, or profile details for terms violations.</li>
-          <li><strong>Enforcement:</strong> If a violation is confirmed, we take action immediately, which may include removing the listing, restricting store settings, or suspending the account.</li>
-          <li><strong>Confidentiality:</strong> All user reports are confidential. We never reveal the identity of the reporting user to the reported party.</li>
+          <li><strong>Action Phase:</strong> If a violation is identified, we remove the listing and issue a warning or suspend the offending profile.</li>
+          <li><strong>Notification:</strong> The reporting user may receive an in-app confirmation once the review is concluded.</li>
         </ul>
       </LegalSection>
 
-      <LegalSection id="false-reports" title="4. False Reports">
+      <LegalSection id="false-reports" title="4. False Reporting">
         <p className="mb-4">
-          Our reporting system exists to protect the community. Abuse of this system is strictly prohibited:
+          Submitting intentionally fraudulent, malicious, or retaliatory reports against other users is a direct 
+          violation of our <Link to="/legal/community-guidelines" className="underline text-[var(--color-brand)]">Community Guidelines</Link>.
         </p>
         <p>
-          Submitting false, malicious, or retaliatory reports against other users to disrupt their sales or manipulate 
-          the search system violates our <Link to="/legal/community-guidelines" className="underline text-[var(--color-brand)]">Community Guidelines</Link>. 
-          Accounts found abusing the reporting tool will face warnings or suspension.
+          Accounts found abusing the reporting feature may have their reporting privileges revoked or face temporary account suspension.
         </p>
       </LegalSection>
 
@@ -94,14 +95,7 @@ export default function ReportAbusePage() {
         <p className="mb-4">
           If you have questions about our reporting processes or wish to follow up on a submitted report, please contact:
         </p>
-        <div className="p-4 rounded-xl border space-y-2" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-          <p className="text-xs">
-            <strong>Moderation Operations:</strong> <a href={`mailto:${SUPPORT_EMAILS.general}`} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.general}</a>
-          </p>
-          <p className="text-xs">
-            <strong>Compliance Operations:</strong> <a href={`mailto:${SUPPORT_EMAILS.legal}`} className="underline text-[var(--color-brand)]">{SUPPORT_EMAILS.legal}</a>
-          </p>
-        </div>
+        <LegalContactDesks desks={['general', 'legal']} />
       </LegalSection>
     </LegalLayout>
   );
