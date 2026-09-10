@@ -4,9 +4,9 @@
 
 export const APP_NAME = import.meta.env.VITE_APP_NAME || 'Aliwayz';
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://aliwayz-backend-production-eff1.up.railway.app/api/v1';
 
-export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000';
+export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'https://aliwayz-backend-production-eff1.up.railway.app';
 
 // ── User Roles ─────────────────────────────────────────────────
 export const ROLES = {

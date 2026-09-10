@@ -31,7 +31,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target:       'http://localhost:3000',
+        target:       'https://aliwayz-backend-production-eff1.up.railway.app',
         changeOrigin: true,
         secure:       false,
         configure: (proxy) => {
@@ -44,7 +44,7 @@ export default defineConfig({
         },
       },
       '/socket.io': {
-        target:       'http://localhost:3000',
+        target:       'https://aliwayz-backend-production-eff1.up.railway.app',
         ws:           true,
         changeOrigin: true,
         secure:       false,
