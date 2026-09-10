@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import {
   Smartphone,
   Shirt,
@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@lib/utils';
 import Button from '@components/ui/Button';
+import WizardProgressBar from './WizardProgressBar';
 import {
   MARKETPLACE_CONDITIONS,
   DURATION_OPTIONS,
@@ -27,14 +28,14 @@ export default function MarketplaceWizard({
 }) {
   const [step, setStep] = useState(1);
 
-  // Form State
+  // Form State - empty defaults with clean placeholders
   const [title, setTitle] = useState('');
-  const [condition, setCondition] = useState('any');
+  const [condition, setCondition] = useState('');
   const [brand, setBrand] = useState('');
-  const [budgetMin, setBudgetMin] = useState(50);
-  const [budgetMax, setBudgetMax] = useState(300);
+  const [budgetMin, setBudgetMin] = useState('');
+  const [budgetMax, setBudgetMax] = useState('');
   const [description, setDescription] = useState('');
-  const [locationCity, setLocationCity] = useState('Philadelphia, PA');
+  const [locationCity, setLocationCity] = useState('');
   const [locationRadius, setLocationRadius] = useState(15);
   const [durationDays, setDurationDays] = useState(30);
 
@@ -51,9 +52,9 @@ export default function MarketplaceWizard({
       item_type: brand || 'General',
       budget_min: Number(budgetMin) || 0,
       budget_max: Number(budgetMax) || 0,
-      description: `Brand: ${brand || 'Any'}. Condition: ${condition}.\n\n${description}`,
-      features: [condition !== 'any' ? `Condition: ${condition}` : 'Any condition', brand ? `Brand: ${brand}` : ''],
-      location_city: locationCity,
+      description: `Brand: ${brand || 'Any'}. Condition: ${condition || 'Any'}.\n\n${description}`,
+      features: [condition ? `Condition: ${condition}` : 'Any condition', brand ? `Brand: ${brand}` : ''],
+      location_city: locationCity || 'Philadelphia, PA',
       location_radius: Number(locationRadius) || 15,
       duration_days: Number(durationDays) || 30,
       metadata: {
@@ -69,6 +70,8 @@ export default function MarketplaceWizard({
   if (step === 1) {
     return (
       <div className="mx-auto max-w-xl space-y-6">
+        <WizardProgressBar currentStep={1} steps={['Item', 'Details', 'Location', 'Review']} />
+
         <div className="text-center">
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg shadow-emerald-500/30">
             <Package size={26} />
@@ -134,12 +137,18 @@ export default function MarketplaceWizard({
           </div>
         </div>
 
-        {/* Navigation */}
+        {/* Navigation: Back and Next only */}
         <div className="flex items-center justify-between pt-4">
-          <Button variant="ghost" onClick={onBackToCategory}>
-            &larr; Categories
-          </Button>
           <button
+            type="button"
+            onClick={onBackToCategory}
+            className="flex items-center gap-1.5 rounded-xl border border-[var(--color-border)] px-5 py-2.5 text-xs sm:text-sm font-bold text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] transition-all"
+          >
+            <ArrowLeft size={16} />
+            <span>Back</span>
+          </button>
+          <button
+            type="button"
             onClick={() => {
               if (!title.trim()) {
                 alert('Please enter an item name');
@@ -147,7 +156,7 @@ export default function MarketplaceWizard({
               }
               setStep(2);
             }}
-            className="flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-6 py-3 text-sm font-bold text-white shadow-md shadow-emerald-500/20 transition-all transform active:scale-95"
+            className="flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-emerald-500/20 transition-all transform active:scale-95"
           >
             <span>Next</span>
             <ArrowRight size={16} />
@@ -161,6 +170,8 @@ export default function MarketplaceWizard({
   if (step === 2) {
     return (
       <div className="mx-auto max-w-xl space-y-6">
+        <WizardProgressBar currentStep={2} steps={['Item', 'Details', 'Location', 'Review']} />
+
         <div className="text-center">
           <h2 className="text-xl sm:text-2xl font-black text-[var(--color-text-primary)]">
             Budget & Details
@@ -181,6 +192,7 @@ export default function MarketplaceWizard({
                 type="number"
                 value={budgetMin}
                 onChange={(e) => setBudgetMin(e.target.value)}
+                placeholder="50"
                 className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-bold text-[var(--color-text-primary)] focus:border-emerald-600 focus:outline-none"
               />
             </div>
@@ -190,6 +202,7 @@ export default function MarketplaceWizard({
                 type="number"
                 value={budgetMax}
                 onChange={(e) => setBudgetMax(e.target.value)}
+                placeholder="300"
                 className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-bold text-[var(--color-text-primary)] focus:border-emerald-600 focus:outline-none"
               />
             </div>
@@ -211,12 +224,18 @@ export default function MarketplaceWizard({
 
         {/* Buttons */}
         <div className="flex items-center justify-between pt-4">
-          <Button variant="ghost" onClick={() => setStep(1)}>
-            &larr; Back
-          </Button>
           <button
+            type="button"
+            onClick={() => setStep(1)}
+            className="flex items-center gap-1.5 rounded-xl border border-[var(--color-border)] px-5 py-2.5 text-xs sm:text-sm font-bold text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] transition-all"
+          >
+            <ArrowLeft size={16} />
+            <span>Back</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setStep(3)}
-            className="flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-6 py-3 text-sm font-bold text-white shadow-md shadow-emerald-500/20 transition-all transform active:scale-95"
+            className="flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-emerald-500/20 transition-all transform active:scale-95"
           >
             <span>Next</span>
             <ArrowRight size={16} />
@@ -230,6 +249,8 @@ export default function MarketplaceWizard({
   if (step === 3) {
     return (
       <div className="mx-auto max-w-xl space-y-6">
+        <WizardProgressBar currentStep={3} steps={['Item', 'Details', 'Location', 'Review']} />
+
         <div className="text-center">
           <h2 className="text-xl sm:text-2xl font-black text-[var(--color-text-primary)]">
             Location & Radius
@@ -247,6 +268,7 @@ export default function MarketplaceWizard({
             type="text"
             value={locationCity}
             onChange={(e) => setLocationCity(e.target.value)}
+            placeholder="Search for a city or neighborhood"
             className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-3 text-sm font-semibold text-[var(--color-text-primary)] focus:border-emerald-600 focus:outline-none"
           />
         </div>
@@ -269,12 +291,18 @@ export default function MarketplaceWizard({
 
         {/* Buttons */}
         <div className="flex items-center justify-between pt-4">
-          <Button variant="ghost" onClick={() => setStep(2)}>
-            &larr; Back
-          </Button>
           <button
+            type="button"
+            onClick={() => setStep(2)}
+            className="flex items-center gap-1.5 rounded-xl border border-[var(--color-border)] px-5 py-2.5 text-xs sm:text-sm font-bold text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] transition-all"
+          >
+            <ArrowLeft size={16} />
+            <span>Back</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setStep(4)}
-            className="flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-6 py-3 text-sm font-bold text-white shadow-md shadow-emerald-500/20 transition-all transform active:scale-95"
+            className="flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-emerald-500/20 transition-all transform active:scale-95"
           >
             <span>Next</span>
             <ArrowRight size={16} />
@@ -287,6 +315,8 @@ export default function MarketplaceWizard({
   // STEP 4: Review & Post
   return (
     <div className="mx-auto max-w-xl space-y-6">
+      <WizardProgressBar currentStep={4} steps={['Item', 'Details', 'Location', 'Review']} />
+
       <div className="text-center">
         <h2 className="text-xl sm:text-2xl font-black text-[var(--color-text-primary)]">
           Review Item Request
@@ -309,17 +339,19 @@ export default function MarketplaceWizard({
         <div className="grid grid-cols-2 gap-y-2">
           <span className="text-[var(--color-text-muted)]">Budget:</span>
           <span className="font-bold text-emerald-600 text-right">
-            ${Number(budgetMin).toLocaleString()} - ${Number(budgetMax).toLocaleString()}
+            {budgetMin || budgetMax
+              ? `$${Number(budgetMin || 0).toLocaleString()} - $${Number(budgetMax || 0).toLocaleString()}`
+              : 'Flexible'}
           </span>
 
           <span className="text-[var(--color-text-muted)]">Brand:</span>
           <span className="font-bold text-right">{brand || 'Any Brand'}</span>
 
           <span className="text-[var(--color-text-muted)]">Condition:</span>
-          <span className="font-bold text-right capitalize">{condition}</span>
+          <span className="font-bold text-right capitalize">{condition || 'Any'}</span>
 
           <span className="text-[var(--color-text-muted)]">Location:</span>
-          <span className="font-bold text-right">{locationCity} ({locationRadius} mi)</span>
+          <span className="font-bold text-right">{locationCity || 'Philadelphia, PA'} ({locationRadius} mi)</span>
         </div>
       </div>
 
@@ -343,9 +375,14 @@ export default function MarketplaceWizard({
 
       {/* Buttons */}
       <div className="flex items-center justify-between pt-4">
-        <Button variant="ghost" onClick={() => setStep(3)}>
-          &larr; Back
-        </Button>
+        <button
+          type="button"
+          onClick={() => setStep(3)}
+          className="flex items-center gap-1.5 rounded-xl border border-[var(--color-border)] px-5 py-2.5 text-xs sm:text-sm font-bold text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] transition-all"
+        >
+          <ArrowLeft size={16} />
+          <span>Back</span>
+        </button>
         <button
           onClick={handleSubmit}
           disabled={isSubmitting}

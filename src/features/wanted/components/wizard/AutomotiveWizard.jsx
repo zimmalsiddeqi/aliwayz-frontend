@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import {
   Car,
   Truck,
@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@lib/utils';
 import Button from '@components/ui/Button';
+import WizardProgressBar from './WizardProgressBar';
 import {
   AUTOMOTIVE_TYPES,
   AUTOMOTIVE_FEATURES,
@@ -33,20 +34,20 @@ import {
 export default function AutomotiveWizard({ onSubmit, isSubmitting, onBackToCategory }) {
   const [step, setStep] = useState(1);
 
-  // Form State
-  const [intent, setIntent] = useState('buy');
-  const [vehicleType, setVehicleType] = useState('suv');
+  // Form State - empty defaults with clean placeholders
+  const [intent, setIntent] = useState('');
+  const [vehicleType, setVehicleType] = useState('');
   const [makeModel, setMakeModel] = useState('');
-  const [yearMin, setYearMin] = useState('2019+');
-  const [maxMileage, setMaxMileage] = useState('60,000 miles');
-  const [transmission, setTransmission] = useState('automatic');
-  const [budgetMin, setBudgetMin] = useState(15000);
-  const [budgetMax, setBudgetMax] = useState(30000);
+  const [yearMin, setYearMin] = useState('');
+  const [maxMileage, setMaxMileage] = useState('');
+  const [transmission, setTransmission] = useState('');
+  const [budgetMin, setBudgetMin] = useState('');
+  const [budgetMax, setBudgetMax] = useState('');
 
-  const [selectedFeatures, setSelectedFeatures] = useState(['clean_title', 'backup_camera', 'apple_carplay']);
+  const [selectedFeatures, setSelectedFeatures] = useState([]);
   const [additionalPreferences, setAdditionalPreferences] = useState('');
 
-  const [locationCity, setLocationCity] = useState('Philadelphia, PA');
+  const [locationCity, setLocationCity] = useState('');
   const [locationRadius, setLocationRadius] = useState(25);
   const [durationDays, setDurationDays] = useState(30);
 
@@ -57,25 +58,25 @@ export default function AutomotiveWizard({ onSubmit, isSubmitting, onBackToCateg
   };
 
   const generateTitle = () => {
-    if (makeModel.trim()) return `${makeModel.trim()} (${yearMin})`;
+    if (makeModel.trim()) return `${makeModel.trim()}${yearMin ? ` (${yearMin})` : ''}`;
     const typeObj = AUTOMOTIVE_TYPES.find((t) => t.id === vehicleType);
-    return `${yearMin} ${typeObj?.label || 'Vehicle'}`;
+    return `${yearMin || 'Any Year'} ${typeObj?.label || 'Vehicle'}`;
   };
 
   const handleSubmit = () => {
     const payload = {
       category: 'automotive',
       title: generateTitle(),
-      intent,
-      item_type: vehicleType,
+      intent: intent || 'purchase',
+      item_type: vehicleType || 'other',
       budget_min: Number(budgetMin) || 0,
       budget_max: Number(budgetMax) || 0,
-      description: `Target: ${makeModel || vehicleType}. Min Year: ${yearMin}. Max Miles: ${maxMileage}. Transmission: ${transmission}.\n\n${additionalPreferences}`,
+      description: `Target: ${makeModel || vehicleType || 'Any'}. Min Year: ${yearMin || 'Any'}. Max Miles: ${maxMileage || 'Any'}. Transmission: ${transmission || 'Any'}.\n\n${additionalPreferences}`,
       features: selectedFeatures.map((f) => {
         const featObj = AUTOMOTIVE_FEATURES.find((item) => item.id === f);
         return featObj ? featObj.label : f;
       }),
-      location_city: locationCity,
+      location_city: locationCity || 'Philadelphia, PA',
       location_radius: Number(locationRadius) || 25,
       duration_days: Number(durationDays) || 30,
       metadata: {
@@ -94,6 +95,8 @@ export default function AutomotiveWizard({ onSubmit, isSubmitting, onBackToCateg
   if (step === 1) {
     return (
       <div className="mx-auto max-w-xl space-y-6">
+        <WizardProgressBar currentStep={1} />
+
         <div className="text-center">
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-amber-500 text-white shadow-lg shadow-amber-500/30">
             <Car size={26} />
@@ -102,27 +105,40 @@ export default function AutomotiveWizard({ onSubmit, isSubmitting, onBackToCateg
             What vehicle are you seeking?
           </h2>
           <p className="mt-1 text-xs sm:text-sm text-[var(--color-text-muted)]">
-            Choose your vehicle type and whether you want to buy, lease, or rent.
+            Choose your vehicle type and your acquisition preference.
           </p>
         </div>
 
-        {/* Intent */}
-        <div className="flex rounded-2xl bg-[var(--color-bg-secondary)] p-1.5 max-w-sm mx-auto">
-          {['buy', 'lease', 'rent'].map((item) => (
-            <button
-              key={item}
-              type="button"
-              onClick={() => setIntent(item)}
-              className={cn(
-                'flex-1 py-2 text-xs sm:text-sm font-bold rounded-xl capitalize transition-all',
-                intent === item
-                  ? 'bg-amber-500 text-white shadow-sm'
-                  : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
-              )}
-            >
-              {item}
-            </button>
-          ))}
+        {/* Automotive-Specific Intent: Purchase, Finance, Lease, Short-term */}
+        <div className="space-y-2">
+          <label className="block text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">
+            Acquisition Type
+          </label>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {[
+              { id: 'purchase', label: 'Purchase / Cash' },
+              { id: 'finance', label: 'Finance / Loan' },
+              { id: 'lease', label: 'Lease' },
+              { id: 'rental', label: 'Short-Term Rental' },
+            ].map((item) => {
+              const isSelected = intent === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setIntent(item.id)}
+                  className={cn(
+                    'py-2 px-2 text-xs font-bold rounded-xl transition-all border text-center',
+                    isSelected
+                      ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
+                      : 'border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:border-gray-400'
+                  )}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Vehicle Body Type */}
@@ -181,14 +197,24 @@ export default function AutomotiveWizard({ onSubmit, isSubmitting, onBackToCateg
           />
         </div>
 
-        {/* Navigation */}
+        {/* Navigation: Back and Next only */}
         <div className="flex items-center justify-between pt-4">
-          <Button variant="ghost" onClick={onBackToCategory}>
-            &larr; Categories
-          </Button>
           <button
-            onClick={() => setStep(2)}
-            className="flex items-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-600 px-6 py-3 text-sm font-bold text-white shadow-md shadow-amber-500/20 transition-all transform active:scale-95"
+            type="button"
+            onClick={onBackToCategory}
+            className="flex items-center gap-1.5 rounded-xl border border-[var(--color-border)] px-5 py-2.5 text-xs sm:text-sm font-bold text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] transition-all"
+          >
+            <ArrowLeft size={16} />
+            <span>Back</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (!intent) setIntent('purchase');
+              if (!vehicleType) setVehicleType('sedan');
+              setStep(2);
+            }}
+            className="flex items-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-600 px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-amber-500/20 transition-all transform active:scale-95"
           >
             <span>Next</span>
             <ArrowRight size={16} />
@@ -202,6 +228,8 @@ export default function AutomotiveWizard({ onSubmit, isSubmitting, onBackToCateg
   if (step === 2) {
     return (
       <div className="mx-auto max-w-xl space-y-6">
+        <WizardProgressBar currentStep={2} />
+
         <div className="text-center">
           <h2 className="text-xl sm:text-2xl font-black text-[var(--color-text-primary)]">
             Budget & Vehicle Specs
@@ -223,6 +251,7 @@ export default function AutomotiveWizard({ onSubmit, isSubmitting, onBackToCateg
                 type="number"
                 value={budgetMin}
                 onChange={(e) => setBudgetMin(e.target.value)}
+                placeholder="15,000"
                 className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-bold text-[var(--color-text-primary)] focus:border-amber-500 focus:outline-none"
               />
             </div>
@@ -232,6 +261,7 @@ export default function AutomotiveWizard({ onSubmit, isSubmitting, onBackToCateg
                 type="number"
                 value={budgetMax}
                 onChange={(e) => setBudgetMax(e.target.value)}
+                placeholder="30,000"
                 className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-bold text-[var(--color-text-primary)] focus:border-amber-500 focus:outline-none"
               />
             </div>
@@ -250,6 +280,7 @@ export default function AutomotiveWizard({ onSubmit, isSubmitting, onBackToCateg
                 onChange={(e) => setYearMin(e.target.value)}
                 className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-semibold text-[var(--color-text-primary)] focus:border-amber-500 focus:outline-none"
               >
+                <option value="">Select Minimum Year</option>
                 <option value="Any Year">Any Year</option>
                 <option value="2015+">2015+</option>
                 <option value="2018+">2018+</option>
@@ -268,6 +299,7 @@ export default function AutomotiveWizard({ onSubmit, isSubmitting, onBackToCateg
                 onChange={(e) => setMaxMileage(e.target.value)}
                 className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-semibold text-[var(--color-text-primary)] focus:border-amber-500 focus:outline-none"
               >
+                <option value="">Select Max Mileage</option>
                 <option value="Under 25,000 mi">Under 25,000 mi</option>
                 <option value="Under 50,000 mi">Under 50,000 mi</option>
                 <option value="Under 75,000 mi">Under 75,000 mi</option>
@@ -285,6 +317,7 @@ export default function AutomotiveWizard({ onSubmit, isSubmitting, onBackToCateg
                 onChange={(e) => setTransmission(e.target.value)}
                 className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-semibold text-[var(--color-text-primary)] focus:border-amber-500 focus:outline-none"
               >
+                <option value="">Select Transmission</option>
                 <option value="automatic">Automatic</option>
                 <option value="manual">Manual</option>
                 <option value="any">Any</option>
@@ -295,12 +328,18 @@ export default function AutomotiveWizard({ onSubmit, isSubmitting, onBackToCateg
 
         {/* Buttons */}
         <div className="flex items-center justify-between pt-4">
-          <Button variant="ghost" onClick={() => setStep(1)}>
-            &larr; Back
-          </Button>
           <button
+            type="button"
+            onClick={() => setStep(1)}
+            className="flex items-center gap-1.5 rounded-xl border border-[var(--color-border)] px-5 py-2.5 text-xs sm:text-sm font-bold text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] transition-all"
+          >
+            <ArrowLeft size={16} />
+            <span>Back</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setStep(3)}
-            className="flex items-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-600 px-6 py-3 text-sm font-bold text-white shadow-md shadow-amber-500/20 transition-all transform active:scale-95"
+            className="flex items-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-600 px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-amber-500/20 transition-all transform active:scale-95"
           >
             <span>Next</span>
             <ArrowRight size={16} />
@@ -314,9 +353,11 @@ export default function AutomotiveWizard({ onSubmit, isSubmitting, onBackToCateg
   if (step === 3) {
     return (
       <div className="mx-auto max-w-xl space-y-6">
+        <WizardProgressBar currentStep={3} />
+
         <div className="text-center">
           <h2 className="text-xl sm:text-2xl font-black text-[var(--color-text-primary)]">
-            Must-Have Features
+            Must-Have Features <span className="text-xs font-normal text-[var(--color-text-muted)]">(Optional)</span>
           </h2>
           <p className="mt-1 text-xs sm:text-sm text-[var(--color-text-muted)]">
             Select vehicle options and add any special trim or package preferences.
@@ -358,12 +399,18 @@ export default function AutomotiveWizard({ onSubmit, isSubmitting, onBackToCateg
 
         {/* Buttons */}
         <div className="flex items-center justify-between pt-4">
-          <Button variant="ghost" onClick={() => setStep(2)}>
-            &larr; Back
-          </Button>
           <button
+            type="button"
+            onClick={() => setStep(2)}
+            className="flex items-center gap-1.5 rounded-xl border border-[var(--color-border)] px-5 py-2.5 text-xs sm:text-sm font-bold text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] transition-all"
+          >
+            <ArrowLeft size={16} />
+            <span>Back</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setStep(4)}
-            className="flex items-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-600 px-6 py-3 text-sm font-bold text-white shadow-md shadow-amber-500/20 transition-all transform active:scale-95"
+            className="flex items-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-600 px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-amber-500/20 transition-all transform active:scale-95"
           >
             <span>Next</span>
             <ArrowRight size={16} />
@@ -377,6 +424,8 @@ export default function AutomotiveWizard({ onSubmit, isSubmitting, onBackToCateg
   if (step === 4) {
     return (
       <div className="mx-auto max-w-xl space-y-6">
+        <WizardProgressBar currentStep={4} />
+
         <div className="text-center">
           <h2 className="text-xl sm:text-2xl font-black text-[var(--color-text-primary)]">
             Location & Radius
@@ -394,6 +443,7 @@ export default function AutomotiveWizard({ onSubmit, isSubmitting, onBackToCateg
             type="text"
             value={locationCity}
             onChange={(e) => setLocationCity(e.target.value)}
+            placeholder="Search for a city or zip code"
             className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-3 text-sm font-semibold text-[var(--color-text-primary)] focus:border-amber-500 focus:outline-none"
           />
         </div>
@@ -417,12 +467,18 @@ export default function AutomotiveWizard({ onSubmit, isSubmitting, onBackToCateg
 
         {/* Buttons */}
         <div className="flex items-center justify-between pt-4">
-          <Button variant="ghost" onClick={() => setStep(3)}>
-            &larr; Back
-          </Button>
           <button
+            type="button"
+            onClick={() => setStep(3)}
+            className="flex items-center gap-1.5 rounded-xl border border-[var(--color-border)] px-5 py-2.5 text-xs sm:text-sm font-bold text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] transition-all"
+          >
+            <ArrowLeft size={16} />
+            <span>Back</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setStep(5)}
-            className="flex items-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-600 px-6 py-3 text-sm font-bold text-white shadow-md shadow-amber-500/20 transition-all transform active:scale-95"
+            className="flex items-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-600 px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-amber-500/20 transition-all transform active:scale-95"
           >
             <span>Next</span>
             <ArrowRight size={16} />
@@ -435,6 +491,8 @@ export default function AutomotiveWizard({ onSubmit, isSubmitting, onBackToCateg
   // STEP 5: Review
   return (
     <div className="mx-auto max-w-xl space-y-6">
+      <WizardProgressBar currentStep={5} />
+
       <div className="text-center">
         <h2 className="text-xl sm:text-2xl font-black text-[var(--color-text-primary)]">
           Review Vehicle Request
@@ -455,19 +513,29 @@ export default function AutomotiveWizard({ onSubmit, isSubmitting, onBackToCateg
         </div>
 
         <div className="grid grid-cols-2 gap-y-2">
+          <span className="text-[var(--color-text-muted)]">Acquisition:</span>
+          <span className="font-bold text-[var(--color-text-primary)] text-right capitalize">
+            {intent || 'Purchase'}
+          </span>
+
           <span className="text-[var(--color-text-muted)]">Budget:</span>
           <span className="font-bold text-amber-600 text-right">
-            ${Number(budgetMin).toLocaleString()} - ${Number(budgetMax).toLocaleString()}
+            {budgetMin || budgetMax
+              ? `$${Number(budgetMin || 0).toLocaleString()} - $${Number(budgetMax || 0).toLocaleString()}`
+              : 'Flexible'}
           </span>
 
           <span className="text-[var(--color-text-muted)]">Year:</span>
-          <span className="font-bold text-right">{yearMin}</span>
+          <span className="font-bold text-right">{yearMin || 'Any Year'}</span>
 
           <span className="text-[var(--color-text-muted)]">Max Mileage:</span>
-          <span className="font-bold text-right">{maxMileage}</span>
+          <span className="font-bold text-right">{maxMileage || 'Any Mileage'}</span>
+
+          <span className="text-[var(--color-text-muted)]">Transmission:</span>
+          <span className="font-bold text-right capitalize">{transmission || 'Any'}</span>
 
           <span className="text-[var(--color-text-muted)]">Location:</span>
-          <span className="font-bold text-right">{locationCity} ({locationRadius} mi)</span>
+          <span className="font-bold text-right">{locationCity || 'Philadelphia, PA'} ({locationRadius} mi)</span>
         </div>
       </div>
 
@@ -491,10 +559,16 @@ export default function AutomotiveWizard({ onSubmit, isSubmitting, onBackToCateg
 
       {/* Buttons */}
       <div className="flex items-center justify-between pt-4">
-        <Button variant="ghost" onClick={() => setStep(4)}>
-          &larr; Back
-        </Button>
         <button
+          type="button"
+          onClick={() => setStep(4)}
+          className="flex items-center gap-1.5 rounded-xl border border-[var(--color-border)] px-5 py-2.5 text-xs sm:text-sm font-bold text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] transition-all"
+        >
+          <ArrowLeft size={16} />
+          <span>Back</span>
+        </button>
+        <button
+          type="button"
           onClick={handleSubmit}
           disabled={isSubmitting}
           className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:opacity-95 px-7 py-3 text-sm font-bold text-white shadow-lg shadow-amber-500/25 transition-all transform active:scale-95 disabled:opacity-50"

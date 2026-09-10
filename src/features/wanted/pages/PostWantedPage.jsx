@@ -5,7 +5,6 @@ import { Helmet } from 'react-helmet-async';
 import WantedService from '@api/services/wanted.service';
 import useAuthStore from '@store/auth.store';
 import WantedNavTabs from '../components/WantedNavTabs';
-import WizardProgressBar from '../components/wizard/WizardProgressBar';
 import CategorySelectorStep from '../components/wizard/CategorySelectorStep';
 import RealEstateWizard from '../components/wizard/RealEstateWizard';
 import AutomotiveWizard from '../components/wizard/AutomotiveWizard';
@@ -77,10 +76,6 @@ export default function PostWantedPage() {
           />
         ) : (
           <div>
-            <div className="mb-4">
-              <WizardProgressBar currentStep={1} />
-            </div>
-
             {selectedCategory === 'real_estate' ? (
               <RealEstateWizard
                 onSubmit={handleFormSubmit}

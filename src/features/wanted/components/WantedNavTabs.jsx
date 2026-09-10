@@ -1,5 +1,5 @@
 ﻿import { Link, useLocation } from 'react-router-dom';
-import { Home, Search, PlusCircle, Bookmark, Compass } from 'lucide-react';
+import { Home, Compass, Bookmark } from 'lucide-react';
 import { cn } from '@lib/utils';
 import useAuthStore from '@store/auth.store';
 
@@ -11,31 +11,30 @@ export default function WantedNavTabs() {
   const tabs = [
     { to: '/wanted', label: 'Home', icon: Home, exact: true },
     { to: '/wanted/feed', label: 'Wanted', icon: Compass },
-    { to: '/wanted/my-requests', label: 'My Requests', icon: Bookmark, authOnly: true },
-    { to: '/wanted/create', label: 'Post Wanted', icon: PlusCircle, isCta: true },
+    {
+      to: isAuthenticated ? '/wanted/my-requests' : '/login?redirect=/wanted/my-requests',
+      label: 'My Requests',
+      icon: Bookmark,
+    },
   ];
 
   return (
     <div className="sticky top-14 sm:top-16 z-30 mb-4 sm:mb-6 border-b border-[var(--color-border)] bg-[var(--glass-bg-strong)] backdrop-blur-md">
-      <div className="container-app flex items-center justify-between py-2 sm:py-3">
-        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar">
+      <div className="container-app py-2 sm:py-2.5">
+        <div className="flex items-center justify-center sm:justify-start gap-2">
           {tabs.map((tab) => {
-            if (tab.authOnly && !isAuthenticated) return null;
-
-            const isActive = tab.exact 
-              ? pathname === tab.to 
-              : pathname.startsWith(tab.to);
+            const isActive = tab.exact
+              ? pathname === '/wanted'
+              : pathname === tab.to || (tab.to.startsWith('/wanted/feed') && pathname.startsWith('/wanted/feed')) || (tab.to.startsWith('/wanted/my-requests') && pathname.startsWith('/wanted/my-requests'));
 
             const Icon = tab.icon;
 
-            if (tab.isCta) return null;
-
             return (
               <Link
-                key={tab.to}
+                key={tab.label}
                 to={tab.to}
                 className={cn(
-                  'flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap',
+                  'flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap',
                   isActive
                     ? 'bg-[var(--color-brand)] text-white shadow-sm'
                     : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)]'
@@ -47,15 +46,6 @@ export default function WantedNavTabs() {
             );
           })}
         </div>
-
-        {/* Post Wanted Button */}
-        <Link
-          to={isAuthenticated ? '/wanted/create' : '/login?redirect=/wanted/create'}
-          className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-95 shadow-md shadow-blue-500/20 whitespace-nowrap transition-all transform active:scale-95"
-        >
-          <PlusCircle size={16} />
-          <span>Post Wanted</span>
-        </Link>
       </div>
     </div>
   );

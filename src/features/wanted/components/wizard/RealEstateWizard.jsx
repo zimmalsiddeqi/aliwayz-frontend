@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import {
   Home,
   Building2,
@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@lib/utils';
 import Button from '@components/ui/Button';
+import WizardProgressBar from './WizardProgressBar';
 import {
   REAL_ESTATE_INTENTS,
   REAL_ESTATE_TYPES,
@@ -36,22 +37,22 @@ import {
 export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCategory }) {
   const [step, setStep] = useState(1);
 
-  // Form State
-  const [intent, setIntent] = useState('buy');
-  const [propertyType, setPropertyType] = useState('house');
-  const [budgetMin, setBudgetMin] = useState(400000);
-  const [budgetMax, setBudgetMax] = useState(550000);
-  const [bedrooms, setBedrooms] = useState('3+');
-  const [bathrooms, setBathrooms] = useState('2+');
-  const [propertySize, setPropertySize] = useState('1,800+');
-  const [parkingImportant, setParkingImportant] = useState(true);
+  // Form State - empty defaults with placeholders
+  const [intent, setIntent] = useState('');
+  const [propertyType, setPropertyType] = useState('');
+  const [budgetMin, setBudgetMin] = useState('');
+  const [budgetMax, setBudgetMax] = useState('');
+  const [bedrooms, setBedrooms] = useState('');
+  const [bathrooms, setBathrooms] = useState('');
+  const [propertySize, setPropertySize] = useState('');
+  const [parkingImportant, setParkingImportant] = useState(false);
 
-  const [selectedFeatures, setSelectedFeatures] = useState(['parking', 'garage', 'backyard']);
+  const [selectedFeatures, setSelectedFeatures] = useState([]);
   const [additionalPreferences, setAdditionalPreferences] = useState('');
 
-  const [locationCity, setLocationCity] = useState('Philadelphia, PA');
+  const [locationCity, setLocationCity] = useState('');
   const [locationRadius, setLocationRadius] = useState(10);
-  const [selectedAreas, setSelectedAreas] = useState(['Center City', 'Fishtown']);
+  const [selectedAreas, setSelectedAreas] = useState([]);
 
   const [durationDays, setDurationDays] = useState(30);
 
@@ -115,6 +116,8 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
   if (step === 1) {
     return (
       <div className="mx-auto max-w-xl space-y-6">
+        <WizardProgressBar currentStep={1} />
+
         <div className="text-center">
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg shadow-blue-500/30">
             <Home size={26} />
@@ -128,25 +131,30 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
         </div>
 
         {/* Intent Pills: Buy / Rent / Lease */}
-        <div className="flex rounded-2xl bg-[var(--color-bg-secondary)] p-1.5 max-w-sm mx-auto">
-          {REAL_ESTATE_INTENTS.map((item) => {
-            const isSelected = intent === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setIntent(item.id)}
-                className={cn(
-                  'flex-1 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all',
-                  isSelected
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
-                )}
-              >
-                {item.label}
-              </button>
-            );
-          })}
+        <div className="space-y-2">
+          <label className="block text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">
+            Looking for
+          </label>
+          <div className="flex rounded-2xl bg-[var(--color-bg-secondary)] p-1.5 max-w-sm mx-auto">
+            {REAL_ESTATE_INTENTS.map((item) => {
+              const isSelected = intent === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setIntent(item.id)}
+                  className={cn(
+                    'flex-1 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all',
+                    isSelected
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                  )}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Property Type Cards Grid */}
@@ -198,14 +206,24 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
           </div>
         </div>
 
-        {/* Navigation Buttons */}
+        {/* Navigation Buttons: Back and Next only */}
         <div className="flex items-center justify-between pt-4">
-          <Button variant="ghost" onClick={onBackToCategory}>
-            &larr; Categories
-          </Button>
           <button
-            onClick={() => setStep(2)}
-            className="flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 px-6 py-3 text-sm font-bold text-white shadow-md shadow-blue-500/20 transition-all transform active:scale-95"
+            type="button"
+            onClick={onBackToCategory}
+            className="flex items-center gap-1.5 rounded-xl border border-[var(--color-border)] px-5 py-2.5 text-xs sm:text-sm font-bold text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] transition-all"
+          >
+            <ArrowLeft size={16} />
+            <span>Back</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (!intent) setIntent('buy');
+              if (!propertyType) setPropertyType('house');
+              setStep(2);
+            }}
+            className="flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-blue-500/20 transition-all transform active:scale-95"
           >
             <span>Next</span>
             <ArrowRight size={16} />
@@ -221,6 +239,8 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
   if (step === 2) {
     return (
       <div className="mx-auto max-w-xl space-y-6">
+        <WizardProgressBar currentStep={2} />
+
         <div className="text-center">
           <h2 className="text-xl sm:text-2xl font-black text-[var(--color-text-primary)]">
             Budget & Details
@@ -246,7 +266,7 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
                   type="number"
                   value={budgetMin}
                   onChange={(e) => setBudgetMin(e.target.value)}
-                  placeholder="300,000"
+                  placeholder="400,000"
                   className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] pl-7 pr-3 py-2.5 text-sm font-bold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
                 />
               </div>
@@ -262,7 +282,7 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
                   type="number"
                   value={budgetMax}
                   onChange={(e) => setBudgetMax(e.target.value)}
-                  placeholder="600,000"
+                  placeholder="550,000"
                   className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] pl-7 pr-3 py-2.5 text-sm font-bold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
                 />
               </div>
@@ -282,6 +302,7 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
                 onChange={(e) => setBedrooms(e.target.value)}
                 className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
               >
+                <option value="">Select Bedrooms</option>
                 <option value="Studio">Studio</option>
                 <option value="1+">1+ Bedroom</option>
                 <option value="2+">2+ Bedrooms</option>
@@ -300,6 +321,7 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
                 onChange={(e) => setBathrooms(e.target.value)}
                 className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
               >
+                <option value="">Select Bathrooms</option>
                 <option value="1+">1+ Bathroom</option>
                 <option value="1.5+">1.5+ Bathrooms</option>
                 <option value="2+">2+ Bathrooms</option>
@@ -319,7 +341,7 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
               onChange={(e) => setPropertySize(e.target.value)}
               className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
             >
-              <option value="Any">Any Size</option>
+              <option value="">Select Property Size</option>
               <option value="750+">750+ sq ft</option>
               <option value="1,000+">1,000+ sq ft</option>
               <option value="1,400+">1,400+ sq ft</option>
@@ -375,9 +397,11 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
   if (step === 3) {
     return (
       <div className="mx-auto max-w-xl space-y-6">
+        <WizardProgressBar currentStep={3} />
+
         <div className="text-center">
           <h2 className="text-xl sm:text-2xl font-black text-[var(--color-text-primary)]">
-            Must-Have Features
+            Must-Have Features <span className="text-xs font-normal text-[var(--color-text-muted)]">(Optional)</span>
           </h2>
           <p className="mt-1 text-xs sm:text-sm text-[var(--color-text-muted)]">
             Select essential amenities and any custom preferences for local sellers.
@@ -432,12 +456,12 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
         {/* Additional Preferences Textarea */}
         <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4 sm:p-5 space-y-2">
           <label className="block text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">
-            Additional Preferences (Optional)
+            Additional Preferences
           </label>
           <textarea
             value={additionalPreferences}
             onChange={(e) => setAdditionalPreferences(e.target.value.slice(0, 500))}
-            placeholder="e.g. Quiet neighborhood, close to top rated schools, newly renovated kitchen, natural light..."
+            placeholder="e.g. Quiet neighborhood, close to schools, renovated kitchen, natural lighting..."
             rows={3}
             className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-3 text-xs sm:text-sm text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
           />
@@ -446,14 +470,20 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
           </div>
         </div>
 
-        {/* Buttons */}
+        {/* Navigation Buttons */}
         <div className="flex items-center justify-between pt-4">
-          <Button variant="ghost" onClick={() => setStep(2)}>
-            &larr; Back
-          </Button>
           <button
+            type="button"
+            onClick={() => setStep(2)}
+            className="flex items-center gap-1.5 rounded-xl border border-[var(--color-border)] px-5 py-2.5 text-xs sm:text-sm font-bold text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] transition-all"
+          >
+            <ArrowLeft size={16} />
+            <span>Back</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setStep(4)}
-            className="flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 px-6 py-3 text-sm font-bold text-white shadow-md shadow-blue-500/20 transition-all transform active:scale-95"
+            className="flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-blue-500/20 transition-all transform active:scale-95"
           >
             <span>Next</span>
             <ArrowRight size={16} />
@@ -469,6 +499,8 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
   if (step === 4) {
     return (
       <div className="mx-auto max-w-xl space-y-6">
+        <WizardProgressBar currentStep={4} />
+
         <div className="text-center">
           <h2 className="text-xl sm:text-2xl font-black text-[var(--color-text-primary)]">
             Location & Radius
@@ -489,7 +521,7 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
               type="text"
               value={locationCity}
               onChange={(e) => setLocationCity(e.target.value)}
-              placeholder="Search for a neighborhood or city"
+              placeholder="Search for a neighborhood or address"
               className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] pl-10 pr-4 py-3 text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
             />
           </div>
@@ -498,7 +530,7 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
         {/* Radius Dropdown */}
         <div className="space-y-2">
           <label className="block text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">
-            Search Radius
+            Radius
           </label>
           <select
             value={locationRadius}
@@ -506,7 +538,7 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
             className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-3 text-sm font-semibold text-[var(--color-text-primary)] focus:border-blue-600 focus:outline-none"
           >
             <option value={5}>Within 5 miles</option>
-            <option value={10}>Within 10 miles (Standard)</option>
+            <option value={10}>Within 10 miles</option>
             <option value={25}>Within 25 miles</option>
             <option value={50}>Within 50 miles</option>
             <option value={100}>Within 100 miles</option>
@@ -516,7 +548,7 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
         {/* Preferred Areas Chips */}
         <div className="space-y-2">
           <label className="block text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">
-            Preferred Neighborhoods (Optional)
+            Preferred Areas (Optional)
           </label>
           <div className="flex flex-wrap gap-2">
             {PHILLY_NEIGHBORHOODS.map((nh) => {
@@ -527,7 +559,7 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
                   type="button"
                   onClick={() => toggleArea(nh)}
                   className={cn(
-                    'rounded-xl px-3 py-1.5 text-xs font-bold transition-all border',
+                    'rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all border',
                     isSelected
                       ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                       : 'border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:border-gray-400'
@@ -540,30 +572,35 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
           </div>
         </div>
 
-        {/* Map Preview Card */}
+        {/* Location Pin Confirmation Card */}
         <div className="relative rounded-2xl border border-[var(--color-border)] bg-blue-50/50 dark:bg-blue-950/20 p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white">
               <MapPin size={20} />
             </div>
             <div>
-              <p className="text-sm font-bold text-[var(--color-text-primary)]">{locationCity}</p>
+              <p className="text-sm font-bold text-[var(--color-text-primary)]">
+                {locationCity || 'Philadelphia, PA'}
+              </p>
               <p className="text-xs text-[var(--color-text-muted)]">Within {locationRadius} miles</p>
             </div>
           </div>
-          <span className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
-            Confirmed
-          </span>
         </div>
 
-        {/* Buttons */}
+        {/* Navigation Buttons */}
         <div className="flex items-center justify-between pt-4">
-          <Button variant="ghost" onClick={() => setStep(3)}>
-            &larr; Back
-          </Button>
           <button
+            type="button"
+            onClick={() => setStep(3)}
+            className="flex items-center gap-1.5 rounded-xl border border-[var(--color-border)] px-5 py-2.5 text-xs sm:text-sm font-bold text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] transition-all"
+          >
+            <ArrowLeft size={16} />
+            <span>Back</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setStep(5)}
-            className="flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 px-6 py-3 text-sm font-bold text-white shadow-md shadow-blue-500/20 transition-all transform active:scale-95"
+            className="flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-blue-500/20 transition-all transform active:scale-95"
           >
             <span>Next</span>
             <ArrowRight size={16} />
@@ -576,8 +613,11 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
   // ─────────────────────────────────────────────────────────────
   // STEP 5: Review & Post (Screen 6)
   // ─────────────────────────────────────────────────────────────
+  // STEP 5: Review & Post
   return (
     <div className="mx-auto max-w-xl space-y-6">
+      <WizardProgressBar currentStep={5} />
+
       <div className="text-center">
         <h2 className="text-xl sm:text-2xl font-black text-[var(--color-text-primary)]">
           Review Your Request
@@ -611,31 +651,39 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
         <div className="grid grid-cols-2 gap-y-2.5 text-xs sm:text-sm">
           <span className="text-[var(--color-text-muted)]">Request Type:</span>
           <span className="font-bold text-[var(--color-text-primary)] text-right capitalize">
-            {intent}
+            {intent || 'Buy'}
           </span>
 
           <span className="text-[var(--color-text-muted)]">Property Type:</span>
           <span className="font-bold text-[var(--color-text-primary)] text-right capitalize">
-            {propertyType}
+            {propertyType || 'House'}
           </span>
 
           <span className="text-[var(--color-text-muted)]">Budget:</span>
           <span className="font-bold text-blue-600 dark:text-blue-400 text-right">
-            ${Number(budgetMin).toLocaleString()} - ${Number(budgetMax).toLocaleString()}
+            {budgetMin || budgetMax
+              ? `$${Number(budgetMin || 0).toLocaleString()} - $${Number(budgetMax || 0).toLocaleString()}`
+              : 'Flexible'}
           </span>
 
           <span className="text-[var(--color-text-muted)]">Bedrooms:</span>
-          <span className="font-bold text-[var(--color-text-primary)] text-right">{bedrooms}</span>
+          <span className="font-bold text-[var(--color-text-primary)] text-right">
+            {bedrooms || 'Any'}
+          </span>
 
           <span className="text-[var(--color-text-muted)]">Bathrooms:</span>
-          <span className="font-bold text-[var(--color-text-primary)] text-right">{bathrooms}</span>
+          <span className="font-bold text-[var(--color-text-primary)] text-right">
+            {bathrooms || 'Any'}
+          </span>
 
           <span className="text-[var(--color-text-muted)]">Size:</span>
-          <span className="font-bold text-[var(--color-text-primary)] text-right">{propertySize} sqft</span>
+          <span className="font-bold text-[var(--color-text-primary)] text-right">
+            {propertySize ? `${propertySize} sqft` : 'Any'}
+          </span>
 
           <span className="text-[var(--color-text-muted)]">Location:</span>
           <span className="font-bold text-[var(--color-text-primary)] text-right">
-            {locationCity} ({locationRadius} mi)
+            {locationCity || 'Philadelphia, PA'} ({locationRadius} mi)
           </span>
 
           <span className="text-[var(--color-text-muted)]">Features:</span>
@@ -645,7 +693,7 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
         </div>
       </div>
 
-      {/* Request Duration Picker (User answer requirement: "allow user to set days") */}
+      {/* Request Duration Picker */}
       <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4 sm:p-5 space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -654,7 +702,7 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
               Request Duration
             </span>
           </div>
-          <span className="text-xs text-[var(--color-text-muted)]">How long should this stay active?</span>
+          <span className="text-xs text-[var(--color-text-muted)]">Active time</span>
         </div>
 
         <select
@@ -670,12 +718,18 @@ export default function RealEstateWizard({ onSubmit, isSubmitting, onBackToCateg
         </select>
       </div>
 
-      {/* Action Buttons */}
+      {/* Action Buttons: Strictly Back and Post */}
       <div className="flex items-center justify-between pt-4">
-        <Button variant="ghost" onClick={() => setStep(4)}>
-          &larr; Back
-        </Button>
         <button
+          type="button"
+          onClick={() => setStep(4)}
+          className="flex items-center gap-1.5 rounded-xl border border-[var(--color-border)] px-5 py-2.5 text-xs sm:text-sm font-bold text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] transition-all"
+        >
+          <ArrowLeft size={16} />
+          <span>Back</span>
+        </button>
+        <button
+          type="button"
           onClick={handleSubmit}
           disabled={isSubmitting}
           className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-95 px-7 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/25 transition-all transform active:scale-95 disabled:opacity-50"

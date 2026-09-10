@@ -211,6 +211,18 @@ export default function Navbar() {
   const menuSections = getMobileMenuSections();
   const desktopDropdownSections = getDesktopDropdownSections();
 
+  // Helper to accurately match active routes including sub-paths
+  const isRouteActive = (to) => {
+    if (to === '/') return location.pathname === '/';
+    if (to === '/wanted') return location.pathname.startsWith('/wanted');
+    if (to === '/sell/create') return location.pathname.startsWith('/sell');
+    if (to === '/inbox') return location.pathname.startsWith('/inbox');
+    if (to === '/profile') return location.pathname.startsWith('/profile');
+    if (to === '/notifications') return location.pathname.startsWith('/notifications');
+    if (to === '/admin') return location.pathname.startsWith('/admin');
+    return location.pathname === to || location.pathname.startsWith(`${to}/`);
+  };
+
   return (
     <>
       {/* ═══════════════════════════════════════════════════
@@ -246,26 +258,29 @@ export default function Navbar() {
 
           {/* ── Center: Desktop Nav ───────────────────────── */}
           <nav className="hidden items-center gap-1 md:flex">
-            {desktopNavItems.map(({ to, icon: Icon, label, badge }) => (
-              <Link
-                key={`desktop-${to}`}
-                to={to}
-                className={cn(
-                  'relative flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200',
-                  location.pathname === to
-                    ? 'text-[var(--color-brand)]'
-                    : 'text-[var(--color-text-secondary)] hover:bg-[var(--glass-bg-strong)] hover:text-[var(--color-text-primary)]'
-                )}
-              >
-                <Icon size={18} />
-                <span className="hidden lg:inline">{label}</span>
-                {badge > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-accent-red px-1 text-[10px] font-bold text-white">
-                    {badge > 99 ? '99+' : badge}
-                  </span>
-                )}
-              </Link>
-            ))}
+            {desktopNavItems.map(({ to, icon: Icon, label, badge }) => {
+              const isActive = isRouteActive(to);
+              return (
+                <Link
+                  key={`desktop-${to}`}
+                  to={to}
+                  className={cn(
+                    'relative flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200',
+                    isActive
+                      ? 'text-[var(--color-brand)] bg-[var(--color-brand)]/10 font-bold'
+                      : 'text-[var(--color-text-secondary)] hover:bg-[var(--glass-bg-strong)] hover:text-[var(--color-text-primary)]'
+                  )}
+                >
+                  <Icon size={18} />
+                  <span className="hidden lg:inline">{label}</span>
+                  {badge > 0 && (
+                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-accent-red px-1 text-[10px] font-bold text-white">
+                      {badge > 99 ? '99+' : badge}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* ── Right: Actions ────────────────────────────── */}
@@ -618,7 +633,7 @@ export default function Navbar() {
       >
         <div className="flex h-14 items-center justify-around px-1">
           {bottomNavItems.map(({ to, icon: Icon, label, badge, highlight }) => {
-            const isActive = location.pathname === to;
+            const isActive = isRouteActive(to);
 
             return (
               <Link
