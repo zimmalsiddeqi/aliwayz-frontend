@@ -21,6 +21,7 @@ import WantedNavTabs from '../components/WantedNavTabs';
 import WantedCard from '../components/WantedCard';
 import IHaveThisModal from '../components/IHaveThisModal';
 import WantedMatchesModal from '../components/WantedMatchesModal';
+import WantedFilterModal from '../components/WantedFilterModal';
 import Spinner from '@components/ui/Spinner';
 import { cn } from '@lib/utils';
 import { WANTED_CATEGORIES, PHILLY_NEIGHBORHOODS } from '../constants/wantedCategories';
@@ -127,6 +128,14 @@ export default function WantedFeedPage() {
   const [selectedCondition, setSelectedCondition] = useState('all');
   const [selectedSort, setSelectedSort] = useState('newest');
   const [filterNearMe, setFilterNearMe] = useState(false);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+
+  const hasActiveFilters =
+    selectedLocation !== 'all' ||
+    selectedBudget !== 'all' ||
+    selectedCondition !== 'all' ||
+    selectedSort !== 'newest' ||
+    filterNearMe;
 
   const [activeRequestForMatch, setActiveRequestForMatch] = useState(null);
   const [activeRequestForView, setActiveRequestForView] = useState(null);
@@ -212,141 +221,61 @@ export default function WantedFeedPage() {
           />
         </div>
 
-        {/* 1. FILTER CONTROLS ROW (PLACED ABOVE CATEGORIES) */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-          {/* Location Dropdown */}
-          <div className="relative">
-            <select
-              value={selectedLocation}
-              onChange={(e) => setSelectedLocation(e.target.value)}
-              className="appearance-none rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] pl-3.5 pr-8 py-2 text-xs font-semibold text-[var(--color-text-secondary)] hover:border-gray-400 focus:outline-none focus:border-blue-600 transition-all cursor-pointer"
-            >
-              <option value="all">Location</option>
-              <option value="all">All Philadelphia</option>
-              {PHILLY_NEIGHBORHOODS.map((nh) => (
-                <option key={nh} value={nh}>
-                  {nh}
-                </option>
-              ))}
-            </select>
-            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+        {/* Category Pills Row with Filter Trigger Button */}
+        <div className="flex items-center gap-2">
+          {/* Categories Horizontal Scroll */}
+          <div className="flex-1 flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+            {WANTED_CATEGORIES.map((cat) => {
+              const isSelected = selectedCategory === cat.id;
+              const Icon =
+                cat.id === 'electronics'
+                  ? Smartphone
+                  : cat.id === 'automotive'
+                  ? Car
+                  : cat.id === 'real_estate'
+                  ? Home
+                  : cat.id === 'fashion'
+                  ? Shirt
+                  : cat.id === 'home'
+                  ? Sofa
+                  : LayoutGrid;
+
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={cn(
+                    'flex items-center gap-1.5 rounded-2xl px-4 py-2 text-xs sm:text-sm font-semibold whitespace-nowrap transition-all border shrink-0',
+                    isSelected
+                      ? 'bg-[#5046e5] text-white border-[#5046e5] shadow-sm'
+                      : 'border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:border-gray-400'
+                  )}
+                >
+                  <Icon size={14} />
+                  <span>{cat.label}</span>
+                </button>
+              );
+            })}
           </div>
 
-          {/* Budget Dropdown */}
-          <div className="relative">
-            <select
-              value={selectedBudget}
-              onChange={(e) => setSelectedBudget(e.target.value)}
-              className="appearance-none rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] pl-3.5 pr-8 py-2 text-xs font-semibold text-[var(--color-text-secondary)] hover:border-gray-400 focus:outline-none focus:border-blue-600 transition-all cursor-pointer"
-            >
-              <option value="all">Budget</option>
-              <option value="under_100">Under $100</option>
-              <option value="100_500">$100 – $500</option>
-              <option value="500_1k">$500 – $1,000</option>
-              <option value="1k_5k">$1,000 – $5,000</option>
-              <option value="5k_plus">$5,000+</option>
-            </select>
-            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-          </div>
-
-          {/* Condition Dropdown */}
-          <div className="relative">
-            <select
-              value={selectedCondition}
-              onChange={(e) => setSelectedCondition(e.target.value)}
-              className="appearance-none rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] pl-3.5 pr-8 py-2 text-xs font-semibold text-[var(--color-text-secondary)] hover:border-gray-400 focus:outline-none focus:border-blue-600 transition-all cursor-pointer"
-            >
-              <option value="all">Condition</option>
-              <option value="all">Any Condition</option>
-              <option value="new">Brand New</option>
-              <option value="like_new">Like New</option>
-              <option value="good">Good</option>
-              <option value="fair">Fair</option>
-            </select>
-            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-          </div>
-
-          {/* Sort Dropdown */}
-          <div className="relative">
-            <select
-              value={selectedSort}
-              onChange={(e) => setSelectedSort(e.target.value)}
-              className="appearance-none rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] pl-3.5 pr-8 py-2 text-xs font-semibold text-[var(--color-text-secondary)] hover:border-gray-400 focus:outline-none focus:border-blue-600 transition-all cursor-pointer"
-            >
-              <option value="newest">Sort by</option>
-              <option value="newest">Newest First</option>
-              <option value="matches">Most Matches</option>
-              <option value="budget_high">Highest Budget</option>
-              <option value="budget_low">Lowest Budget</option>
-            </select>
-            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-          </div>
-
-          {/* Near Me Toggle */}
+          {/* Filter Modal Trigger Button */}
           <button
-            onClick={() => setFilterNearMe(!filterNearMe)}
+            onClick={() => setIsFilterModalOpen(true)}
+            title="Open Filters"
             className={cn(
-              'flex items-center gap-1.5 rounded-2xl px-3.5 py-2 text-xs font-semibold transition-all whitespace-nowrap border',
-              filterNearMe
-                ? 'bg-[#5046e5] text-white border-[#5046e5]'
-                : 'border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:border-gray-400'
+              'relative flex items-center justify-center h-10 w-10 sm:h-11 sm:w-11 rounded-2xl border transition-all shrink-0 shadow-sm',
+              hasActiveFilters
+                ? 'bg-indigo-600 text-white border-indigo-600 shadow-indigo-500/20'
+                : 'border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:border-gray-400 hover:text-[var(--color-text-primary)]'
             )}
           >
-            <MapPin size={13} />
-            <span>Near Me</span>
+            <SlidersHorizontal size={17} />
+            {hasActiveFilters && (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-white">
+                !
+              </span>
+            )}
           </button>
-
-          {/* Reset Filters */}
-          <button
-            onClick={() => {
-              setSelectedCategory('all');
-              setSelectedLocation('all');
-              setSelectedBudget('all');
-              setSelectedCondition('all');
-              setSelectedSort('newest');
-              setFilterNearMe(false);
-              setSearchTerm('');
-            }}
-            title="Reset Filters"
-            className="flex items-center justify-center h-9 w-9 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:border-gray-400 transition-all shrink-0"
-          >
-            <SlidersHorizontal size={14} />
-          </button>
-        </div>
-
-        {/* 2. CATEGORIES ROW (PLACED BENEATH FILTERS) */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-          {WANTED_CATEGORIES.map((cat) => {
-            const isSelected = selectedCategory === cat.id;
-            const Icon =
-              cat.id === 'electronics'
-                ? Smartphone
-                : cat.id === 'automotive'
-                ? Car
-                : cat.id === 'real_estate'
-                ? Home
-                : cat.id === 'fashion'
-                ? Shirt
-                : cat.id === 'home'
-                ? Sofa
-                : LayoutGrid;
-
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={cn(
-                  'flex items-center gap-1.5 rounded-2xl px-4 py-2 text-xs sm:text-sm font-semibold whitespace-nowrap transition-all border',
-                  isSelected
-                    ? 'bg-[#5046e5] text-white border-[#5046e5] shadow-sm'
-                    : 'border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:border-gray-400'
-                )}
-              >
-                <Icon size={14} />
-                <span>{cat.label}</span>
-              </button>
-            );
-          })}
         </div>
 
         {/* Requests Feed List */}
@@ -390,10 +319,31 @@ export default function WantedFeedPage() {
         request={activeRequestForMatch}
       />
 
+      {/* Buyer Matches View Modal */}
       <WantedMatchesModal
         isOpen={!!activeRequestForView}
         onClose={() => setActiveRequestForView(null)}
         request={activeRequestForView}
+      />
+
+      {/* Filter Modal */}
+      <WantedFilterModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        filters={{
+          location: selectedLocation,
+          budget: selectedBudget,
+          condition: selectedCondition,
+          sort: selectedSort,
+          nearMe: filterNearMe,
+        }}
+        onApplyFilters={(newFilters) => {
+          setSelectedLocation(newFilters.location);
+          setSelectedBudget(newFilters.budget);
+          setSelectedCondition(newFilters.condition);
+          setSelectedSort(newFilters.sort);
+          setFilterNearMe(newFilters.nearMe);
+        }}
       />
     </>
   );

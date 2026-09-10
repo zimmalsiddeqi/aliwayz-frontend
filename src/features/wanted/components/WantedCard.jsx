@@ -121,12 +121,10 @@ export default function WantedCard({
   const imageUrl = getFallbackImage(request);
 
   const handleCardClick = () => {
-    if (isOwner) {
-      onViewMatches?.(request);
+    if (onViewMatches) {
+      onViewMatches(request);
     } else if (onIHaveThis) {
       onIHaveThis(request);
-    } else if (onViewMatches) {
-      onViewMatches(request);
     }
   };
 
