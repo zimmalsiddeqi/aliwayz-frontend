@@ -63,7 +63,7 @@ function renderProductThumbnailIcon(category = '', title = '') {
 
   return (
     <div className={`w-full h-full bg-gradient-to-br ${gradientClass} flex items-center justify-center text-white shadow-inner`}>
-      <IconComponent size={26} className="drop-shadow-sm" />
+      <IconComponent size={22} className="drop-shadow-sm" />
     </div>
   );
 }
@@ -132,12 +132,12 @@ function WantedProductListCard({ product }) {
   return (
     <div
       onClick={() => navigate(`/product/${product.id}`)}
-      className="group rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-3.5 sm:p-4 shadow-sm hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-700 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 cursor-pointer"
+      className="group rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-3 sm:p-3.5 shadow-sm hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-700 transition-all flex items-center justify-between gap-3 sm:gap-4 cursor-pointer"
     >
-      {/* Left: Thumbnail and Main Details */}
-      <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0 w-full sm:w-auto">
-        {/* Thumbnail */}
-        <div className="relative w-18 h-18 sm:w-22 sm:h-22 rounded-2xl bg-gray-100 dark:bg-gray-800 overflow-hidden shrink-0 border border-gray-200/70 dark:border-gray-700/70 shadow-sm flex items-center justify-center">
+      {/* Left: Compact Thumbnail & Main Details */}
+      <div className="flex items-center gap-3 sm:gap-3.5 flex-1 min-w-0">
+        {/* Compact Thumbnail Image/Icon */}
+        <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-gray-100 dark:bg-gray-800 overflow-hidden shrink-0 border border-gray-200/70 dark:border-gray-700/70 shadow-sm flex items-center justify-center">
           {imageUrl ? (
             <img
               src={imageUrl}
@@ -152,38 +152,38 @@ function WantedProductListCard({ product }) {
 
         {/* Content Details */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap mb-1">
+          <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
             <span
               className={cn(
-                'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-semibold border',
+                'inline-flex items-center gap-1 px-2 py-0.2 rounded-full text-[9px] sm:text-[10px] font-semibold border',
                 badgeColor
               )}
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-current" />
+              <span className="h-1.2 w-1.2 rounded-full bg-current" />
               {badgeText}
             </span>
             {product?.category?.name && (
-              <span className="text-[10px] sm:text-[11px] font-semibold text-[var(--color-text-muted)] bg-[var(--color-bg-secondary)] px-2 py-0.5 rounded-md">
+              <span className="text-[9px] sm:text-[10px] font-semibold text-[var(--color-text-muted)] bg-[var(--color-bg-secondary)] px-1.5 py-0.2 rounded-md">
                 {product.category.name}
               </span>
             )}
           </div>
 
-          <h3 className="font-bold text-sm sm:text-base text-[var(--color-text-primary)] truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors leading-snug">
+          <h3 className="font-bold text-xs sm:text-sm text-[var(--color-text-primary)] truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors leading-snug">
             {title}
           </h3>
 
-          <p className="text-sm sm:text-base font-extrabold text-indigo-600 dark:text-indigo-400 mt-0.5">
+          <p className="text-xs sm:text-sm font-extrabold text-indigo-600 dark:text-indigo-400 mt-0.5">
             {priceDisplay}
           </p>
 
-          <div className="flex items-center gap-3 text-[11px] sm:text-xs text-[var(--color-text-muted)] mt-1 truncate">
+          <div className="flex items-center gap-2.5 text-[10px] sm:text-[11px] text-[var(--color-text-muted)] mt-0.5 truncate">
             <span className="flex items-center gap-1 truncate">
-              <MapPin size={12} className="shrink-0 text-gray-400" />
+              <MapPin size={11} className="shrink-0 text-gray-400" />
               <span className="truncate">{locationDisplay}</span>
             </span>
             <span className="flex items-center gap-1 shrink-0">
-              <Clock size={11} />
+              <Clock size={10} />
               {timeAgoText}
             </span>
           </div>
@@ -191,15 +191,15 @@ function WantedProductListCard({ product }) {
       </div>
 
       {/* Right Column: Seller info & View Details CTA */}
-      <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-[var(--color-border-subtle)] gap-2 shrink-0">
+      <div className="flex flex-col items-end justify-center gap-1 sm:gap-1.5 shrink-0">
         {store ? (
-          <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)] font-medium">
-            <span className="truncate max-w-[120px]">{store.store_name}</span>
-            {store.is_verified && <ShieldCheck size={14} className="text-blue-500 shrink-0" />}
+          <div className="hidden sm:flex items-center gap-1 text-[11px] text-[var(--color-text-secondary)] font-medium">
+            <span className="truncate max-w-[100px]">{store.store_name}</span>
+            {store.is_verified && <ShieldCheck size={13} className="text-blue-500 shrink-0" />}
           </div>
         ) : seller ? (
-          <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)] font-medium">
-            <span className="truncate max-w-[120px]">
+          <div className="hidden sm:flex items-center gap-1 text-[11px] text-[var(--color-text-secondary)] font-medium">
+            <span className="truncate max-w-[100px]">
               {seller.full_name || seller.username || 'Verified Seller'}
             </span>
           </div>
@@ -210,9 +210,9 @@ function WantedProductListCard({ product }) {
             e.stopPropagation();
             navigate(`/product/${product.id}`);
           }}
-          className="flex items-center gap-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 text-indigo-600 dark:text-indigo-300 px-3.5 py-1.5 text-xs font-bold transition-all ml-auto sm:ml-0 shadow-sm"
+          className="flex items-center gap-1 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 text-indigo-600 dark:text-indigo-300 px-2.5 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold transition-all shadow-sm"
         >
-          <span>View Details</span>
+          <span className="hidden xs:inline">View</span>
           <ChevronRight size={14} />
         </button>
       </div>
