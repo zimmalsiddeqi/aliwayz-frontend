@@ -32,7 +32,8 @@ export default function WantedFeedPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('all');
-  const [selectedBudget, setSelectedBudget] = useState('all');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
   const [selectedCondition, setSelectedCondition] = useState('all');
   const [selectedSort, setSelectedSort] = useState('newest');
   const [filterNearMe, setFilterNearMe] = useState(false);
@@ -40,7 +41,8 @@ export default function WantedFeedPage() {
 
   const hasActiveFilters =
     selectedLocation !== 'all' ||
-    selectedBudget !== 'all' ||
+    minPrice !== '' ||
+    maxPrice !== '' ||
     selectedCondition !== 'all' ||
     selectedSort !== 'newest' ||
     filterNearMe;
@@ -66,14 +68,10 @@ export default function WantedFeedPage() {
     : (Array.isArray(responseData) ? responseData : []);
 
   const filteredRequests = rawRequests.filter((item) => {
-    if (selectedBudget !== 'all') {
-      const maxB = item.budget_max || item.budget_min || 0;
-      if (selectedBudget === 'under_100' && maxB > 100) return false;
-      if (selectedBudget === '100_500' && (maxB < 100 || maxB > 500)) return false;
-      if (selectedBudget === '500_1k' && (maxB < 500 || maxB > 1000)) return false;
-      if (selectedBudget === '1k_5k' && (maxB < 1000 || maxB > 5000)) return false;
-      if (selectedBudget === '5k_plus' && maxB < 5000) return false;
-    }
+    const itemMax = Number(item.budget_max || item.budget_min || 0);
+    const itemMin = Number(item.budget_min || 0);
+    if (minPrice && itemMax < Number(minPrice)) return false;
+    if (maxPrice && itemMin > Number(maxPrice)) return false;
     return true;
   });
 
@@ -145,9 +143,9 @@ export default function WantedFeedPage() {
               </span>
             )}
 
-            {selectedBudget !== 'all' && (
+            {(minPrice !== '' || maxPrice !== '') && (
               <span className="inline-flex items-center gap-1 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 px-3 py-1 text-[11px] font-semibold whitespace-nowrap">
-                💵 Budget: {selectedBudget.replace('_', '-')}
+                💵 Budget: {minPrice ? `$${minPrice}` : '$0'} – {maxPrice ? `$${maxPrice}` : 'Any'}
               </span>
             )}
 
@@ -162,7 +160,8 @@ export default function WantedFeedPage() {
             <button
               onClick={() => {
                 setSelectedLocation('all');
-                setSelectedBudget('all');
+                setMinPrice('');
+                setMaxPrice('');
                 setSelectedCondition('all');
                 setSelectedSort('newest');
                 setFilterNearMe(false);
@@ -264,14 +263,16 @@ export default function WantedFeedPage() {
         onClose={() => setIsFilterModalOpen(false)}
         filters={{
           location: selectedLocation,
-          budget: selectedBudget,
+          minPrice,
+          maxPrice,
           condition: selectedCondition,
           sort: selectedSort,
           nearMe: filterNearMe,
         }}
         onApplyFilters={(newFilters) => {
           setSelectedLocation(newFilters.location);
-          setSelectedBudget(newFilters.budget);
+          setMinPrice(newFilters.minPrice || '');
+          setMaxPrice(newFilters.maxPrice || '');
           setSelectedCondition(newFilters.condition);
           setSelectedSort(newFilters.sort);
           setFilterNearMe(newFilters.nearMe);

@@ -16,28 +16,224 @@ import {
   SlidersHorizontal,
   Target,
   ShoppingBag,
+  MapPin,
+  Clock,
+  Eye,
+  Heart,
+  ChevronRight,
+  ShieldCheck,
+  Building2,
+  Truck,
+  Laptop,
 } from 'lucide-react';
 import ProductService from '@api/services/product.service';
 import WantedNavTabs from '../components/WantedNavTabs';
-import ProductCard from '@components/cards/ProductCard';
 import WantedFilterModal from '../components/WantedFilterModal';
 import Spinner from '@components/ui/Spinner';
-import { cn } from '@lib/utils';
+import { cn, formatPrice, formatRelativeTime, getConditionLabel } from '@lib/utils';
+import { getPrimaryImage } from '@utils/helpers';
+import { parsePropertyDescription } from '@utils/categoryHelpers';
 import { WANTED_CATEGORIES } from '../constants/wantedCategories';
+
+// Helper to render high quality category/item icon when no product image is present
+function renderProductThumbnailIcon(category = '', title = '') {
+  const t = (title || '').toLowerCase();
+  const cat = (category || '').toLowerCase();
+
+  let IconComponent = ShoppingBag;
+  let gradientClass = 'from-indigo-500 to-purple-600';
+
+  if (cat.includes('auto') || cat.includes('vehicle') || t.includes('car') || t.includes('truck') || t.includes('sedan') || t.includes('suv')) {
+    IconComponent = t.includes('truck') ? Truck : Car;
+    gradientClass = 'from-emerald-500 to-teal-600';
+  } else if (cat.includes('real') || cat.includes('prop') || t.includes('apartment') || t.includes('house') || t.includes('condo') || t.includes('rent')) {
+    IconComponent = t.includes('apartment') || t.includes('building') ? Building2 : Home;
+    gradientClass = 'from-violet-500 to-purple-600';
+  } else if (cat.includes('elect') || t.includes('phone') || t.includes('laptop') || t.includes('macbook')) {
+    IconComponent = t.includes('laptop') || t.includes('macbook') ? Laptop : Smartphone;
+    gradientClass = 'from-blue-500 to-indigo-600';
+  } else if (cat.includes('fashion') || t.includes('shirt') || t.includes('jacket') || t.includes('shoes')) {
+    IconComponent = Shirt;
+    gradientClass = 'from-rose-500 to-pink-600';
+  } else if (cat.includes('home') || t.includes('sofa') || t.includes('table') || t.includes('chair')) {
+    IconComponent = Sofa;
+    gradientClass = 'from-amber-500 to-orange-600';
+  }
+
+  return (
+    <div className={`w-full h-full bg-gradient-to-br ${gradientClass} flex items-center justify-center text-white shadow-inner`}>
+      <IconComponent size={26} className="drop-shadow-sm" />
+    </div>
+  );
+}
+
+// Product List View Card Component
+function WantedProductListCard({ product }) {
+  const navigate = useNavigate();
+  const imageUrl = getPrimaryImage(product?.product_images);
+  const store = product?.stores;
+  const seller = product?.users;
+  const catName = (product?.category?.name || product?.category_name || '').toLowerCase();
+  const desc = product?.description || '';
+  const title = product?.title || 'Listed Item';
+
+  const isRealEstate =
+    catName.includes('real') ||
+    catName.includes('prop') ||
+    catName.includes('housing') ||
+    desc.includes('[Property_Type]') ||
+    desc.includes('Listing: For Rent') ||
+    desc.includes('Listing: For Lease');
+
+  const isAutomotive =
+    catName.includes('vehicle') ||
+    catName.includes('auto') ||
+    catName.includes('car') ||
+    /Mileage:\s*[^\n]+/i.test(desc);
+
+  // Format Price
+  let priceDisplay = formatPrice(product?.price, product?.currency);
+  if (isRealEstate) {
+    const descLower = desc.toLowerCase();
+    if (descLower.includes('for rent') || descLower.includes('listing: for rent')) {
+      priceDisplay += ' / mo';
+    } else if (descLower.includes('for lease')) {
+      priceDisplay += ' / mo';
+    }
+  }
+
+  // Determine Badge Text
+  let badgeText = getConditionLabel(product?.condition) || 'Available';
+  let badgeColor = 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
+
+  if (isRealEstate) {
+    const descLower = desc.toLowerCase();
+    if (descLower.includes('for rent')) {
+      badgeText = 'For Rent';
+      badgeColor = 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800';
+    } else if (descLower.includes('for lease')) {
+      badgeText = 'For Lease';
+      badgeColor = 'bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border-purple-200 dark:border-purple-800';
+    } else {
+      badgeText = 'For Sale';
+      badgeColor = 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border-blue-200 dark:border-blue-800';
+    }
+  } else if (isAutomotive) {
+    const mileageMatch = desc.match(/Mileage:\s*([^\n\r]+)/i);
+    if (mileageMatch) {
+      badgeText = `${badgeText} • ${mileageMatch[1].trim()}`;
+    }
+  }
+
+  const locationDisplay = product?.location_city || 'Philadelphia, PA';
+  const timeAgoText = formatRelativeTime(product?.created_at) || 'Recently';
+
+  return (
+    <div
+      onClick={() => navigate(`/product/${product.id}`)}
+      className="group rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-3.5 sm:p-4 shadow-sm hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-700 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 cursor-pointer"
+    >
+      {/* Left: Thumbnail and Main Details */}
+      <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0 w-full sm:w-auto">
+        {/* Thumbnail */}
+        <div className="relative w-18 h-18 sm:w-22 sm:h-22 rounded-2xl bg-gray-100 dark:bg-gray-800 overflow-hidden shrink-0 border border-gray-200/70 dark:border-gray-700/70 shadow-sm flex items-center justify-center">
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt={title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              loading="lazy"
+            />
+          ) : (
+            renderProductThumbnailIcon(catName, title)
+          )}
+        </div>
+
+        {/* Content Details */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <span
+              className={cn(
+                'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-semibold border',
+                badgeColor
+              )}
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-current" />
+              {badgeText}
+            </span>
+            {product?.category?.name && (
+              <span className="text-[10px] sm:text-[11px] font-semibold text-[var(--color-text-muted)] bg-[var(--color-bg-secondary)] px-2 py-0.5 rounded-md">
+                {product.category.name}
+              </span>
+            )}
+          </div>
+
+          <h3 className="font-bold text-sm sm:text-base text-[var(--color-text-primary)] truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors leading-snug">
+            {title}
+          </h3>
+
+          <p className="text-sm sm:text-base font-extrabold text-indigo-600 dark:text-indigo-400 mt-0.5">
+            {priceDisplay}
+          </p>
+
+          <div className="flex items-center gap-3 text-[11px] sm:text-xs text-[var(--color-text-muted)] mt-1 truncate">
+            <span className="flex items-center gap-1 truncate">
+              <MapPin size={12} className="shrink-0 text-gray-400" />
+              <span className="truncate">{locationDisplay}</span>
+            </span>
+            <span className="flex items-center gap-1 shrink-0">
+              <Clock size={11} />
+              {timeAgoText}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Column: Seller info & View Details CTA */}
+      <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-[var(--color-border-subtle)] gap-2 shrink-0">
+        {store ? (
+          <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)] font-medium">
+            <span className="truncate max-w-[120px]">{store.store_name}</span>
+            {store.is_verified && <ShieldCheck size={14} className="text-blue-500 shrink-0" />}
+          </div>
+        ) : seller ? (
+          <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)] font-medium">
+            <span className="truncate max-w-[120px]">
+              {seller.full_name || seller.username || 'Verified Seller'}
+            </span>
+          </div>
+        ) : null}
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/product/${product.id}`);
+          }}
+          className="flex items-center gap-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 text-indigo-600 dark:text-indigo-300 px-3.5 py-1.5 text-xs font-bold transition-all ml-auto sm:ml-0 shadow-sm"
+        >
+          <span>View Details</span>
+          <ChevronRight size={14} />
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function WantedHomePage() {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('all');
-  const [selectedBudget, setSelectedBudget] = useState('all');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
   const [selectedCondition, setSelectedCondition] = useState('all');
   const [selectedSort, setSelectedSort] = useState('newest');
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
   const hasActiveFilters =
     selectedLocation !== 'all' ||
-    selectedBudget !== 'all' ||
+    minPrice !== '' ||
+    maxPrice !== '' ||
     selectedCondition !== 'all' ||
     selectedSort !== 'newest';
 
@@ -61,13 +257,8 @@ export default function WantedHomePage() {
   // Filter client-side if budget is set
   const filteredProducts = rawProducts.filter((prod) => {
     const price = Number(prod.price || 0);
-    if (selectedBudget !== 'all') {
-      if (selectedBudget === 'under_100' && price > 100) return false;
-      if (selectedBudget === '100_500' && (price < 100 || price > 500)) return false;
-      if (selectedBudget === '500_1k' && (price < 500 || price > 1000)) return false;
-      if (selectedBudget === '1k_5k' && (price < 1000 || price > 5000)) return false;
-      if (selectedBudget === '5k_plus' && price < 5000) return false;
-    }
+    if (minPrice && price < Number(minPrice)) return false;
+    if (maxPrice && price > Number(maxPrice)) return false;
     if (selectedCondition !== 'all' && prod.condition && prod.condition !== selectedCondition) {
       return false;
     }
@@ -87,7 +278,7 @@ export default function WantedHomePage() {
       {/* Top 3-tab navigation bar */}
       <WantedNavTabs />
 
-      <div className="container-app py-2 sm:py-4 space-y-4 sm:space-y-5 pb-24 max-w-7xl mx-auto">
+      <div className="container-app py-2 sm:py-4 space-y-4 sm:space-y-5 pb-24 max-w-4xl mx-auto">
         {/* Header Title Section */}
         <div className="space-y-0.5">
           <h1 className="text-xl sm:text-2xl font-black text-[var(--color-text-primary)]">
@@ -141,9 +332,15 @@ export default function WantedHomePage() {
               </span>
             )}
 
-            {selectedBudget !== 'all' && (
+            {(minPrice !== '' || maxPrice !== '') && (
               <span className="inline-flex items-center gap-1 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 px-3 py-1 text-[11px] font-semibold whitespace-nowrap">
-                💵 Budget: {selectedBudget.replace('_', '-')}
+                💵 Budget: {minPrice ? `$${minPrice}` : '$0'} – {maxPrice ? `$${maxPrice}` : 'Any'}
+              </span>
+            )}
+
+            {selectedCondition !== 'all' && (
+              <span className="inline-flex items-center gap-1 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 px-3 py-1 text-[11px] font-semibold whitespace-nowrap">
+                ✨ {selectedCondition}
               </span>
             )}
           </div>
@@ -152,7 +349,8 @@ export default function WantedHomePage() {
             <button
               onClick={() => {
                 setSelectedLocation('all');
-                setSelectedBudget('all');
+                setMinPrice('');
+                setMaxPrice('');
                 setSelectedCondition('all');
                 setSelectedSort('newest');
                 setSearchTerm('');
@@ -240,7 +438,7 @@ export default function WantedHomePage() {
           </div>
         </div>
 
-        {/* Section: Available Seller Listings */}
+        {/* Section: Available Seller Listings in List View */}
         <div className="space-y-3 pt-1">
           <div className="flex items-center justify-between">
             <h2 className="text-base sm:text-lg font-bold text-[var(--color-text-primary)]">
@@ -276,9 +474,9 @@ export default function WantedHomePage() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4.5">
+            <div className="space-y-3">
               {filteredProducts.map((prod) => (
-                <ProductCard key={prod.id} product={prod} />
+                <WantedProductListCard key={prod.id} product={prod} />
               ))}
             </div>
           )}
@@ -291,13 +489,15 @@ export default function WantedHomePage() {
         onClose={() => setIsFilterModalOpen(false)}
         filters={{
           location: selectedLocation,
-          budget: selectedBudget,
+          minPrice,
+          maxPrice,
           condition: selectedCondition,
           sort: selectedSort,
         }}
         onApplyFilters={(newFilters) => {
           setSelectedLocation(newFilters.location);
-          setSelectedBudget(newFilters.budget);
+          setMinPrice(newFilters.minPrice || '');
+          setMaxPrice(newFilters.maxPrice || '');
           setSelectedCondition(newFilters.condition);
           setSelectedSort(newFilters.sort);
         }}

@@ -85,8 +85,7 @@ export default function WantedMatchesModal({ isOpen, onClose, request }) {
                 const img =
                   product?.product_images?.[0]?.cdn_url ||
                   product?.product_images?.[0]?.storage_url ||
-                  request?.images?.[0] ||
-                  'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=300&auto=format&fit=crop&q=70';
+                  request?.images?.[0];
 
                 return (
                   <div
@@ -96,13 +95,17 @@ export default function WantedMatchesModal({ isOpen, onClose, request }) {
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                       {/* Product Thumbnail & Basic Info */}
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="h-14 w-14 sm:h-18 sm:w-18 rounded-xl bg-gray-100 dark:bg-gray-800 overflow-hidden shrink-0 border border-gray-200/70 dark:border-gray-700/70">
-                          <img
-                            src={img}
-                            alt={product.title || 'Matching product'}
-                            className="h-full w-full object-cover"
-                            loading="lazy"
-                          />
+                        <div className="h-14 w-14 sm:h-18 sm:w-18 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 overflow-hidden shrink-0 border border-gray-200/70 dark:border-gray-700/70 flex items-center justify-center">
+                          {img ? (
+                            <img
+                              src={img}
+                              alt={product.title || 'Matching product'}
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <Sparkles size={22} className="text-indigo-500" />
+                          )}
                         </div>
                         <div className="min-w-0 flex-1">
                           <h4 className="font-bold text-xs sm:text-sm text-[var(--color-text-primary)] truncate">

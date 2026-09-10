@@ -1,42 +1,59 @@
-import { MapPin, Clock, Eye, ChevronRight } from 'lucide-react';
+import {
+  MapPin,
+  Clock,
+  Eye,
+  ChevronRight,
+  Smartphone,
+  Laptop,
+  Gamepad2,
+  Car,
+  Truck,
+  Home,
+  Building2,
+  Shirt,
+  Watch,
+  Sofa,
+  ShoppingBag,
+} from 'lucide-react';
 import { cn } from '@lib/utils';
 
-// Helper for fallback preview images
-const getFallbackImage = (request = {}) => {
-  const { category, title = '', images, image_url } = request;
-  if (images && images.length > 0 && images[0]) return images[0];
-  if (image_url) return image_url;
+// Helper to render high quality category/item icon when no user image is provided
+function renderWantedIcon(category = '', title = '') {
+  const t = (title || '').toLowerCase();
+  const cat = (category || '').toLowerCase();
 
-  const t = title.toLowerCase();
-  if (t.includes('iphone') || t.includes('phone') || t.includes('apple')) {
-    return 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=300&auto=format&fit=crop&q=70';
+  let IconComponent = ShoppingBag;
+  let gradientClass = 'from-indigo-500 to-purple-600';
+
+  if (cat === 'automotive' || t.includes('car') || t.includes('truck') || t.includes('toyota') || t.includes('honda') || t.includes('sedan') || t.includes('suv') || t.includes('vehicle')) {
+    IconComponent = t.includes('truck') ? Truck : Car;
+    gradientClass = 'from-emerald-500 to-teal-600';
+  } else if (cat === 'real_estate' || t.includes('apartment') || t.includes('house') || t.includes('condo') || t.includes('rent') || t.includes('property') || t.includes('flat')) {
+    IconComponent = t.includes('apartment') || t.includes('building') ? Building2 : Home;
+    gradientClass = 'from-violet-500 to-purple-600';
+  } else if (cat === 'electronics' || t.includes('iphone') || t.includes('phone') || t.includes('laptop') || t.includes('macbook') || t.includes('ps5') || t.includes('console')) {
+    if (t.includes('laptop') || t.includes('macbook') || t.includes('computer')) {
+      IconComponent = Laptop;
+    } else if (t.includes('ps5') || t.includes('playstation') || t.includes('xbox') || t.includes('game') || t.includes('nintendo')) {
+      IconComponent = Gamepad2;
+    } else {
+      IconComponent = Smartphone;
+    }
+    gradientClass = 'from-blue-500 to-indigo-600';
+  } else if (cat === 'fashion' || t.includes('shirt') || t.includes('shoe') || t.includes('jacket') || t.includes('watch') || t.includes('dress') || t.includes('clothes')) {
+    IconComponent = t.includes('watch') ? Watch : Shirt;
+    gradientClass = 'from-rose-500 to-pink-600';
+  } else if (cat === 'home' || t.includes('sofa') || t.includes('couch') || t.includes('table') || t.includes('chair') || t.includes('desk') || t.includes('bed') || t.includes('furniture')) {
+    IconComponent = Sofa;
+    gradientClass = 'from-amber-500 to-orange-600';
   }
-  if (t.includes('ps5') || t.includes('playstation') || t.includes('xbox') || t.includes('console')) {
-    return 'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=300&auto=format&fit=crop&q=70';
-  }
-  if (t.includes('sofa') || t.includes('couch') || t.includes('sectional')) {
-    return 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=300&auto=format&fit=crop&q=70';
-  }
-  if (t.includes('dining') || t.includes('table') || t.includes('chair')) {
-    return 'https://images.unsplash.com/photo-1617806118233-18e1de247200?w=300&auto=format&fit=crop&q=70';
-  }
-  if (t.includes('camry') || t.includes('toyota') || t.includes('sedan') || t.includes('car') || category === 'automotive') {
-    return 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=300&auto=format&fit=crop&q=70';
-  }
-  if (category === 'electronics') {
-    return 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=300&auto=format&fit=crop&q=70';
-  }
-  if (category === 'real_estate') {
-    return 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=300&auto=format&fit=crop&q=70';
-  }
-  if (category === 'fashion') {
-    return 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=300&auto=format&fit=crop&q=70';
-  }
-  if (category === 'home') {
-    return 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=300&auto=format&fit=crop&q=70';
-  }
-  return 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=300&auto=format&fit=crop&q=70';
-};
+
+  return (
+    <div className={`w-full h-full bg-gradient-to-br ${gradientClass} flex items-center justify-center text-white shadow-inner`}>
+      <IconComponent size={26} className="drop-shadow-sm group-hover:scale-110 transition-transform duration-300" />
+    </div>
+  );
+}
 
 // Relative time formatter
 const formatTimeAgo = (dateStr) => {
@@ -118,7 +135,7 @@ export default function WantedCard({
   const timeAgoText = formatTimeAgo(created_at);
   const viewsDisplay = Number(views_count || views || 0);
 
-  const imageUrl = getFallbackImage(request);
+  const userImage = (request?.images && request.images.length > 0 && request.images[0]) || request?.image_url;
 
   const handleCardClick = () => {
     if (onViewMatches) {
@@ -133,17 +150,18 @@ export default function WantedCard({
       onClick={handleCardClick}
       className="group rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-3.5 sm:p-4 shadow-sm hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700 transition-all flex items-center justify-between gap-3 sm:gap-4 cursor-pointer"
     >
-      {/* Left Thumbnail Image */}
-      <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-gray-100 dark:bg-gray-800 overflow-hidden shrink-0 border border-gray-200/70 dark:border-gray-700/70">
-        <img
-          src={imageUrl}
-          alt={title || 'Wanted item'}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          loading="lazy"
-          onError={(e) => {
-            e.target.src = 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=300&auto=format&fit=crop&q=70';
-          }}
-        />
+      {/* Left Thumbnail (User Image or High Quality Category Icon) */}
+      <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gray-100 dark:bg-gray-800 overflow-hidden shrink-0 border border-gray-200/70 dark:border-gray-700/70 shadow-sm flex items-center justify-center">
+        {userImage ? (
+          <img
+            src={userImage}
+            alt={title || 'Wanted item'}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
+          />
+        ) : (
+          renderWantedIcon(category, title)
+        )}
       </div>
 
       {/* Middle Content */}
