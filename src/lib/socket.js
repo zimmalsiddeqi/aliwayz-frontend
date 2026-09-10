@@ -1,6 +1,6 @@
 import { io } from 'socket.io-client';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'https://aliwayz-backend-production-eff1.up.railway.app';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'https://aliwayz-backend-production-1899.up.railway.app';
 
 let socketInstance = null;
 let connectionAttempts = 0;
