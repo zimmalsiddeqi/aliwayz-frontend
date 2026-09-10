@@ -26,98 +26,6 @@ import Spinner from '@components/ui/Spinner';
 import { cn } from '@lib/utils';
 import { WANTED_CATEGORIES, PHILLY_NEIGHBORHOODS } from '../constants/wantedCategories';
 
-// Sample fallback buyer requests across categories if backend is empty
-const INITIAL_SAMPLE_FEED = [
-  {
-    id: 'sample-1',
-    title: 'iPhone 15 Pro Max',
-    category: 'electronics',
-    budget_min: 800,
-    budget_max: 1000,
-    location_city: 'Philadelphia, PA',
-    location_radius: 10,
-    posted_ago: 'Posted 2h ago',
-    views: 24,
-    status: 'active',
-    wanted_matches: [{}, {}, {}, {}, {}],
-    images: ['https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=300&auto=format&fit=crop&q=70'],
-  },
-  {
-    id: 'sample-2',
-    title: 'Toyota Camry 2021+',
-    category: 'automotive',
-    budget_min: 20000,
-    budget_max: 25000,
-    location_city: 'Philadelphia, PA',
-    location_radius: 20,
-    posted_ago: 'Posted 5h ago',
-    views: 42,
-    status: 'active',
-    wanted_matches: [{}, {}, {}, {}, {}, {}, {}, {}],
-    images: ['https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=300&auto=format&fit=crop&q=70'],
-  },
-  {
-    id: 'sample-3',
-    title: 'Sectional Sofa',
-    category: 'home',
-    budget_min: 300,
-    budget_max: 600,
-    location_neighborhood: 'Northeast Philadelphia',
-    location_city: 'PA',
-    location_radius: 15,
-    posted_ago: 'Posted 1d ago',
-    views: 67,
-    status: 'active',
-    wanted_matches: [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
-    images: ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=300&auto=format&fit=crop&q=70'],
-  },
-  {
-    id: 'sample-4',
-    title: 'PS5 Console',
-    category: 'electronics',
-    budget_min: 350,
-    budget_max: 600,
-    location_city: 'Philadelphia, PA',
-    location_radius: 10,
-    posted_ago: 'Posted 1d ago',
-    views: 53,
-    status: 'active',
-    wanted_matches: [{}, {}, {}, {}],
-    images: ['https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=300&auto=format&fit=crop&q=70'],
-  },
-  {
-    id: 'sample-5',
-    title: 'Dining Table for 6',
-    category: 'home',
-    budget_min: 200,
-    budget_max: 500,
-    location_neighborhood: 'South Philadelphia',
-    location_city: 'PA',
-    location_radius: 15,
-    posted_ago: 'Posted 2d ago',
-    views: 88,
-    status: 'paused',
-    wanted_matches: [],
-    images: ['https://images.unsplash.com/photo-1617806118233-18e1de247200?w=300&auto=format&fit=crop&q=70'],
-  },
-  {
-    id: 'sample-6',
-    title: '2-Bedroom Apartment in Center City',
-    category: 'real_estate',
-    intent: 'rent',
-    budget_min: 1800,
-    budget_max: 2400,
-    location_neighborhood: 'Center City',
-    location_city: 'Philadelphia, PA',
-    location_radius: 5,
-    posted_ago: 'Posted 3d ago',
-    views: 112,
-    status: 'active',
-    wanted_matches: [{}, {}, {}],
-    images: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=300&auto=format&fit=crop&q=70'],
-  },
-];
-
 export default function WantedFeedPage() {
   const navigate = useNavigate();
   // Default to 'all' categories
@@ -140,13 +48,15 @@ export default function WantedFeedPage() {
   const [activeRequestForMatch, setActiveRequestForMatch] = useState(null);
   const [activeRequestForView, setActiveRequestForView] = useState(null);
 
+  // Real dynamic data from API
   const { data: responseData, isLoading } = useQuery({
-    queryKey: ['wanted-feed-requests', selectedCategory, selectedSort, filterNearMe, searchTerm],
+    queryKey: ['wanted-feed-requests', selectedCategory, selectedSort, filterNearMe, searchTerm, selectedLocation],
     queryFn: () =>
       WantedService.browse({
         category: selectedCategory === 'all' ? undefined : selectedCategory,
         search: searchTerm || undefined,
         sort: selectedSort,
+        city: selectedLocation === 'all' ? undefined : selectedLocation,
         limit: 30,
       }),
   });
@@ -155,15 +65,7 @@ export default function WantedFeedPage() {
     ? responseData.data
     : (Array.isArray(responseData) ? responseData : []);
 
-  const displayRequests = rawRequests.length > 0 ? rawRequests : INITIAL_SAMPLE_FEED;
-
-  const filteredRequests = displayRequests.filter((item) => {
-    if (selectedCategory !== 'all' && item.category !== selectedCategory) return false;
-    if (searchTerm && !item.title?.toLowerCase().includes(searchTerm.toLowerCase())) return false;
-    if (selectedLocation !== 'all') {
-      const locStr = `${item.location_neighborhood || ''} ${item.location_city || ''}`.toLowerCase();
-      if (!locStr.includes(selectedLocation.toLowerCase())) return false;
-    }
+  const filteredRequests = rawRequests.filter((item) => {
     if (selectedBudget !== 'all') {
       const maxB = item.budget_max || item.budget_min || 0;
       if (selectedBudget === 'under_100' && maxB > 100) return false;
@@ -221,61 +123,91 @@ export default function WantedFeedPage() {
           />
         </div>
 
-        {/* Category Pills Row with Filter Trigger Button */}
-        <div className="flex items-center gap-2">
-          {/* Categories Horizontal Scroll */}
-          <div className="flex-1 flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-            {WANTED_CATEGORIES.map((cat) => {
-              const isSelected = selectedCategory === cat.id;
-              const Icon =
-                cat.id === 'electronics'
-                  ? Smartphone
-                  : cat.id === 'automotive'
-                  ? Car
-                  : cat.id === 'real_estate'
-                  ? Home
-                  : cat.id === 'fashion'
-                  ? Shirt
-                  : cat.id === 'home'
-                  ? Sofa
-                  : LayoutGrid;
+        {/* 1. FILTER CONTROLS ROW (STRICTLY ABOVE CATEGORIES) */}
+        <div className="flex items-center justify-between gap-2 pt-0.5">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+            <button
+              onClick={() => setIsFilterModalOpen(true)}
+              className={cn(
+                'flex items-center gap-1.5 rounded-2xl px-3.5 py-1.5 text-xs font-bold transition-all border shadow-sm',
+                hasActiveFilters
+                  ? 'bg-indigo-600 text-white border-indigo-600'
+                  : 'border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] hover:border-gray-400'
+              )}
+            >
+              <SlidersHorizontal size={14} />
+              <span>Filters {hasActiveFilters && '(Active)'}</span>
+            </button>
 
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={cn(
-                    'flex items-center gap-1.5 rounded-2xl px-4 py-2 text-xs sm:text-sm font-semibold whitespace-nowrap transition-all border shrink-0',
-                    isSelected
-                      ? 'bg-[#5046e5] text-white border-[#5046e5] shadow-sm'
-                      : 'border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:border-gray-400'
-                  )}
-                >
-                  <Icon size={14} />
-                  <span>{cat.label}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Filter Modal Trigger Button */}
-          <button
-            onClick={() => setIsFilterModalOpen(true)}
-            title="Open Filters"
-            className={cn(
-              'relative flex items-center justify-center h-10 w-10 sm:h-11 sm:w-11 rounded-2xl border transition-all shrink-0 shadow-sm',
-              hasActiveFilters
-                ? 'bg-indigo-600 text-white border-indigo-600 shadow-indigo-500/20'
-                : 'border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:border-gray-400 hover:text-[var(--color-text-primary)]'
-            )}
-          >
-            <SlidersHorizontal size={17} />
-            {hasActiveFilters && (
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-white">
-                !
+            {selectedLocation !== 'all' && (
+              <span className="inline-flex items-center gap-1 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 px-3 py-1 text-[11px] font-semibold whitespace-nowrap">
+                📍 {selectedLocation}
               </span>
             )}
-          </button>
+
+            {selectedBudget !== 'all' && (
+              <span className="inline-flex items-center gap-1 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 px-3 py-1 text-[11px] font-semibold whitespace-nowrap">
+                💵 Budget: {selectedBudget.replace('_', '-')}
+              </span>
+            )}
+
+            {filterNearMe && (
+              <span className="inline-flex items-center gap-1 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 px-3 py-1 text-[11px] font-semibold whitespace-nowrap">
+                📍 Near Me
+              </span>
+            )}
+          </div>
+
+          {hasActiveFilters && (
+            <button
+              onClick={() => {
+                setSelectedLocation('all');
+                setSelectedBudget('all');
+                setSelectedCondition('all');
+                setSelectedSort('newest');
+                setFilterNearMe(false);
+                setSearchTerm('');
+              }}
+              className="text-[11px] font-bold text-gray-400 hover:text-red-500 whitespace-nowrap transition-colors"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+
+        {/* 2. CATEGORIES ROW (PLACED BENEATH FILTER CONTROLS) */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+          {WANTED_CATEGORIES.map((cat) => {
+            const isSelected = selectedCategory === cat.id;
+            const Icon =
+              cat.id === 'electronics'
+                ? Smartphone
+                : cat.id === 'automotive'
+                ? Car
+                : cat.id === 'real_estate'
+                ? Home
+                : cat.id === 'fashion'
+                ? Shirt
+                : cat.id === 'home'
+                ? Sofa
+                : LayoutGrid;
+
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={cn(
+                  'flex items-center gap-1.5 rounded-2xl px-4 py-2 text-xs sm:text-sm font-semibold whitespace-nowrap transition-all border shrink-0',
+                  isSelected
+                    ? 'bg-[#5046e5] text-white border-[#5046e5] shadow-sm'
+                    : 'border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:border-gray-400'
+                )}
+              >
+                <Icon size={14} />
+                <span>{cat.label}</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Requests Feed List */}
