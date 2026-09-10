@@ -3,6 +3,18 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ── Global Scrollbar Hiding (Smooth scrolling without visible scrollbars/lines) ── */
+* {
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE and Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Opera */
+  width: 0px !important;
+  height: 0px !important;
+}
 /* ═══════════════════════════════════════════════════════════════
    DESIGN TOKENS — Dark & Light Theme
 ═══════════════════════════════════════════════════════════════ */

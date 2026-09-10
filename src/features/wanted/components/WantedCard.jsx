@@ -114,9 +114,9 @@ export default function WantedCard({
   const radiusPart = location_radius ? ` (within ${location_radius} miles)` : '';
   const locationDisplay = `${neighborhoodPart}${cityPart}${radiusPart}`;
 
-  // Time & Views
-  const timeAgoText = request?.posted_ago || formatTimeAgo(created_at);
-  const viewsDisplay = views || views_count || (id ? (Math.abs(String(id).split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % 60 + 18) : 24);
+  // Real Time & Views strictly from database
+  const timeAgoText = formatTimeAgo(created_at);
+  const viewsDisplay = Number(views_count || views || 0);
 
   const imageUrl = getFallbackImage(request);
 

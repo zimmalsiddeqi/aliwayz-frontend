@@ -14,19 +14,16 @@ import {
   ArrowRight,
   Sparkles,
   SlidersHorizontal,
-  ChevronDown,
   Target,
   ShoppingBag,
 } from 'lucide-react';
-import WantedService from '@api/services/wanted.service';
+import ProductService from '@api/services/product.service';
 import WantedNavTabs from '../components/WantedNavTabs';
-import WantedCard from '../components/WantedCard';
-import IHaveThisModal from '../components/IHaveThisModal';
-import WantedMatchesModal from '../components/WantedMatchesModal';
+import ProductCard from '@components/cards/ProductCard';
 import WantedFilterModal from '../components/WantedFilterModal';
 import Spinner from '@components/ui/Spinner';
 import { cn } from '@lib/utils';
-import { WANTED_CATEGORIES, PHILLY_NEIGHBORHOODS } from '../constants/wantedCategories';
+import { WANTED_CATEGORIES } from '../constants/wantedCategories';
 
 export default function WantedHomePage() {
   const navigate = useNavigate();
@@ -44,35 +41,35 @@ export default function WantedHomePage() {
     selectedCondition !== 'all' ||
     selectedSort !== 'newest';
 
-  const [activeRequestForMatch, setActiveRequestForMatch] = useState(null);
-  const [activeRequestForView, setActiveRequestForView] = useState(null);
-
-  // Fetch real dynamic Wanted requests from backend API
+  // Fetch real seller-listed items from the backend across Marketplace, Automotive, and Real Estate
   const { data: responseData, isLoading } = useQuery({
-    queryKey: ['wanted-home-requests', selectedCategory, searchTerm, selectedSort, selectedLocation, selectedBudget],
+    queryKey: ['wanted-home-seller-listings', selectedCategory, searchTerm, selectedSort, selectedLocation],
     queryFn: () =>
-      WantedService.browse({
+      ProductService.browse({
         category: selectedCategory === 'all' ? undefined : selectedCategory,
         search: searchTerm || undefined,
         sort: selectedSort,
         city: selectedLocation === 'all' ? undefined : selectedLocation,
-        limit: 25,
+        limit: 30,
       }),
   });
 
-  const rawRequests = Array.isArray(responseData?.data)
+  const rawProducts = Array.isArray(responseData?.data)
     ? responseData.data
     : (Array.isArray(responseData) ? responseData : []);
 
   // Filter client-side if budget is set
-  const filteredRequests = rawRequests.filter((item) => {
+  const filteredProducts = rawProducts.filter((prod) => {
+    const price = Number(prod.price || 0);
     if (selectedBudget !== 'all') {
-      const maxB = item.budget_max || item.budget_min || 0;
-      if (selectedBudget === 'under_100' && maxB > 100) return false;
-      if (selectedBudget === '100_500' && (maxB < 100 || maxB > 500)) return false;
-      if (selectedBudget === '500_1k' && (maxB < 500 || maxB > 1000)) return false;
-      if (selectedBudget === '1k_5k' && (maxB < 1000 || maxB > 5000)) return false;
-      if (selectedBudget === '5k_plus' && maxB < 5000) return false;
+      if (selectedBudget === 'under_100' && price > 100) return false;
+      if (selectedBudget === '100_500' && (price < 100 || price > 500)) return false;
+      if (selectedBudget === '500_1k' && (price < 500 || price > 1000)) return false;
+      if (selectedBudget === '1k_5k' && (price < 1000 || price > 5000)) return false;
+      if (selectedBudget === '5k_plus' && price < 5000) return false;
+    }
+    if (selectedCondition !== 'all' && prod.condition && prod.condition !== selectedCondition) {
+      return false;
     }
     return true;
   });
@@ -80,24 +77,24 @@ export default function WantedHomePage() {
   return (
     <>
       <Helmet>
-        <title>Wanted Requests — Aliwayz</title>
+        <title>Wanted & Matching Marketplace Items — Aliwayz</title>
         <meta
           name="description"
-          content="Tell Philadelphia what you're looking for. Local sellers and agents can respond to your wanted requests."
+          content="Browse local seller listings and matching marketplace items in Philadelphia, or post a wanted request to let sellers find you."
         />
       </Helmet>
 
       {/* Top 3-tab navigation bar */}
       <WantedNavTabs />
 
-      <div className="container-app py-2 sm:py-4 space-y-4 sm:space-y-5 pb-24 max-w-4xl mx-auto">
+      <div className="container-app py-2 sm:py-4 space-y-4 sm:space-y-5 pb-24 max-w-7xl mx-auto">
         {/* Header Title Section */}
         <div className="space-y-0.5">
           <h1 className="text-xl sm:text-2xl font-black text-[var(--color-text-primary)]">
             Wanted
           </h1>
           <p className="text-xs sm:text-sm text-[var(--color-text-muted)]">
-            Tell Philadelphia what you're looking for. Local sellers can respond.
+            Explore items listed by local sellers or post what you're looking for.
           </p>
         </div>
 
@@ -109,7 +106,7 @@ export default function WantedHomePage() {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search wanted requests..."
+              placeholder="Search available seller listings and items..."
               className="w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] pl-10 pr-4 py-2.5 sm:py-3 text-xs sm:text-sm text-[var(--color-text-primary)] shadow-sm focus:border-blue-600 focus:outline-none transition-all"
             />
           </div>
@@ -202,7 +199,7 @@ export default function WantedHomePage() {
           })}
         </div>
 
-        {/* Hero Banner (Matching media_1789068793221.png) */}
+        {/* Hero Banner */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-50 via-indigo-50/70 to-purple-50 dark:from-blue-950/40 dark:via-indigo-950/30 dark:to-purple-950/30 border border-indigo-100/80 dark:border-indigo-900/40 p-5 sm:p-6 shadow-sm">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
             <div className="flex items-start gap-4">
@@ -214,7 +211,7 @@ export default function WantedHomePage() {
                   Can't find what you're looking for?
                 </h2>
                 <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
-                  Post a Wanted request and let local sellers find you.
+                  Post a Wanted request and let local sellers find you with their matching inventory.
                 </p>
                 <div className="pt-2">
                   <button
@@ -228,7 +225,7 @@ export default function WantedHomePage() {
               </div>
             </div>
 
-            {/* Decorative Right Illustration Badges */}
+            {/* Decorative Right Badges */}
             <div className="hidden sm:flex items-center gap-2 shrink-0 pr-2">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 text-blue-600">
                 <Car size={18} />
@@ -243,17 +240,17 @@ export default function WantedHomePage() {
           </div>
         </div>
 
-        {/* Section: Active Wanted Requests */}
+        {/* Section: Available Seller Listings */}
         <div className="space-y-3 pt-1">
           <div className="flex items-center justify-between">
             <h2 className="text-base sm:text-lg font-bold text-[var(--color-text-primary)]">
-              Active Wanted Requests
+              Seller Listings on Aliwayz
             </h2>
             <Link
               to="/wanted/feed"
               className="text-xs sm:text-sm font-bold text-[#5046e5] hover:underline flex items-center gap-1"
             >
-              <span>See All</span>
+              <span>Browse Buyer Requests</span>
               <ArrowRight size={14} />
             </Link>
           </div>
@@ -262,14 +259,14 @@ export default function WantedHomePage() {
             <div className="flex justify-center py-12">
               <Spinner size="lg" />
             </div>
-          ) : filteredRequests.length === 0 ? (
+          ) : filteredProducts.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-[var(--color-border)] p-8 text-center bg-[var(--color-bg-card)]">
               <Sparkles className="mx-auto mb-3 text-indigo-600" size={36} />
               <h3 className="text-base font-bold text-[var(--color-text-primary)]">
-                No wanted requests found
+                No matching seller listings found
               </h3>
               <p className="text-xs sm:text-sm text-[var(--color-text-muted)] mt-1 mb-4 max-w-sm mx-auto">
-                Be the first to post what you're looking for in Philadelphia!
+                Can't find what you need? Post a Wanted request and local sellers will find you!
               </p>
               <button
                 onClick={() => navigate('/wanted/create')}
@@ -279,33 +276,14 @@ export default function WantedHomePage() {
               </button>
             </div>
           ) : (
-            <div className="space-y-3">
-              {filteredRequests.map((req) => (
-                <WantedCard
-                  key={req.id}
-                  request={req}
-                  onIHaveThis={(item) => setActiveRequestForMatch(item)}
-                  onViewMatches={(item) => setActiveRequestForView(item)}
-                />
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4.5">
+              {filteredProducts.map((prod) => (
+                <ProductCard key={prod.id} product={prod} />
               ))}
             </div>
           )}
         </div>
       </div>
-
-      {/* Seller Action Modal (I Have This) */}
-      <IHaveThisModal
-        isOpen={!!activeRequestForMatch}
-        onClose={() => setActiveRequestForMatch(null)}
-        request={activeRequestForMatch}
-      />
-
-      {/* Buyer Matches View Modal */}
-      <WantedMatchesModal
-        isOpen={!!activeRequestForView}
-        onClose={() => setActiveRequestForView(null)}
-        request={activeRequestForView}
-      />
 
       {/* Filter Modal */}
       <WantedFilterModal
