@@ -14,6 +14,9 @@ const ChatService = {
   getMessages: (id, params) =>
     api.get(API.CONVERSATIONS.MESSAGES(id), { params }).then((r) => r.data),
 
+  sendMessage: (id, data) =>
+    api.post(API.CONVERSATIONS.MESSAGES(id), data).then((r) => r.data),
+
   archiveConversation: (id) =>
     api.delete(API.CONVERSATIONS.ARCHIVE(id)).then((r) => r.data),
 

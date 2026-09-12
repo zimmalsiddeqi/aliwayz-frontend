@@ -194,7 +194,7 @@ export default function ConversationPage() {
     inputRef.current?.focus();
     stopTyping();
 
-    const sent = socketSendMessage(content, tempId);
+    const sent = typeof socketSendMessage === 'function' ? socketSendMessage(content, tempId) : false;
     if (!sent) {
       // Fallback via HTTP REST API if socket isn't connected right now
       sendMessageMutation.mutate({ content });
