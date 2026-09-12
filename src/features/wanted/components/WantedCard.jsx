@@ -218,18 +218,33 @@ export default function WantedCard({
         </div>
 
         {showActions && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (onIHaveThis) {
-                onIHaveThis(request);
-              }
-            }}
-            className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-3 py-1.5 text-xs font-bold shadow-md shadow-indigo-500/20 transition-all transform active:scale-95"
-          >
-            <Sparkles size={13} />
-            <span>I Have This</span>
-          </button>
+          isOwner ? (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onViewMatches) {
+                  onViewMatches(request);
+                }
+              }}
+              className="flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50/80 text-blue-700 hover:bg-blue-100 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-300 px-3 py-1.5 text-xs font-bold transition-all shadow-sm"
+            >
+              <Sparkles size={13} />
+              <span>View Matches</span>
+            </button>
+          ) : (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onIHaveThis) {
+                  onIHaveThis(request);
+                }
+              }}
+              className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-3 py-1.5 text-xs font-bold shadow-md shadow-indigo-500/20 transition-all transform active:scale-95"
+            >
+              <Sparkles size={13} />
+              <span>I Have This</span>
+            </button>
+          )
         )}
       </div>
     </div>

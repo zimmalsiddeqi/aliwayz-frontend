@@ -78,14 +78,15 @@ export default function WantedFeedPage() {
     : (Array.isArray(responseData) ? responseData : []);
 
   const filteredRequests = rawRequests.filter((item) => {
-    // Exclude current logged-in user's own requests (they view them in My Requests)
-    if (user?.id && (item.user_id === user.id || item.user?.id === user.id || item.buyer_id === user.id || item.users?.id === user.id)) {
-      return false;
-    }
+    const isOwnRequest = Boolean(
+      user?.id &&
+      (item.user_id === user.id || item.user?.id === user.id || item.buyer_id === user.id || item.users?.id === user.id)
+    );
 
-    // Do not show requests from users with 'seller' or 'both' roles in the public Wanted feed
-    const creatorRole = item.users?.role || item.user?.role || item.creator_role;
-    if (creatorRole === 'seller' || creatorRole === 'both') {
+    // If the logged-in user has role 'both' (both buyer and seller) or 'seller',
+    // their own request is not shown in the Wanted feed (they manage them in My Requests).
+    // All other users' requests will be shown!
+    if (isOwnRequest && (user?.role === 'both' || user?.role === 'seller')) {
       return false;
     }
 
@@ -253,14 +254,21 @@ export default function WantedFeedPage() {
           </div>
         ) : (
           <div className="space-y-3 pt-1">
-            {filteredRequests.map((req) => (
-              <WantedCard
-                key={req.id}
-                request={req}
-                onIHaveThis={(item) => setActiveRequestForMatch(item)}
-                onViewMatches={(item) => setActiveRequestForView(item)}
-              />
-            ))}
+            {filteredRequests.map((req) => {
+              const isOwner = Boolean(
+                user?.id &&
+                (req.user_id === user.id || req.user?.id === user.id || req.buyer_id === user.id || req.users?.id === user.id)
+              );
+              return (
+                <WantedCard
+                  key={req.id}
+                  request={req}
+                  isOwner={isOwner}
+                  onIHaveThis={isOwner ? undefined : (item) => setActiveRequestForMatch(item)}
+                  onViewMatches={(item) => setActiveRequestForView(item)}
+                />
+              );
+            })}
           </div>
         )}
       </div>
