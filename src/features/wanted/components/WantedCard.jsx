@@ -14,6 +14,8 @@ import {
   Watch,
   Sofa,
   ShoppingBag,
+  Users,
+  Sparkles,
 } from 'lucide-react';
 import { cn } from '@lib/utils';
 
@@ -99,6 +101,8 @@ export default function WantedCard({
     ? wanted_matches.length
     : (wanted_matches?.count || request?.matches_count || 0);
 
+  const buyersCount = Number(request?.buyers_count || request?.buyer_count || 1);
+
   // Format budget text
   const formatPrice = (val) => {
     if (!val || val === 0) return null;
@@ -181,6 +185,10 @@ export default function WantedCard({
             <Clock size={11} />
             {timeAgoText}
           </span>
+          <span className="flex items-center gap-1 text-[#5046e5] dark:text-indigo-400 font-semibold">
+            <Users size={11} />
+            {buyersCount} {buyersCount === 1 ? 'Buyer' : 'Buyers'}
+          </span>
           <span className="flex items-center gap-1">
             <Eye size={11} />
             {viewsDisplay} views
@@ -188,9 +196,9 @@ export default function WantedCard({
         </div>
       </div>
 
-      {/* Right Column: Status Badge, Match Count, Chevron */}
-      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-        <div className="flex flex-col items-end gap-1 sm:gap-1.5">
+      {/* Right Column: Buyer Count, I Have This Button & Status */}
+      <div className="flex flex-col items-end gap-2 shrink-0">
+        <div className="flex items-center gap-2">
           <span
             className={cn(
               'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-semibold',
@@ -207,11 +215,22 @@ export default function WantedCard({
             />
             {status === 'paused' ? 'Paused' : 'Active'}
           </span>
-          <span className="text-[11px] sm:text-xs font-medium text-[var(--color-text-muted)]">
-            {matchesCount} {matchesCount === 1 ? 'match' : 'matches'}
-          </span>
         </div>
-        <ChevronRight size={18} className="text-gray-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
+
+        {showActions && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onIHaveThis) {
+                onIHaveThis(request);
+              }
+            }}
+            className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-3 py-1.5 text-xs font-bold shadow-md shadow-indigo-500/20 transition-all transform active:scale-95"
+          >
+            <Sparkles size={13} />
+            <span>I Have This</span>
+          </button>
+        )}
       </div>
     </div>
   );
