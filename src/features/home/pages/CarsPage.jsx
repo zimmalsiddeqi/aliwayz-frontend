@@ -161,7 +161,7 @@ export default function CarsPage() {
                   leftIcon={<PlusCircle size={14} />}
                   className="!border-white/35 !bg-white/20 !text-white backdrop-blur-md hover:!bg-white/30"
                 >
-                  Sell Automotive
+                  List Automotive
                 </Button>
               </Link>
             </div>

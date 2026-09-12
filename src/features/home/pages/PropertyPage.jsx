@@ -181,7 +181,7 @@ export default function PropertyPage() {
                     leftIcon={<PlusCircle size={14} />}
                     className="!border-white/35 !bg-white/20 !text-white backdrop-blur-md hover:!bg-white/30"
                   >
-                    List Property
+                    List Real Estate
                   </Button>
                 </Link>
             </div>

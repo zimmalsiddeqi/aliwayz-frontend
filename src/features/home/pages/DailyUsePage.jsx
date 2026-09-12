@@ -196,7 +196,7 @@ export default function DailyUsePage() {
                     leftIcon={<PlusCircle size={16} />}
                     className="!border-white/30 !bg-white/20 !text-white backdrop-blur-md hover:!bg-white/30"
                   >
-                    Sell an Item
+                    List an Item
                   </Button>
                 </Link>
               )}
