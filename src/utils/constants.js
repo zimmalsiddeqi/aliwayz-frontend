@@ -320,11 +320,12 @@ export const VEHICLE_BODY_TYPES = [
 ];
 
 export const VEHICLE_FUEL_TYPES = [
-  { value: 'gasoline', label: 'Gasoline' },
-  { value: 'diesel',   label: 'Diesel' },
-  { value: 'electric', label: 'Electric' },
-  { value: 'hybrid',   label: 'Hybrid' },
-  { value: 'flex',     label: 'Flex Fuel' },
+  { value: 'gasoline',       label: 'Gasoline' },
+  { value: 'diesel',         label: 'Diesel' },
+  { value: 'electric',       label: 'Electric (EV)' },
+  { value: 'hybrid',         label: 'Hybrid (Gasoline + Electric)' },
+  { value: 'plugin_hybrid',  label: 'Plug-in Hybrid (PHEV)' },
+  { value: 'hydrogen',       label: 'Hydrogen / Fuel Cell' },
 ];
 
 export const VEHICLE_TRANSMISSIONS = [

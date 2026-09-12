@@ -109,7 +109,15 @@ export default function CarsPage() {
     if (selectedBodyType || selectedFuel || selectedTransmission) {
       const desc = p.description ? p.description.toLowerCase() : '';
       if (selectedBodyType && !desc.includes(selectedBodyType.toLowerCase())) return false;
-      if (selectedFuel && !desc.includes(selectedFuel.toLowerCase())) return false;
+      if (selectedFuel) {
+        const fuelLabel = VEHICLE_FUEL_TYPES.find((f) => f.value === selectedFuel)?.label?.toLowerCase();
+        const fuelVal = selectedFuel.toLowerCase();
+        const matchesFuel =
+          desc.includes(fuelVal) ||
+          (fuelLabel && desc.includes(fuelLabel)) ||
+          (fuelVal === 'plugin_hybrid' && (desc.includes('plug-in') || desc.includes('phev')));
+        if (!matchesFuel) return false;
+      }
       if (selectedTransmission && !desc.includes(selectedTransmission.toLowerCase())) return false;
     }
 
