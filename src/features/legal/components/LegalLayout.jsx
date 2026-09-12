@@ -82,6 +82,13 @@ export default function LegalLayout({ slug, children }) {
   // Calculate dynamic reading time
   const readingTime = useMemo(() => calculateReadingTime(children), [children]);
 
+  // Always scroll to top when page mounts or slug changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [slug]);
+
   // Scroll listener for reading progress & scroll-to-top button
   useEffect(() => {
     const handleScroll = () => {

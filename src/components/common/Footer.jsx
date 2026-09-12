@@ -217,6 +217,7 @@ export default function Footer() {
                               <Link
                                 key={link.label}
                                 to={link.to}
+                                onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })}
                                 className="block py-1 text-sm transition-colors hover:underline"
                                 style={{ color: 'var(--color-text-secondary)' }}
                               >
@@ -250,7 +251,7 @@ export default function Footer() {
             <div className="grid grid-cols-2 gap-8 sm:grid-cols-4 sm:gap-6">
               {/* Brand column */}
               <div className="col-span-2 space-y-4 sm:col-span-1">
-                <Link to="/" className="flex items-center gap-2.5">
+                <Link to="/" onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })} className="flex items-center gap-2.5">
                   <img src="/navbar-logo.png" alt="Aliwayz Logo" className="h-7 w-auto object-contain" />
                 </Link>
                 <p
@@ -290,6 +291,7 @@ export default function Footer() {
                     <li key={link.label}>
                       <Link
                         to={link.to}
+                        onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })}
                         className="text-sm transition-colors hover:underline"
                         style={{ color: 'var(--color-text-secondary)' }}
                       >
@@ -322,6 +324,7 @@ export default function Footer() {
                       ) : (
                         <Link
                           to={link.to}
+                          onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })}
                           className="text-sm transition-colors hover:underline"
                           style={{ color: 'var(--color-text-secondary)' }}
                         >
@@ -355,6 +358,7 @@ export default function Footer() {
                       ) : (
                         <Link
                           to={link.to}
+                          onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })}
                           className="text-sm transition-colors hover:underline"
                           style={{ color: 'var(--color-text-secondary)' }}
                         >

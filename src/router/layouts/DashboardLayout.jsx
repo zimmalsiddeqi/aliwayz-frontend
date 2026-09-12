@@ -1,5 +1,5 @@
 import { Outlet, Link, NavLink, useLocation } from 'react-router-dom';
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Store,
@@ -31,6 +31,12 @@ export default function DashboardLayout() {
   const { store, hasStore, isLoading } = useMyStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [location.pathname]);
 
   return (
     <div className="flex min-h-screen flex-col" style={{ backgroundColor: 'var(--color-bg)' }}>

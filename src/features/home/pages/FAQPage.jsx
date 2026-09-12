@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -230,6 +230,12 @@ const FAQ_SECTIONS = [
 ];
 
 export default function FAQPage() {
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, []);
+
   const [activeSection, setActiveSection] = useState('general');
   const [searchQuery, setSearchQuery]     = useState('');
   const [openItems, setOpenItems]         = useState({});

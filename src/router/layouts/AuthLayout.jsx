@@ -1,10 +1,17 @@
-import { Outlet, Link } from 'react-router-dom';
-import { Suspense } from 'react';
+import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Suspense, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import LoadingScreen from '@components/common/LoadingScreen';
 import ThemeToggle from '@components/common/ThemeToggle';
 
 export default function AuthLayout() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [pathname]);
   return (
     <div className="min-h-screen flex" style={{ backgroundColor: 'var(--color-bg)' }}>
 
