@@ -159,6 +159,9 @@ export default function ConversationPage() {
 
     const handleQRScanned = (data) => {
       if (data.conversationId === conversationId) {
+        // Automatically disappear QR Code from Seller screen immediately
+        setShowQRGenerator(false);
+        setShowQRScanner(false);
         setSaleCompleted(true);
         setTransactionId(data.transactionId || data.transaction_id);
         queryClient.invalidateQueries({
@@ -190,6 +193,14 @@ export default function ConversationPage() {
       socket.off('qr_generated', handleQRGenerated);
     };
   }, [conversationId, isProductBuyer, queryClient]);
+
+  // Automatically disappear QR modals whenever deal is completed
+  useEffect(() => {
+    if (isCompleted) {
+      setShowQRGenerator(false);
+      setShowQRScanner(false);
+    }
+  }, [isCompleted]);
 
   // ── WhatsApp-style scroll to bottom helper ─────────────
   const scrollToBottom = useCallback((behavior = 'smooth') => {
@@ -662,6 +673,12 @@ export default function ConversationPage() {
 
               // ── QR code message ────────────────────
               if (isQR) {
+                // When buyer scans the QR code and the deal is completed,
+                // automatically disappear the QR code from the Seller chat screen
+                if (isMine && isCompleted) {
+                  return null;
+                }
+
                 return (
                   <QRMessageBubble
                     key={msg.id}
@@ -950,12 +967,13 @@ export default function ConversationPage() {
       {/* ═══ MODALS ═══════════════════════════════════════ */}
 
       {/* QR Generator (Seller) */}
-      {showQRGenerator && (
+      {showQRGenerator && !isCompleted && (
         <QRGeneratorModal
-          isOpen={showQRGenerator}
+          isOpen={showQRGenerator && !isCompleted}
           onClose={() => setShowQRGenerator(false)}
           product={product}
           buyerId={conversation?.buyer_id}
+          conversationId={conversationId}
         />
       )}
 
@@ -1119,12 +1137,36 @@ function QRMessageBubble({ message, isMine, showAvatar, sender, onScanClick }) {
 // ──────────────────────────────────────────────────────────────
 // QR GENERATOR MODAL (Seller)
 // ──────────────────────────────────────────────────────────────
-function QRGeneratorModal({ isOpen, onClose, product, buyerId }) {
+function QRGeneratorModal({ isOpen, onClose, product, buyerId, conversationId }) {
   const [qrData, setQrData] = useState(null);
   const [countdown, setCountdown] = useState('10:00');
   const [expired, setExpired] = useState(false);
   const [copied, setCopied] = useState(false);
   const intervalRef = useRef(null);
+
+  // Automatically close and disappear QR code when buyer scans it
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleScanned = (data) => {
+      if (!data?.conversationId || data.conversationId === conversationId) {
+        clearInterval(intervalRef.current);
+        setQrData(null);
+        onClose();
+      }
+    };
+
+    socket.on(SOCKET_EVENTS.QR_SCANNED, handleScanned);
+    socket.on('qr_scanned', handleScanned);
+
+    return () => {
+      socket.off(SOCKET_EVENTS.QR_SCANNED, handleScanned);
+      socket.off('qr_scanned', handleScanned);
+    };
+  }, [conversationId, onClose]);
+
+  useEffect(() => () => clearInterval(intervalRef.current), []);
 
   const generateMutation = useMutation({
     mutationFn: () =>
