@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { X, CheckCircle2, Home, ExternalLink, MessageCircle, MapPin, ShieldCheck, Sparkles } from 'lucide-react';
+import { CheckCircle2, Home, ExternalLink, MessageCircle, MapPin, ShieldCheck, Sparkles } from 'lucide-react';
 import Modal from '@components/ui/Modal';
 import Button from '@components/ui/Button';
 
@@ -31,10 +31,10 @@ export default function WantedMatchesModal({ isOpen, onClose, request }) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg">
+    <Modal isOpen={isOpen} onClose={onClose} size="lg" showClose={false}>
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-[var(--color-border)] pb-3 sm:pb-4 gap-3">
+        <div className="border-b border-[var(--color-border)] pb-3 sm:pb-4">
           <div className="min-w-0">
             <span className="text-[11px] sm:text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
               Matched Seller Proposals
@@ -46,12 +46,6 @@ export default function WantedMatchesModal({ isOpen, onClose, request }) {
               Budget: ${Number(request.budget_min || 0).toLocaleString()} – ${Number(request.budget_max || 0).toLocaleString()} • {request.location_city || 'Philadelphia, PA'}
             </p>
           </div>
-          <button
-            onClick={onClose}
-            className="rounded-xl p-1.5 text-[var(--color-text-muted)] hover:bg-[var(--color-bg-secondary)] transition-colors shrink-0"
-          >
-            <X size={20} />
-          </button>
         </div>
 
         {/* Matches List Section */}
