@@ -369,7 +369,7 @@ function CategorySelector({ onSelect }) {
   const SELL_CATEGORIES = [
     {
       id: MAIN_CATEGORIES.ESSENTIALS,
-      label: 'Sell an Item',
+      label: 'Products',
       emoji: '🛒',
       desc: 'Electronics, fashion, home goods & more',
       gradient: 'linear-gradient(135deg, #4C1D95 0%, #7C3AED 100%)',
@@ -377,7 +377,7 @@ function CategorySelector({ onSelect }) {
     },
     {
       id: MAIN_CATEGORIES.VEHICLES,
-      label: 'Sell Automotive',
+      label: 'Automotive',
       emoji: '🚗',
       desc: 'Cars, trucks, motorcycles & powersports',
       gradient: 'linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)',
@@ -385,7 +385,7 @@ function CategorySelector({ onSelect }) {
     },
     {
       id: MAIN_CATEGORIES.REAL_ESTATE,
-      label: 'Sell Real Estate',
+      label: 'Real Estate',
       emoji: '🏠',
       desc: 'Homes, apartments, land & commercial',
       gradient: 'linear-gradient(135deg, #065F46 0%, #10B981 100%)',
@@ -406,7 +406,7 @@ function CategorySelector({ onSelect }) {
             color: 'var(--color-text-primary)',
           }}
         >
-          What are you selling?
+          What are you listing?
         </h2>
         <p
           className="text-sm"
@@ -623,7 +623,7 @@ function RealEstateWizard({ store }) {
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
         <div className="space-y-2 text-center">
           <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">
-            {intent === 'rent' ? 'What are you renting?' : intent === 'lease' ? 'What type of commercial space?' : 'What are you selling?'}
+            {intent === 'rent' ? 'What are you renting?' : intent === 'lease' ? 'What type of commercial space?' : intent === 'vacation' ? 'What type of vacation property?' : 'What type of property are you listing?'}
           </h2>
           <p className="text-sm text-[var(--color-text-secondary)]">Selected: {intentLabel}</p>
         </div>

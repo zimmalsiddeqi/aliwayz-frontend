@@ -153,7 +153,7 @@ export default function DailyProductForm({ store }) {
 
   return (
     <div>
-      <PageHeader title="Sell an Item" subtitle="Electronics, fashion, home goods & more" />
+      <PageHeader title="List Product" subtitle="Electronics, fashion, home goods & more" />
 
       <form onSubmit={handleSubmit((d) => createMutation.mutate(d))} className="space-y-6">
         {/* Photos */}
@@ -204,7 +204,7 @@ export default function DailyProductForm({ store }) {
 
         <Input
           label="Title *"
-          placeholder="What are you selling?"
+          placeholder="What product are you listing?"
           error={errors.title?.message}
           {...register('title')}
         />

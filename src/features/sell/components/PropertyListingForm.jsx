@@ -315,11 +315,18 @@ export default function PropertyListingForm({ store, intent = 'sale', propertyTy
     onError: (err) => toast.error(getErrorMessage(err)),
   });
 
+  const getPropertySubtitle = () => {
+    if (intent === 'rent') return 'Specify rental details, lease terms, and pricing';
+    if (intent === 'lease') return 'Specify commercial space details, lease terms, and pricing';
+    if (intent === 'vacation') return 'Specify vacation rental details, amenities, and pricing';
+    return 'Specify property details, features, and pricing';
+  };
+
   return (
     <div>
       <PageHeader
-        title={onBack ? "Property Listing Form" : "Sell Real Estate"}
-        subtitle="Specify details about the property"
+        title={onBack ? 'Property Listing Form' : 'List Real Estate'}
+        subtitle={getPropertySubtitle()}
         showBack={!!onBack}
         onBack={onBack}
       />

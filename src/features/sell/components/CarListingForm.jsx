@@ -225,7 +225,7 @@ export default function CarListingForm({ store }) {
 
   return (
     <div>
-      <PageHeader title="Sell Automotive" subtitle="Detailed vehicle listing" />
+      <PageHeader title="List Automotive" subtitle="Add vehicle details, specifications, and pricing" />
 
       <form onSubmit={handleSubmit((d) => createMutation.mutate(d))} className="space-y-6">
         {/* Photos */}
