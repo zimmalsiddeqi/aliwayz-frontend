@@ -330,7 +330,7 @@ export default function ConversationPage() {
                   </motion.p>
                 ) : (
                   <p className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
-                    {isCompleted ? '✅ Deal completed' : 'Active now'}
+                    {isCompleted ? '✅ Deal completed' : isOtherOnline ? 'Active now' : 'Active recently'}
                   </p>
                 )}
               </div>
