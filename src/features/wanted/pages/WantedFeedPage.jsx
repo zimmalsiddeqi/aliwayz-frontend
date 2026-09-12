@@ -29,7 +29,7 @@ import { WANTED_CATEGORIES, PHILLY_NEIGHBORHOODS } from '../constants/wantedCate
 
 export default function WantedFeedPage() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   // Default to 'all' categories
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -78,6 +78,10 @@ export default function WantedFeedPage() {
     : (Array.isArray(responseData) ? responseData : []);
 
   const filteredRequests = rawRequests.filter((item) => {
+    // Exclude current logged-in user's own requests
+    if (user?.id && (item.user_id === user.id || item.user?.id === user.id)) {
+      return false;
+    }
     const itemMax = Number(item.budget_max || item.budget_min || 0);
     const itemMin = Number(item.budget_min || 0);
     if (minPrice && itemMax < Number(minPrice)) return false;
