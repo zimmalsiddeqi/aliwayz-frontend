@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Store, PlusCircle, CheckCircle2, AlertCircle, Sparkles, Building2 } from 'lucide-react';
@@ -63,7 +63,7 @@ export default function IHaveThisModal({ isOpen, onClose, request }) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="md">
+    <Modal isOpen={isOpen} onClose={onClose} size="md" showClose={false}>
       <div className="p-5 sm:p-6">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[var(--color-border)] pb-4 mb-5">
@@ -94,11 +94,12 @@ export default function IHaveThisModal({ isOpen, onClose, request }) {
             <div
               onClick={() => {
                 if (!isAuthenticated) {
-                  toast.error('Please log in to respond with your listings');
+                  toast.error('Please log in to manage your listings');
                   navigate('/login');
                   return;
                 }
-                setMode('select_listing');
+                onClose();
+                navigate('/sell/my-listings');
               }}
               className="group cursor-pointer rounded-2xl border-2 border-blue-500/30 bg-blue-50/50 p-4 transition-all hover:border-blue-600 hover:bg-blue-50 dark:bg-blue-950/20 dark:border-blue-700/50 dark:hover:bg-blue-950/40"
             >
@@ -111,7 +112,7 @@ export default function IHaveThisModal({ isOpen, onClose, request }) {
                     Use Existing Listing
                   </h3>
                   <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
-                    Select from your active and draft listings to notify the buyer immediately.
+                    View your active listings in My Listings to manage and respond.
                   </p>
                 </div>
               </div>
