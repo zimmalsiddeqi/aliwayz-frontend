@@ -612,22 +612,41 @@ export default function ProductDetailPage() {
 
             {/* ── Report ─────────────────────────────────── */}
             {!isOwner && (
-              <button
-                className="flex items-center gap-1 text-xs transition-colors hover:underline"
-                style={{
-                  color: 'var(--color-text-muted)',
-                }}
-                onClick={() => {
-                  if (!isAuthenticated) {
-                    navigate('/login');
-                    return;
-                  }
-                  setShowReport(true);
-                }}
-              >
-                <Flag size={12} />
-                Report this listing
-              </button>
+              <>
+                <svg width="0" height="0" className="absolute pointer-events-none" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="flag-yellow-orange-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#FBBF24" />
+                      <stop offset="50%" stopColor="#F59E0B" />
+                      <stop offset="100%" stopColor="#EA580C" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+
+                <button
+                  className="flex items-center gap-1.5 text-xs font-medium transition-colors hover:underline"
+                  style={{
+                    color: 'var(--color-text-muted)',
+                  }}
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      navigate('/login');
+                      return;
+                    }
+                    setShowReport(true);
+                  }}
+                >
+                  <Flag
+                    size={14}
+                    style={{
+                      stroke: 'url(#flag-yellow-orange-gradient)',
+                      fill: 'url(#flag-yellow-orange-gradient)',
+                    }}
+                    className="shrink-0"
+                  />
+                  <span>Report this listing</span>
+                </button>
+              </>
             )}
           </motion.div>
         </div>
