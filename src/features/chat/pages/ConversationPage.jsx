@@ -13,6 +13,7 @@ import {
   CheckCircle,
   Star,
   X,
+  ChevronDown,
   ChevronRight,
   AlertCircle,
   Clock,
@@ -51,8 +52,16 @@ export default function ConversationPage() {
   const onlineUsers = useChatStore((state) => state.onlineUsers);
   const typingUsers = useChatStore((state) => state.typingUsers);
 
+  const messagesContainerRef = useRef(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Auto-scroll and unread tracking
+  const [unreadCountBelow, setUnreadCountBelow] = useState(0);
+  const [isScrolledUp, setIsScrolledUp] = useState(false);
+  const isNearBottomRef = useRef(true);
+  const prevMessagesCountRef = useRef(0);
+  const isInitialLoadRef = useRef(true);
 
   const [input, setInput] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
@@ -182,10 +191,110 @@ export default function ConversationPage() {
     };
   }, [conversationId, isProductBuyer, queryClient]);
 
-  // ── Auto-scroll to bottom ──────────────────────────────
+  // ── WhatsApp-style scroll to bottom helper ─────────────
+  const scrollToBottom = useCallback((behavior = 'smooth') => {
+    const el = messagesContainerRef.current;
+    if (el) {
+      if (behavior === 'auto') {
+        el.scrollTop = el.scrollHeight;
+      } else {
+        el.scrollTo({
+          top: el.scrollHeight,
+          behavior: 'smooth',
+        });
+      }
+    }
+    isNearBottomRef.current = true;
+    setUnreadCountBelow(0);
+    setIsScrolledUp(false);
+  }, []);
+
+  // ── Scroll container scroll handler ───────────────────
+  const handleScroll = useCallback(() => {
+    const el = messagesContainerRef.current;
+    if (!el) return;
+
+    // Tolerance of 100px: within 100px from the bottom is considered "near bottom"
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    const isBottom = distanceFromBottom <= 100;
+
+    isNearBottomRef.current = isBottom;
+
+    if (isBottom) {
+      setUnreadCountBelow(0);
+      setIsScrolledUp(false);
+    } else {
+      setIsScrolledUp(distanceFromBottom > 150);
+    }
+  }, []);
+
+  // Reset scroll tracking when switching conversation
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    isInitialLoadRef.current = true;
+    prevMessagesCountRef.current = 0;
+    setUnreadCountBelow(0);
+    setIsScrolledUp(false);
+    isNearBottomRef.current = true;
+  }, [conversationId]);
+
+  // ── Smart Auto-scroll on messages change ───────────────
+  useEffect(() => {
+    if (!messages || messages.length === 0) return;
+
+    const el = messagesContainerRef.current;
+    const currentCount = messages.length;
+    const prevCount = prevMessagesCountRef.current;
+
+    // 1. Initial conversation load: instant bottom positioning
+    if (isInitialLoadRef.current) {
+      if (el) {
+        el.scrollTop = el.scrollHeight;
+      }
+      const timer = setTimeout(() => {
+        if (messagesContainerRef.current) {
+          messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+        }
+        isNearBottomRef.current = true;
+        isInitialLoadRef.current = false;
+      }, 50);
+
+      prevMessagesCountRef.current = currentCount;
+      return () => clearTimeout(timer);
+    }
+
+    // 2. Subsequent messages arriving
+    if (currentCount > prevCount) {
+      const newCount = currentCount - prevCount;
+      const lastMessage = messages[currentCount - 1];
+      const isMyMessage = lastMessage?.sender_id === user?.id;
+
+      if (isMyMessage) {
+        // Own message: always scroll to bottom smoothly so user sees their sent message
+        scrollToBottom('smooth');
+      } else {
+        // Incoming message from other party
+        if (isNearBottomRef.current) {
+          // User is near bottom: scroll smoothly to show incoming message
+          scrollToBottom('smooth');
+        } else {
+          // User scrolled up: PRESERVE scroll position! Show floating new message indicator
+          setUnreadCountBelow((prev) => prev + newCount);
+        }
+      }
+    }
+
+    prevMessagesCountRef.current = currentCount;
+  }, [messages, user?.id, scrollToBottom]);
+
+  // Keep near bottom if typing indicator appears while user is at the bottom
+  useEffect(() => {
+    if (isOtherTyping && isNearBottomRef.current) {
+      const el = messagesContainerRef.current;
+      if (el) {
+        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+      }
+    }
+  }, [isOtherTyping]);
 
   // ── Send message mutation fallback via REST API ───
   const sendMessageMutation = useMutation({
@@ -217,12 +326,15 @@ export default function ConversationPage() {
     inputRef.current?.focus();
     stopTyping();
 
+    // Immediately scroll to bottom so the user sees their own sent message right away
+    scrollToBottom('smooth');
+
     const sent = typeof socketSendMessage === 'function' ? socketSendMessage(content, tempId) : false;
     if (!sent) {
       // Fallback via HTTP REST API if socket isn't connected right now
       sendMessageMutation.mutate({ content });
     }
-  }, [input, conversationId, user, addOptimisticMessage, socketSendMessage, stopTyping, sendMessageMutation]);
+  }, [input, conversationId, user, addOptimisticMessage, socketSendMessage, stopTyping, sendMessageMutation, scrollToBottom]);
 
   // ── Input change with typing indicator ─────────────────
   const handleInputChange = (e) => {
@@ -293,40 +405,14 @@ export default function ConversationPage() {
               />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <h3
-                  className="truncate text-sm font-semibold"
-                  style={{ color: 'var(--color-text-primary)' }}
-                >
-                  {other?.username || 'User'}
-                </h3>
+              <h3
+                className="truncate text-sm font-semibold"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
+                {other?.username || 'User'}
+              </h3>
 
-                {/* Online / Offline status badge */}
-                {isOtherOnline && !isCompleted ? (
-                  <span
-                    className="flex-shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold flex items-center gap-1"
-                    style={{
-                      backgroundColor: 'rgba(16,185,129,0.15)',
-                      color: 'var(--color-success)',
-                    }}
-                  >
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    Online
-                  </span>
-                ) : !isCompleted ? (
-                  <span
-                    className="flex-shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-medium"
-                    style={{
-                      backgroundColor: 'rgba(148,163,184,0.15)',
-                      color: 'var(--color-text-muted)',
-                    }}
-                  >
-                    Offline
-                  </span>
-                ) : null}
-              </div>
-
-              {/* Status line */}
+              {/* Status line: strictly Online / Offline / typing... */}
               <div className="flex items-center gap-1.5">
                 {isOtherTyping ? (
                   <motion.p
@@ -350,19 +436,25 @@ export default function ConversationPage() {
                       ))}
                     </span>
                   </motion.p>
+                ) : isCompleted ? (
+                  <p className="text-[11px] font-medium text-emerald-500">
+                    ✅ Deal completed
+                  </p>
+                ) : isOtherOnline ? (
+                  <p
+                    className="flex items-center gap-1.5 text-[11px] font-medium"
+                    style={{ color: 'var(--color-success)' }}
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Online
+                  </p>
                 ) : (
                   <p
-                    className="text-[11px] flex items-center gap-1"
-                    style={{ color: isOtherOnline ? 'var(--color-success)' : 'var(--color-text-muted)' }}
+                    className="flex items-center gap-1.5 text-[11px] font-medium"
+                    style={{ color: 'var(--color-text-muted)' }}
                   >
-                    {isCompleted ? '✅ Deal completed' : isOtherOnline ? (
-                      <>
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                        Active now
-                      </>
-                    ) : (
-                      'Offline'
-                    )}
+                    <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                    Offline
                   </p>
                 )}
               </div>
@@ -510,7 +602,12 @@ export default function ConversationPage() {
         )}
 
         {/* ═══ MESSAGES ═══════════════════════════════════ */}
-        <div className="flex-1 space-y-2.5 overflow-y-auto px-3 py-4 sm:px-4">
+        <div className="relative flex-1 min-h-0 flex flex-col">
+          <div
+            ref={messagesContainerRef}
+            onScroll={handleScroll}
+            className="flex-1 space-y-2.5 overflow-y-auto px-3 py-4 sm:px-4"
+          >
           {messagesLoading ? (
             <div className="flex h-full items-center justify-center">
               <Spinner size="lg" />
@@ -695,6 +792,63 @@ export default function ConversationPage() {
 
           <div ref={messagesEndRef} />
         </div>
+
+        {/* ═══ FLOATING SCROLL BUTTON / NEW MESSAGE PILL ═══ */}
+        <AnimatePresence>
+          {unreadCountBelow > 0 ? (
+            <motion.div
+              key="new-message-pill"
+              initial={{ opacity: 0, y: 12, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 12, scale: 0.9 }}
+              transition={{ duration: 0.2 }}
+              className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20"
+            >
+              <button
+                type="button"
+                onClick={() => scrollToBottom('smooth')}
+                className="flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
+                style={{
+                  backgroundColor: 'var(--color-brand)',
+                  color: '#ffffff',
+                  boxShadow: '0 4px 14px rgba(91, 110, 245, 0.45)',
+                }}
+              >
+                <ChevronDown size={14} className="animate-bounce" />
+                <span>
+                  {unreadCountBelow === 1
+                    ? 'New message'
+                    : `${unreadCountBelow} new messages`}
+                </span>
+              </button>
+            </motion.div>
+          ) : isScrolledUp ? (
+            <motion.div
+              key="scroll-bottom-button"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.15 }}
+              className="absolute bottom-3 right-4 z-20"
+            >
+              <button
+                type="button"
+                onClick={() => scrollToBottom('smooth')}
+                className="flex h-8 w-8 items-center justify-center rounded-full shadow-md backdrop-blur transition-all duration-200 hover:scale-110 active:scale-95"
+                style={{
+                  backgroundColor: 'var(--color-surface-elevated)',
+                  border: '1px solid var(--color-border)',
+                  color: 'var(--color-text-secondary)',
+                }}
+                title="Scroll to bottom"
+                aria-label="Scroll to bottom"
+              >
+                <ChevronDown size={16} />
+              </button>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+      </div>
 
         {/* ═══ QR ACTION BAR ══════════════════════════════ */}
         {!isCompleted && product && product.status !== 'sold' && (
