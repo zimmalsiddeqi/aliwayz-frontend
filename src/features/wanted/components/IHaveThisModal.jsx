@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { X, Store, PlusCircle, CheckCircle2, AlertCircle, Sparkles, Building2 } from 'lucide-react';
+import { X, Store, PlusCircle, CheckCircle2, AlertCircle, Sparkles, Building2, Bell, Send } from 'lucide-react';
 import Modal from '@components/ui/Modal';
 import Button from '@components/ui/Button';
 import Spinner from '@components/ui/Spinner';
@@ -18,6 +18,7 @@ export default function IHaveThisModal({ isOpen, onClose, request }) {
   const [mode, setMode] = useState('choice'); // 'choice' | 'select_listing'
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [sellerMessage, setSellerMessage] = useState('');
+  const [informBuyer, setInformBuyer] = useState(true);
 
   // Fetch user's listings (including available and draft)
   const { data: userListings, isLoading: loadingListings } = useQuery({
@@ -31,7 +32,11 @@ export default function IHaveThisModal({ isOpen, onClose, request }) {
   const submitMutation = useMutation({
     mutationFn: (data) => WantedService.submitMatch(request.id, data),
     onSuccess: () => {
-      toast.success('Your match proposal was sent to the buyer!');
+      toast.success(
+        informBuyer
+          ? 'Match proposal sent and buyer informed!'
+          : 'Match proposal submitted successfully!'
+      );
       queryClient.invalidateQueries({ queryKey: ['wanted-requests'] });
       queryClient.invalidateQueries({ queryKey: ['my-wanted-requests'] });
       onClose();
@@ -48,7 +53,14 @@ export default function IHaveThisModal({ isOpen, onClose, request }) {
 
   const handleCreateNew = () => {
     onClose();
-    navigate('/sell/create');
+    navigate(`/sell/create?wanted_request_id=${request.id}`, {
+      state: {
+        wantedRequestId: request.id,
+        wantedTitle: request.title,
+        buyerId: request.buyer_id,
+        category: request.category,
+      },
+    });
   };
 
   const handleSubmitExisting = () => {
@@ -59,6 +71,7 @@ export default function IHaveThisModal({ isOpen, onClose, request }) {
     submitMutation.mutate({
       product_id: selectedProductId,
       message: sellerMessage,
+      inform_buyer: informBuyer,
     });
   };
 
@@ -94,12 +107,11 @@ export default function IHaveThisModal({ isOpen, onClose, request }) {
             <div
               onClick={() => {
                 if (!isAuthenticated) {
-                  toast.error('Please log in to manage your listings');
+                  toast.error('Please log in to select your listing');
                   navigate('/login');
                   return;
                 }
-                onClose();
-                navigate('/sell/my-listings');
+                setMode('select_listing');
               }}
               className="group cursor-pointer rounded-2xl border-2 border-blue-500/30 bg-blue-50/50 p-4 transition-all hover:border-blue-600 hover:bg-blue-50 dark:bg-blue-950/20 dark:border-blue-700/50 dark:hover:bg-blue-950/40"
             >
@@ -112,7 +124,7 @@ export default function IHaveThisModal({ isOpen, onClose, request }) {
                     Use Existing Listing
                   </h3>
                   <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
-                    View your active listings in My Listings to manage and respond.
+                    Select a listing from your inventory and propose it to the buyer.
                   </p>
                 </div>
               </div>
@@ -237,10 +249,30 @@ export default function IHaveThisModal({ isOpen, onClose, request }) {
               />
             </div>
 
+            {/* Inform Buyer Option */}
+            <div className="mt-3 rounded-xl border border-blue-200 bg-blue-50/70 p-3 dark:border-blue-900/50 dark:bg-blue-950/30">
+              <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={informBuyer}
+                  onChange={(e) => setInformBuyer(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-blue-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                />
+                <div>
+                  <span className="text-xs font-bold text-[var(--color-text-primary)] block">
+                    Inform buyer that your listing matches their requested product
+                  </span>
+                  <span className="text-[11px] text-[var(--color-text-muted)] block mt-0.5">
+                    Sends an instant in-app notification alerting the buyer about your matching listing and note.
+                  </span>
+                </div>
+              </label>
+            </div>
+
             {/* Submit Button */}
             <div className="flex justify-end gap-2 pt-2">
               <Button variant="ghost" size="sm" onClick={() => setMode('choice')}>
-                Cancel
+                Back
               </Button>
               <Button
                 variant="brand"
@@ -248,8 +280,9 @@ export default function IHaveThisModal({ isOpen, onClose, request }) {
                 disabled={!selectedProductId || submitMutation.isPending}
                 loading={submitMutation.isPending}
                 onClick={handleSubmitExisting}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
               >
-                Send Match Proposal
+                {informBuyer ? 'Send Match & Inform Buyer' : 'Submit Match Proposal'}
               </Button>
             </div>
           </div>

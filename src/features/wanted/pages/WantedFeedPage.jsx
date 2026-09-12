@@ -78,10 +78,17 @@ export default function WantedFeedPage() {
     : (Array.isArray(responseData) ? responseData : []);
 
   const filteredRequests = rawRequests.filter((item) => {
-    // Exclude current logged-in user's own requests
-    if (user?.id && (item.user_id === user.id || item.user?.id === user.id)) {
+    // Exclude current logged-in user's own requests (they view them in My Requests)
+    if (user?.id && (item.user_id === user.id || item.user?.id === user.id || item.buyer_id === user.id || item.users?.id === user.id)) {
       return false;
     }
+
+    // Do not show requests from users with 'seller' or 'both' roles in the public Wanted feed
+    const creatorRole = item.users?.role || item.user?.role || item.creator_role;
+    if (creatorRole === 'seller' || creatorRole === 'both') {
+      return false;
+    }
+
     const itemMax = Number(item.budget_max || item.budget_min || 0);
     const itemMin = Number(item.budget_min || 0);
     if (minPrice && itemMax < Number(minPrice)) return false;
