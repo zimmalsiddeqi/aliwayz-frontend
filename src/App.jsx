@@ -113,11 +113,16 @@ function SocketManager() {
         addMessage(conversationId, message);
         queryClient.invalidateQueries({ queryKey: ['conversations'] });
 
-        // Show toast notification if recipient is not currently viewing this conversation page
+        // Direct visible popup notification alert wherever the user is on the site
         if (message.sender_id !== user?.id && !window.location.pathname.includes(`/inbox/${conversationId}`)) {
-          toast.success(`New message from ${message.sender?.username || 'user'}: "${message.content?.substring(0, 45)}..."`, {
-            duration: 5000,
-            icon: '💬',
+          toast.success(`💬 Message from ${message.sender?.username || 'user'}: ${message.content?.substring(0, 50)}`, {
+            duration: 6000,
+            style: {
+              background: 'var(--color-surface-elevated)',
+              color: 'var(--color-text-primary)',
+              border: '2px solid var(--color-brand)',
+              fontWeight: '600',
+            },
           });
         }
       }
@@ -125,7 +130,6 @@ function SocketManager() {
     const handleTyping = ({ conversationId, userId }) => {
       if (conversationId && userId && userId !== user?.id) {
         setTyping(conversationId, userId, true);
-        setTimeout(() => setTyping(conversationId, userId, false), 3000);
       }
     };
     const handleStop = ({ conversationId, userId }) => {

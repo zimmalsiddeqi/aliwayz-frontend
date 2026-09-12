@@ -115,7 +115,18 @@ export default function ConversationPage() {
 
   useEffect(() => {
     if (msgData?.data) {
-      setMessages(conversationId, msgData.data);
+      // Merge initial fetch data with existing store messages so real-time socket additions aren't wiped out
+      const current = storeMessages[conversationId] || [];
+      if (current.length === 0) {
+        setMessages(conversationId, msgData.data);
+      } else {
+        // Append any API messages not already in store
+        const existingIds = new Set(current.map((m) => m.id));
+        const newFromApi = msgData.data.filter((m) => !existingIds.has(m.id));
+        if (newFromApi.length > 0) {
+          setMessages(conversationId, [...msgData.data]);
+        }
+      }
     }
   }, [msgData, conversationId, setMessages]);
 
