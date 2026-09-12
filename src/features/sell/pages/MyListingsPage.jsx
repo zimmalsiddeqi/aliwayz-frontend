@@ -14,6 +14,7 @@ import {
   MoreVertical,
   Filter,
   QrCode,
+  Printer,
 } from 'lucide-react';
 import StoreService from '@api/services/store.service';
 import ProductService from '@api/services/product.service';
@@ -237,102 +238,176 @@ export default function MyListingsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.03 }}
               >
-                <div className="card p-4">
-                  <div className="flex gap-4">
-                    {/* Image */}
-                    <Link to={`/product/${product.id}`} className="flex-shrink-0">
-                      {image ? (
-                        <img src={image} alt="" className="h-20 w-20 rounded-xl object-cover" />
-                      ) : (
-                        <div
-                          className="flex h-20 w-20 items-center justify-center rounded-xl"
-                          style={{ backgroundColor: 'var(--color-surface-elevated)' }}
-                        >
-                          <span className="text-2xl opacity-30">📦</span>
-                        </div>
-                      )}
-                    </Link>
-
-                    {/* Info */}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <Link to={`/product/${product.id}`}>
-                          <h4
-                            className="truncate text-sm font-semibold"
-                            style={{ color: 'var(--color-text-primary)' }}
-                          >
-                            {product.title}
-                          </h4>
-                        </Link>
-                        <span
-                          className={cn(
-                            'flex-shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold capitalize',
-                            getStatusColor(product.status)
+                <div className="card p-3.5 sm:p-4 transition-all hover:shadow-sm">
+                  {statusFilter === 'qr' ? (
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+                      {/* Left: Product Thumbnail & Details */}
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <Link to={`/product/${product.id}`} className="flex-shrink-0">
+                          {image ? (
+                            <img
+                              src={image}
+                              alt=""
+                              className="h-16 w-16 sm:h-20 sm:w-20 rounded-xl object-cover"
+                            />
+                          ) : (
+                            <div
+                              className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-xl"
+                              style={{ backgroundColor: 'var(--color-surface-elevated)' }}
+                            >
+                              <span className="text-xl sm:text-2xl opacity-30">📦</span>
+                            </div>
                           )}
-                        >
-                          {product.status}
-                        </span>
+                        </Link>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-start justify-between gap-2">
+                            <Link to={`/product/${product.id}`} className="min-w-0 flex-1">
+                              <h4
+                                className="truncate text-sm font-semibold hover:text-[var(--color-brand)] transition-colors"
+                                style={{ color: 'var(--color-text-primary)' }}
+                              >
+                                {product.title}
+                              </h4>
+                            </Link>
+                            <span
+                              className={cn(
+                                'flex-shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold capitalize',
+                                getStatusColor(product.status)
+                              )}
+                            >
+                              {product.status}
+                            </span>
+                          </div>
+
+                          <p className="text-gradient-brand mt-0.5 text-sm sm:text-base font-bold">
+                            {formatPrice(product.price, product.currency)}
+                          </p>
+
+                          <div
+                            className="mt-1 flex items-center gap-3 text-xs"
+                            style={{ color: 'var(--color-text-muted)' }}
+                          >
+                            <span className="flex items-center gap-1">
+                              <Eye size={11} />
+                              {formatCompactNumber(product.view_count)}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Heart size={11} />
+                              {formatCompactNumber(product.favorite_count)}
+                            </span>
+                            <span className="hidden xs:inline">
+                              {formatRelativeTime(product.created_at)}
+                            </span>
+                          </div>
+                        </div>
                       </div>
 
-                      <p className="text-gradient-brand mt-0.5 text-sm font-bold">
-                        {formatPrice(product.price, product.currency)}
-                      </p>
-
-                      <div
-                        className="mt-2 flex items-center gap-3 text-xs"
-                        style={{ color: 'var(--color-text-muted)' }}
-                      >
-                        <span className="flex items-center gap-1">
-                          <Eye size={11} />
-                          {formatCompactNumber(product.view_count)}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Heart size={11} />
-                          {formatCompactNumber(product.favorite_count)}
-                        </span>
-                        <span>{formatRelativeTime(product.created_at)}</span>
-                      </div>
-                    </div>
-
-                    {/* If in QR Codes tab, display the live QR code inline */}
-                    {statusFilter === 'qr' ? (
-                      <div className="flex-shrink-0 flex items-center gap-3 self-center rounded-2xl bg-white p-2.5 border border-[var(--color-border)] shadow-sm">
+                      {/* Right: QR Code & Action Buttons */}
+                      <div className="flex items-center justify-between sm:justify-end gap-3 pt-2.5 sm:pt-0 border-t sm:border-t-0 border-[var(--color-border-subtle)] flex-shrink-0">
                         <div
                           onClick={() => setQrTarget(product)}
-                          className="cursor-pointer flex flex-col items-center hover:opacity-85 transition-opacity"
-                          title="Click to view full QR flyer / print"
+                          className="cursor-pointer group flex flex-col items-center justify-center p-2 rounded-xl bg-white border border-[var(--color-border)] shadow-sm hover:border-[var(--color-brand)] hover:shadow transition-all flex-shrink-0"
+                          title="Click to view full flyer / print"
                         >
                           <QRCodeSVG
                             value={`${window.location.origin}/product/${product.id}`}
-                            size={76}
+                            size={68}
                             level="M"
                           />
-                          <span className="mt-1 text-[8px] font-black text-slate-800 tracking-wider">
+                          <span className="mt-1 text-[8px] font-black text-slate-800 tracking-wider group-hover:text-[var(--color-brand)]">
                             SCAN ME
                           </span>
                         </div>
-                        <div className="flex flex-col gap-1.5">
+
+                        <div className="flex flex-row sm:flex-col gap-2 flex-1 sm:flex-initial">
                           <Button
-                            size="xs"
+                            size="sm"
                             variant="brand"
-                            leftIcon={<QrCode size={12} />}
+                            leftIcon={<Printer size={13} />}
                             onClick={() => setQrTarget(product)}
+                            className="flex-1 sm:flex-initial justify-center text-xs font-semibold h-9 sm:h-8"
                           >
                             Print Flyer
                           </Button>
                           <Button
-                            size="xs"
+                            size="sm"
                             variant="outline"
-                            leftIcon={<Eye size={12} />}
+                            leftIcon={<Eye size={13} />}
                             onClick={() => navigate(`/product/${product.id}`)}
+                            className="flex-1 sm:flex-initial justify-center text-xs h-9 sm:h-8"
                           >
-                            View
+                            View Listing
                           </Button>
                         </div>
                       </div>
-                    ) : (
-                      /* Actions for other tabs */
-                      <div className="flex-shrink-0 self-center flex items-center gap-2">
+                    </div>
+                  ) : (
+                    /* Non-QR tabs */
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      {/* Image */}
+                      <Link to={`/product/${product.id}`} className="flex-shrink-0">
+                        {image ? (
+                          <img
+                            src={image}
+                            alt=""
+                            className="h-16 w-16 sm:h-20 sm:w-20 rounded-xl object-cover"
+                          />
+                        ) : (
+                          <div
+                            className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-xl"
+                            style={{ backgroundColor: 'var(--color-surface-elevated)' }}
+                          >
+                            <span className="text-xl sm:text-2xl opacity-30">📦</span>
+                          </div>
+                        )}
+                      </Link>
+
+                      {/* Info */}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <Link to={`/product/${product.id}`} className="min-w-0 flex-1">
+                            <h4
+                              className="truncate text-sm font-semibold hover:text-[var(--color-brand)] transition-colors"
+                              style={{ color: 'var(--color-text-primary)' }}
+                            >
+                              {product.title}
+                            </h4>
+                          </Link>
+                          <span
+                            className={cn(
+                              'flex-shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold capitalize',
+                              getStatusColor(product.status)
+                            )}
+                          >
+                            {product.status}
+                          </span>
+                        </div>
+
+                        <p className="text-gradient-brand mt-0.5 text-sm font-bold">
+                          {formatPrice(product.price, product.currency)}
+                        </p>
+
+                        <div
+                          className="mt-1.5 flex items-center gap-3 text-xs"
+                          style={{ color: 'var(--color-text-muted)' }}
+                        >
+                          <span className="flex items-center gap-1">
+                            <Eye size={11} />
+                            {formatCompactNumber(product.view_count)}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Heart size={11} />
+                            {formatCompactNumber(product.favorite_count)}
+                          </span>
+                          <span className="hidden xs:inline">
+                            {formatRelativeTime(product.created_at)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Actions for other tabs */}
+                      <div className="flex-shrink-0 flex items-center gap-1.5 sm:gap-2">
                         {/* Sold products do NOT get a QR Code button */}
                         {product.status !== 'sold' && (
                           <Button
@@ -437,8 +512,8 @@ export default function MyListingsPage() {
                           }
                         />
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             );
