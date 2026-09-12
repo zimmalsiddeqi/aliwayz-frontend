@@ -22,6 +22,7 @@ export default function useConversationSocket(conversationId) {
   const [isJoined, setIsJoined] = useState(false);
   const typingTimeoutRef = useRef(null);
   const joinedRoomRef = useRef(null);
+  const lastSocketIdRef = useRef(null);
 
   useEffect(() => {
     if (!conversationId || !isAuthenticated || !user?.id) return;
@@ -30,19 +31,24 @@ export default function useConversationSocket(conversationId) {
     const socket = getSocket(token);
 
     if (!socket) {
-      console.warn('[useSocket] No socket available');
+      console.warn('[REALTIME_DEBUG] No socket available for user:', user?.id);
       return;
     }
 
-    const joinRoom = (s) => {
-      if (joinedRoomRef.current === conversationId) return;
+    console.log(`[REALTIME_DEBUG] socket connecting/ready for conv: ${conversationId}, socketId: ${socket.id}, connected: ${socket.connected}`);
+    console.log(`[REALTIME_DEBUG] authenticated user ID: ${user?.id}`);
 
+    const joinRoom = (s) => {
+      if (joinedRoomRef.current === conversationId && lastSocketIdRef.current === s.id) return;
+
+      console.log(`[REALTIME_DEBUG] emitting join_conversation: conversation:${conversationId} (socket: ${s.id})`);
       s.emit(SOCKET_EVENTS.JOIN_CONVERSATION, {
         conversationId,
       });
       s.emit(SOCKET_EVENTS.MARK_READ, { conversationId });
       markConversationRead(conversationId, user.id);
       joinedRoomRef.current = conversationId;
+      lastSocketIdRef.current = s.id;
       setIsJoined(true);
     };
 
@@ -52,17 +58,21 @@ export default function useConversationSocket(conversationId) {
     }
 
     const handleConnect = () => {
+      console.log(`[REALTIME_DEBUG] socket connected: ${socket.id}`);
       setIsConnected(true);
       joinRoom(socket);
     };
 
     const handleDisconnect = () => {
+      console.log(`[REALTIME_DEBUG] socket disconnected`);
       setIsConnected(false);
       setIsJoined(false);
       joinedRoomRef.current = null;
+      lastSocketIdRef.current = null;
     };
 
     const handleMessageReceived = (data) => {
+      console.log(`[REALTIME_DEBUG] received message event:`, data?.message?.id, `in conv:`, data?.conversationId);
       if (
         data.conversationId === conversationId &&
         data.message
@@ -110,6 +120,7 @@ export default function useConversationSocket(conversationId) {
     };
 
     const handleJoined = (data) => {
+      console.log(`[REALTIME_DEBUG] joined conversation room:`, data?.conversationId, `isOtherOnline:`, data?.isOtherOnline);
       setIsJoined(true);
       if (data?.isOtherOnline && data?.otherUserId) {
         setUserOnline(data.otherUserId);
@@ -153,10 +164,12 @@ export default function useConversationSocket(conversationId) {
         socket &&
         joinedRoomRef.current === conversationId
       ) {
+        console.log(`[REALTIME_DEBUG] leaving conversation room: conversation:${conversationId}`);
         socket.emit(SOCKET_EVENTS.LEAVE_CONVERSATION, {
           conversationId,
         });
         joinedRoomRef.current = null;
+        lastSocketIdRef.current = null;
         setIsJoined(false);
       }
 

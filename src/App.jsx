@@ -121,12 +121,15 @@ function playChatNotificationSound() {
 function SocketManager() {
   const { isAuthenticated, user } = useAuthStore();
   const { addMessage, setUserOnline, setUserOffline, setTyping } = useChatStore();
+  const processedMessageIdsRef = useRef(new Set());
 
   useEffect(() => {
     if (!isAuthenticated) {
       disconnectSocket();
       return;
     }
+
+    console.log(`[REALTIME_DEBUG] Global SocketManager active for authenticated user ID: ${user?.id}`);
 
     // Fetch initial notification badge counts on authentication
     NotificationService.getAll({ page: 1, limit: 10 })
@@ -149,14 +152,30 @@ function SocketManager() {
     const socket = getSocket(token);
     if (!socket) return;
 
+    const handleConnect = () => {
+      console.log(`[REALTIME_DEBUG] Global socket connected: ${socket.id} for user: ${user?.id}`);
+      socket.emit(SOCKET_EVENTS.PING_PRESENCE);
+    };
+
+    if (socket.connected) {
+      console.log(`[REALTIME_DEBUG] Global socket ready: ${socket.id} for user: ${user?.id}`);
+      socket.emit(SOCKET_EVENTS.PING_PRESENCE);
+    }
+
     const handleMsg = ({ message, conversationId }) => {
       if (message && conversationId) {
+        console.log(`[REALTIME_DEBUG] received message event (global): ${message.id} in conv: ${conversationId}`);
         addMessage(conversationId, message);
         queryClient.invalidateQueries({ queryKey: ['conversations'] });
         queryClient.invalidateQueries({ queryKey: ['notifications'] });
 
         // If message is from someone else
         if (message.sender_id !== user?.id) {
+          if (processedMessageIdsRef.current.has(message.id)) {
+            return;
+          }
+          processedMessageIdsRef.current.add(message.id);
+
           // Increment notification bell active number
           useNotificationStore.getState().setUnreadCount(
             (useNotificationStore.getState().unreadCount || 0) + 1
@@ -181,7 +200,9 @@ function SocketManager() {
       }
     };
 
-    const handleNewNotification = () => {
+    const handleNewNotification = (data) => {
+      if (data?.type === 'chat_message') return;
+
       useNotificationStore.getState().setUnreadCount(
         (useNotificationStore.getState().unreadCount || 0) + 1
       );
@@ -207,6 +228,7 @@ function SocketManager() {
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
     };
 
+    socket.on(SOCKET_EVENTS.CONNECT, handleConnect);
     socket.on(SOCKET_EVENTS.MESSAGE_RECEIVED, handleMsg);
     socket.on('new_notification', handleNewNotification);
     socket.on(SOCKET_EVENTS.USER_TYPING, handleTyping);
@@ -215,15 +237,12 @@ function SocketManager() {
     socket.on(SOCKET_EVENTS.USER_OFFLINE, handleOffline);
     socket.on(SOCKET_EVENTS.QR_SCANNED, handleQR);
 
-    if (socket.connected) {
-      socket.emit(SOCKET_EVENTS.PING_PRESENCE);
-    }
-
     const ping = setInterval(() => {
       if (socket.connected) socket.emit(SOCKET_EVENTS.PING_PRESENCE);
     }, 15000);
 
     return () => {
+      socket.off(SOCKET_EVENTS.CONNECT, handleConnect);
       socket.off(SOCKET_EVENTS.MESSAGE_RECEIVED, handleMsg);
       socket.off('new_notification', handleNewNotification);
       socket.off(SOCKET_EVENTS.USER_TYPING, handleTyping);

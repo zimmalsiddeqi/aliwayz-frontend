@@ -128,7 +128,13 @@ export default function ConversationPage() {
         const existingIds = new Set(current.map((m) => m.id));
         const newFromApi = msgData.data.filter((m) => !existingIds.has(m.id));
         if (newFromApi.length > 0) {
-          setMessages(conversationId, [...msgData.data]);
+          const merged = [...msgData.data];
+          current.forEach((m) => {
+            if (m.isPending || !msgData.data.some((apiMsg) => apiMsg.id === m.id)) {
+              merged.push(m);
+            }
+          });
+          setMessages(conversationId, merged);
         }
       }
     }
