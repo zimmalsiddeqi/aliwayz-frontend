@@ -111,6 +111,31 @@ export default function LoginPage() {
 
       <Separator label="or" />
 
+      {/* Terms & Privacy Notice for Social Login */}
+      <p className="text-center text-xs leading-relaxed px-2" style={{ color: 'var(--color-text-muted)' }}>
+        By signing in with Google or Apple, you agree to our{' '}
+        <Link
+          to="/terms"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium underline underline-offset-2 transition-colors hover:text-[var(--color-brand)]"
+          style={{ color: 'var(--color-text-secondary)' }}
+        >
+          Terms of Service
+        </Link>{' '}
+        and{' '}
+        <Link
+          to="/privacy"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium underline underline-offset-2 transition-colors hover:text-[var(--color-brand)]"
+          style={{ color: 'var(--color-text-secondary)' }}
+        >
+          Privacy Policy
+        </Link>
+        .
+      </p>
+
       {/* Social Sign-in */}
       <div className="space-y-3">
         <GoogleButton

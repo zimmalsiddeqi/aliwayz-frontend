@@ -277,8 +277,25 @@ export default function RegisterPage() {
             style={{ color: 'var(--color-text-muted)' }}
           >
             By creating an account, you agree to our{' '}
-            <span className="underline cursor-pointer">Terms</span> and{' '}
-            <span className="underline cursor-pointer">Privacy Policy</span>
+            <Link
+              to="/terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium underline underline-offset-2 transition-colors hover:text-[var(--color-brand)]"
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
+              Terms of Service
+            </Link>{' '}
+            and{' '}
+            <Link
+              to="/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium underline underline-offset-2 transition-colors hover:text-[var(--color-brand)]"
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
+              Privacy Policy
+            </Link>
           </p>
         </motion.div>
       )}
