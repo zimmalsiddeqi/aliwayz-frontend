@@ -13,6 +13,9 @@ import { getAccessToken, getRefreshToken, setTokens, clearTokens } from '@api/ax
 import axiosInstance from '@api/axios.instance';
 import { API } from '@api/api.endpoints';
 import useChatStore from '@store/chat.store';
+import useNotificationStore from '@store/notification.store';
+import NotificationService from '@api/services/notification.service';
+import ChatService from '@api/services/chat.service';
 import { useFavoritesStore } from '@store/favorites.store';
 import toast from '@lib/toast';
 
@@ -94,6 +97,27 @@ function AuthInitializer() {
   return null;
 }
 
+function playChatNotificationSound() {
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+    osc.frequency.setValueAtTime(880, ctx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.35);
+  } catch (e) {
+    // Audio autoplay restrictions before interaction
+  }
+}
+
 function SocketManager() {
   const { isAuthenticated, user } = useAuthStore();
   const { addMessage, setUserOnline, setUserOffline, setTyping } = useChatStore();
@@ -104,6 +128,23 @@ function SocketManager() {
       return;
     }
 
+    // Fetch initial notification badge counts on authentication
+    NotificationService.getAll({ page: 1, limit: 10 })
+      .then((res) => {
+        if (res?.data) {
+          useNotificationStore.getState().setNotifications(res.data, res.unread_count);
+        }
+      })
+      .catch(() => {});
+
+    ChatService.getConversations({ page: 1, limit: 50 })
+      .then((res) => {
+        if (res?.data) {
+          useChatStore.getState().setConversations(res.data);
+        }
+      })
+      .catch(() => {});
+
     const token = getAccessToken();
     const socket = getSocket(token);
     if (!socket) return;
@@ -112,21 +153,41 @@ function SocketManager() {
       if (message && conversationId) {
         addMessage(conversationId, message);
         queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        queryClient.invalidateQueries({ queryKey: ['notifications'] });
 
-        // Direct visible popup notification alert wherever the user is on the site
-        if (message.sender_id !== user?.id && !window.location.pathname.includes(`/inbox/${conversationId}`)) {
-          toast.success(`💬 Message from ${message.sender?.username || 'user'}: ${message.content?.substring(0, 50)}`, {
-            duration: 6000,
-            style: {
-              background: 'var(--color-surface-elevated)',
-              color: 'var(--color-text-primary)',
-              border: '2px solid var(--color-brand)',
-              fontWeight: '600',
-            },
-          });
+        // If message is from someone else
+        if (message.sender_id !== user?.id) {
+          // Increment notification bell active number
+          useNotificationStore.getState().setUnreadCount(
+            (useNotificationStore.getState().unreadCount || 0) + 1
+          );
+
+          // Direct visible popup notification alert wherever the user is on the site
+          if (!window.location.pathname.includes(`/inbox/${conversationId}`)) {
+            playChatNotificationSound();
+            const senderName = message.sender?.username || 'User';
+            toast.success(`💬 Message from ${senderName}: "${message.content?.substring(0, 45)}..."`, {
+              duration: 7000,
+              style: {
+                background: 'var(--color-surface-elevated)',
+                color: 'var(--color-text-primary)',
+                border: '2px solid var(--color-brand)',
+                fontWeight: '600',
+                boxShadow: '0 8px 30px rgba(0, 0, 0, 0.25)',
+              },
+            });
+          }
         }
       }
     };
+
+    const handleNewNotification = () => {
+      useNotificationStore.getState().setUnreadCount(
+        (useNotificationStore.getState().unreadCount || 0) + 1
+      );
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    };
+
     const handleTyping = ({ conversationId, userId }) => {
       if (conversationId && userId && userId !== user?.id) {
         setTyping(conversationId, userId, true);
@@ -147,6 +208,7 @@ function SocketManager() {
     };
 
     socket.on(SOCKET_EVENTS.MESSAGE_RECEIVED, handleMsg);
+    socket.on('new_notification', handleNewNotification);
     socket.on(SOCKET_EVENTS.USER_TYPING, handleTyping);
     socket.on(SOCKET_EVENTS.USER_STOP_TYPING, handleStop);
     socket.on(SOCKET_EVENTS.USER_ONLINE, handleOnline);
@@ -163,6 +225,7 @@ function SocketManager() {
 
     return () => {
       socket.off(SOCKET_EVENTS.MESSAGE_RECEIVED, handleMsg);
+      socket.off('new_notification', handleNewNotification);
       socket.off(SOCKET_EVENTS.USER_TYPING, handleTyping);
       socket.off(SOCKET_EVENTS.USER_STOP_TYPING, handleStop);
       socket.off(SOCKET_EVENTS.USER_ONLINE, handleOnline);

@@ -109,8 +109,17 @@ export default function useConversationSocket(conversationId) {
       if (data.userId) setUserOffline(data.userId);
     };
 
-    const handleJoined = () => {
+    const handleJoined = (data) => {
       setIsJoined(true);
+      if (data?.isOtherOnline && data?.otherUserId) {
+        setUserOnline(data.otherUserId);
+      }
+    };
+
+    const handleParticipantJoined = (data) => {
+      if (data?.userId) {
+        setUserOnline(data.userId);
+      }
     };
 
     socket.on(SOCKET_EVENTS.CONNECT, handleConnect);
@@ -133,6 +142,10 @@ export default function useConversationSocket(conversationId) {
     socket.on(
       SOCKET_EVENTS.JOINED_CONVERSATION,
       handleJoined
+    );
+    socket.on(
+      SOCKET_EVENTS.PARTICIPANT_JOINED,
+      handleParticipantJoined
     );
 
     return () => {
@@ -179,6 +192,10 @@ export default function useConversationSocket(conversationId) {
       socket.off(
         SOCKET_EVENTS.JOINED_CONVERSATION,
         handleJoined
+      );
+      socket.off(
+        SOCKET_EVENTS.PARTICIPANT_JOINED,
+        handleParticipantJoined
       );
 
       if (typingTimeoutRef.current) {

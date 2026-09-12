@@ -45,12 +45,11 @@ export default function ConversationPage() {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
 
-  const {
-    messages: storeMessages,
-    setMessages,
-    addOptimisticMessage,
-    onlineUsers,
-  } = useChatStore();
+  const storeMessages = useChatStore((state) => state.messages);
+  const setMessages = useChatStore((state) => state.setMessages);
+  const addOptimisticMessage = useChatStore((state) => state.addOptimisticMessage);
+  const onlineUsers = useChatStore((state) => state.onlineUsers);
+  const typingUsers = useChatStore((state) => state.typingUsers);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -73,8 +72,13 @@ export default function ConversationPage() {
     startTyping,
     stopTyping,
     markRead,
-    typingUserIds,
   } = useConversationSocket(conversationId);
+
+  // Derive typing state reactively
+  const typingUserIds = (typingUsers[conversationId] ? [...typingUsers[conversationId]] : []).filter(
+    (id) => id !== user?.id
+  );
+  const isOtherTyping = typingUserIds.length > 0;
 
   // ── Fetch conversation ─────────────────────────────────
   const { data: convData } = useQuery({
@@ -291,46 +295,45 @@ export default function ConversationPage() {
                   {other?.username || 'User'}
                 </h3>
 
-                {/* Online status text */}
-                {isOtherOnline && !isCompleted && (
+                {/* Online / Offline status badge */}
+                {isOtherOnline && !isCompleted ? (
                   <span
-                    className="hidden flex-shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold sm:inline"
+                    className="flex-shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold flex items-center gap-1"
                     style={{
                       backgroundColor: 'rgba(16,185,129,0.15)',
                       color: 'var(--color-success)',
                     }}
                   >
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     Online
                   </span>
-                )}
+                ) : !isCompleted ? (
+                  <span
+                    className="flex-shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-medium"
+                    style={{
+                      backgroundColor: 'rgba(148,163,184,0.15)',
+                      color: 'var(--color-text-muted)',
+                    }}
+                  >
+                    Offline
+                  </span>
+                ) : null}
               </div>
 
               {/* Status line */}
               <div className="flex items-center gap-1.5">
-                {typingUserIds.length > 0 ? (
+                {isOtherTyping ? (
                   <motion.p
-                    className="flex items-center gap-1 text-[11px] font-semibold"
-                    style={{ color: 'var(--color-brand)' }}
+                    className="flex items-center gap-1 text-[11px] font-semibold text-emerald-500"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                   >
-                    <motion.span
-                      animate={{ opacity: [0.4, 1, 0.4] }}
-                      transition={{
-                        duration: 1.5,
-                        repeat: Infinity,
-                      }}
-                    >
-                      typing
-                    </motion.span>
+                    <span>typing</span>
                     <span className="flex gap-[2px]">
                       {[0, 1, 2].map((i) => (
                         <motion.span
                           key={i}
-                          className="inline-block h-[3px] w-[3px] rounded-full"
-                          style={{
-                            backgroundColor: 'var(--color-brand)',
-                          }}
+                          className="inline-block h-[3px] w-[3px] rounded-full bg-emerald-500"
                           animate={{ y: [0, -2, 0] }}
                           transition={{
                             duration: 0.5,
@@ -342,8 +345,18 @@ export default function ConversationPage() {
                     </span>
                   </motion.p>
                 ) : (
-                  <p className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
-                    {isCompleted ? '✅ Deal completed' : isOtherOnline ? 'Active now' : 'Active recently'}
+                  <p
+                    className="text-[11px] flex items-center gap-1"
+                    style={{ color: isOtherOnline ? 'var(--color-success)' : 'var(--color-text-muted)' }}
+                  >
+                    {isCompleted ? '✅ Deal completed' : isOtherOnline ? (
+                      <>
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        Active now
+                      </>
+                    ) : (
+                      'Offline'
+                    )}
                   </p>
                 )}
               </div>
