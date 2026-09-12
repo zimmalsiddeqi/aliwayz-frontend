@@ -5,8 +5,8 @@ import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, SlidersHorizontal, ChevronDown, X, ShoppingBag, Car, Home, ArrowRight } from 'lucide-react';
 import useAuthStore from '@store/auth.store';
-import useLocationStore from '@store/location.store';
 import SearchBar from '@components/common/SearchBar';
+import LocationSelector from '@components/common/LocationSelector';
 import { isSeller, cn } from '@lib/utils';
 import ProductService from '@api/services/product.service';
 import CategoryService from '@api/services/category.service';
@@ -214,8 +214,12 @@ export default function HomePage() {
       <div className="min-h-screen pb-24 md:pb-10">
         {/* ═══ SEARCH BAR ══════════════════════════════════ */}
         <section className="container-app pt-4 pb-2 sm:pt-6 sm:pb-3">
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-2xl mx-auto space-y-2.5">
             <SearchBar />
+            {/* Mobile-only Location Option below HomePage search bar */}
+            <div className="md:hidden">
+              <LocationSelector compact variant="mobile-bar" />
+            </div>
           </div>
         </section>
 
