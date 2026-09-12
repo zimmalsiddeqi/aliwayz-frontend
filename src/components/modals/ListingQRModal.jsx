@@ -20,6 +20,8 @@ const ListingQRModal = ({ isOpen, onClose, product }) => {
   // URL pointing to the product
   const listingUrl = `${window.location.origin}/product/${product.id}`;
 
+  const formattedPrice = `${product.currency || '$'}${Number(product.price || 0).toLocaleString('en-US')}`;
+
   const downloadQR = () => {
     const svg = qrRef.current.querySelector('svg');
     const svgData = new XMLSerializer().serializeToString(svg);
@@ -72,23 +74,25 @@ const ListingQRModal = ({ isOpen, onClose, product }) => {
               width: 80%; 
               max-width: 600px;
             }
-            h1 { font-size: 48px; margin: 0 0 20px 0; text-transform: uppercase; }
-            h2 { font-size: 32px; margin: 0 0 10px 0; font-weight: normal; }
-            h3 { font-size: 36px; margin: 0 0 40px 0; color: #444; }
-            .qr-wrapper { margin-bottom: 40px; }
-            .qr-wrapper svg { width: 300px; height: 300px; }
-            p { font-size: 24px; font-weight: bold; margin: 0; }
+            h1 { font-size: 44px; margin: 0 0 16px 0; text-transform: uppercase; }
+            h2 { font-size: 28px; margin: 0 0 10px 0; font-weight: normal; }
+            h3 { font-size: 34px; margin: 0 0 30px 0; color: #111; font-weight: bold; }
+            .qr-wrapper { margin-bottom: 30px; }
+            .qr-wrapper svg { width: 280px; height: 280px; }
+            .heading { font-size: 22px; font-weight: 800; margin: 0 0 6px 0; text-transform: uppercase; }
+            .subheading { font-size: 14px; color: #555; font-weight: 500; margin: 0; }
           </style>
         </head>
         <body>
           <div class="print-container">
             <h1>${headerText}</h1>
             <h2>${product.title}</h2>
-            <h3>${product.currency || '$'}${product.price}</h3>
+            <h3>${formattedPrice}</h3>
             <div class="qr-wrapper">
               ${printContent}
             </div>
-            <p>SCAN TO VIEW THIS ${itemType} ON ALIWAYZ</p>
+            <p class="heading">SCAN TO VIEW THIS LISTING</p>
+            <p class="subheading">View Photos, Details, Pricing, and Contact the Seller on Aliwayz</p>
           </div>
           <script>
             setTimeout(() => {
@@ -152,7 +156,7 @@ const ListingQRModal = ({ isOpen, onClose, product }) => {
                 {product.title}
               </p>
               <p className="mb-6 text-xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
-                {product.currency || '$'}{product.price}
+                {formattedPrice}
               </p>
 
               <div ref={qrRef} className="p-4 bg-white rounded-xl shadow-sm mb-6 flex justify-center items-center">
@@ -164,9 +168,14 @@ const ListingQRModal = ({ isOpen, onClose, product }) => {
                 />
               </div>
 
-              <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-secondary)' }}>
-                Scan to view this {itemType.toLowerCase()} on Aliwayz
-              </p>
+              <div className="space-y-1 mt-1">
+                <p className="text-sm font-extrabold uppercase tracking-wider" style={{ color: 'var(--color-text-primary)' }}>
+                  SCAN TO VIEW THIS LISTING
+                </p>
+                <p className="text-xs font-medium max-w-xs mx-auto leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
+                  View Photos, Details, Pricing, and Contact the Seller on Aliwayz
+                </p>
+              </div>
             </div>
 
             <div className="flex gap-3 mt-6">

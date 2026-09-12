@@ -211,7 +211,7 @@ export default function DailyProductForm({ store }) {
 
         <Textarea
           label="Description"
-          placeholder="Describe your item in detail — condition, included accessories, reason for selling..."
+          placeholder="Describe Your Item in Detail..."
           maxLength={5000}
           error={errors.description?.message}
           {...register('description')}
