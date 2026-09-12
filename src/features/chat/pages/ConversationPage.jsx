@@ -164,6 +164,21 @@ export default function ConversationPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // ── Send message mutation fallback via REST API ───
+  const sendMessageMutation = useMutation({
+    mutationFn: ({ content }) => ChatService.sendMessage(conversationId, { content }),
+    onSuccess: (res) => {
+      if (res?.data) {
+        setMessages(conversationId, [...(storeMessages[conversationId] || []), res.data]);
+        queryClient.invalidateQueries({ queryKey: queryKeys.conversations.messages(conversationId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.conversations.all() });
+      }
+    },
+    onError: (err) => {
+      toast.error(getErrorMessage(err) || 'Failed to send message');
+    },
+  });
+
   // ── Send message handler ───────────────────────────────
   const handleSendMessage = useCallback(() => {
     const content = input.trim();
@@ -175,16 +190,16 @@ export default function ConversationPage() {
       avatar_url: user.avatar_url,
     });
 
-    const sent = socketSendMessage(content, tempId);
-    if (!sent) {
-      toast.error('Connection lost. Reconnecting...');
-      return;
-    }
-
     setInput('');
     inputRef.current?.focus();
     stopTyping();
-  }, [input, conversationId, user, addOptimisticMessage, socketSendMessage, stopTyping]);
+
+    const sent = socketSendMessage(content, tempId);
+    if (!sent) {
+      // Fallback via HTTP REST API if socket isn't connected right now
+      sendMessageMutation.mutate({ content });
+    }
+  }, [input, conversationId, user, addOptimisticMessage, socketSendMessage, stopTyping, sendMessageMutation]);
 
   // ── Input change with typing indicator ─────────────────
   const handleInputChange = (e) => {
@@ -315,28 +330,12 @@ export default function ConversationPage() {
                   </motion.p>
                 ) : (
                   <p className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
-                    {isCompleted ? '✅ Deal completed' : (isOtherOnline || isJoined) ? 'Active now' : 'Active recently'}
+                    {isCompleted ? '✅ Deal completed' : 'Active now'}
                   </p>
                 )}
               </div>
             </div>
           </Link>
-
-          {/* Connection indicator - only show if socket is truly disconnected and not joined */}
-          {(!isConnected && !isJoined) && (
-            <div
-              className="flex flex-shrink-0 items-center gap-1 rounded-full px-2 py-1"
-              style={{
-                backgroundColor: 'rgba(245,158,11,0.1)',
-                border: '1px solid rgba(245,158,11,0.2)',
-              }}
-            >
-              <WifiOff size={10} style={{ color: 'var(--color-warning)' }} />
-              <span className="text-[9px] font-medium" style={{ color: 'var(--color-warning)' }}>
-                Connecting
-              </span>
-            </div>
-          )}
 
           {/* Product chip */}
           {product && (
@@ -727,8 +726,7 @@ export default function ConversationPage() {
               value={input}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              placeholder={isConnected ? 'Type a message...' : 'Connecting...'}
-              disabled={!isConnected}
+              placeholder="Type a message..."
               rows={1}
               className="input-base max-h-32 min-h-[40px] resize-none text-[16px] sm:text-sm sm:min-h-[44px]"
               style={{
@@ -738,10 +736,10 @@ export default function ConversationPage() {
             />
             <button
               onClick={handleSendMessage}
-              disabled={!input.trim() || !isConnected}
+              disabled={!input.trim() || sendMessageMutation.isPending}
               className={cn(
                 'flex-shrink-0 rounded-xl p-2 transition-all duration-200 sm:p-2.5',
-                input.trim() && isConnected
+                input.trim() && !sendMessageMutation.isPending
                   ? 'bg-[var(--color-brand)] text-white hover:brightness-110'
                   : 'cursor-not-allowed text-[var(--color-text-muted)]'
               )}
