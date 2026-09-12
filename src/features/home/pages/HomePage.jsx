@@ -5,6 +5,7 @@ import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, SlidersHorizontal, ChevronDown, X, ShoppingBag, Car, Home, ArrowRight } from 'lucide-react';
 import useAuthStore from '@store/auth.store';
+import useLocationStore from '@store/location.store';
 import SearchBar from '@components/common/SearchBar';
 import LocationSelector from '@components/common/LocationSelector';
 import { isSeller, cn } from '@lib/utils';
