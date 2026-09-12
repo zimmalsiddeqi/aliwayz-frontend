@@ -50,7 +50,7 @@ export default function PropertyListingForm({ store, intent = 'sale', propertyTy
     special_assessment: '',
     
     // Rent fields
-    lease_term: '12_months',
+    lease_term: '',
     pet_policy: 'no_pets',
     available_date: '',
     security_deposit: '',
@@ -65,8 +65,8 @@ export default function PropertyListingForm({ store, intent = 'sale', propertyTy
     available_space: '',
     cam_nnn: '',
     build_out_allowance: '',
-    min_lease_term: '3',
-    max_lease_term: '10',
+    min_lease_term: '',
+    max_lease_term: '',
     building_size: '',
     ceiling_height: '',
     loading_dock: 'No',

@@ -55,6 +55,7 @@ export default function CreateStorePage() {
     handleSubmit,
     setError,
     reset,
+    watch,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(createStoreSchema),
@@ -85,6 +86,15 @@ export default function CreateStorePage() {
       if (draftStore.banner_url) setBannerPreview(draftStore.banner_url);
     }
   }, [verificationData, reset]);
+
+  const selectedCategoryId = watch('category_id');
+
+  const getStoreNamePlaceholder = (catId) => {
+    if (catId === CATEGORY_IDS.AUTOMOTIVE) return 'e.g. Metro Motors, Apex Auto...';
+    if (catId === CATEGORY_IDS.PROPERTY) return 'e.g. Skyline Realty, Prime Properties...';
+    if (catId === CATEGORY_IDS.OTHER) return 'e.g. Urban Goods, Daily Essentials...';
+    return 'e.g. Metro Motors, Skyline Realty, or Urban Goods';
+  };
 
   // ── Logo dropzone ──────────────────────────────────────
   const onLogoDrop = useCallback(
@@ -292,7 +302,7 @@ export default function CreateStorePage() {
                 <div className="flex-1">
                   <Input
                     label="Business Name"
-                    placeholder="My Auto Sales, Jane's Boutique..."
+                    placeholder={getStoreNamePlaceholder(selectedCategoryId)}
                     error={errors.store_name?.message}
                     autoFocus
                     {...register('store_name')}
