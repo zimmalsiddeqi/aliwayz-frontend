@@ -56,11 +56,14 @@ export default function IHaveThisModal({ isOpen, onClose, request }) {
     const mappedCategory =
       request.category === 'automotive' || request.category === 'vehicles'
         ? 'vehicles'
-        : request.category === 'real_estate'
-        ? 'real_estate'
+        : request.category === 'real_estate' || request.category === 'real-estate'
+        ? 'real-estate'
         : 'essentials';
 
-    navigate(`/sell/create?category=${mappedCategory}&wanted_request_id=${request.id}`, {
+    const reIntent = request.intent === 'buy' ? 'sale' : (request.intent || 'sale');
+    const extraParams = mappedCategory === 'real-estate' ? `&intent=${reIntent}&step=1` : '';
+
+    navigate(`/sell/create?category=${mappedCategory}${extraParams}&wanted_request_id=${request.id}`, {
       state: {
         wantedRequestId: request.id,
         wantedTitle: request.title,

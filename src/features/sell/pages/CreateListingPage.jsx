@@ -23,7 +23,14 @@ export default function CreateListingPage() {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
 
-  const selectedCategory = searchParams.get('category');
+  const rawCategory = searchParams.get('category');
+  const selectedCategory = rawCategory
+    ? (rawCategory === 'real_estate' || rawCategory === 'real-estate'
+        ? MAIN_CATEGORIES.REAL_ESTATE
+        : rawCategory === 'automotive' || rawCategory === 'vehicles'
+        ? MAIN_CATEGORIES.VEHICLES
+        : MAIN_CATEGORIES.ESSENTIALS)
+    : null;
 
   const { store, hasStore, isLoading: storeLoading, refetch: refetchStore } = useMyStore();
 
@@ -159,15 +166,17 @@ export default function CreateListingPage() {
                 </button>
               </div>
 
-              {selectedCategory === MAIN_CATEGORIES.VEHICLES && <CarListingForm store={store} />}
+              {(selectedCategory === MAIN_CATEGORIES.VEHICLES || selectedCategory === 'vehicles' || selectedCategory === 'automotive') && (
+                <CarListingForm store={store} />
+              )}
 
-              {selectedCategory === MAIN_CATEGORIES.REAL_ESTATE && (
+              {(selectedCategory === MAIN_CATEGORIES.REAL_ESTATE || selectedCategory === 'real-estate' || selectedCategory === 'real_estate') && (
                 <RealEstateWizard
                   store={store}
                 />
               )}
 
-              {selectedCategory === MAIN_CATEGORIES.ESSENTIALS && (
+              {(selectedCategory === MAIN_CATEGORIES.ESSENTIALS || selectedCategory === 'essentials' || selectedCategory === 'marketplace') && (
                 <DailyProductForm store={store} />
               )}
             </motion.div>
