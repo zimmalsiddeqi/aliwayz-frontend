@@ -315,17 +315,59 @@ export default function PropertyListingForm({ store, intent = 'sale', propertyTy
     onError: (err) => toast.error(getErrorMessage(err)),
   });
 
+  const getPropertyTitle = () => {
+    const typeLabels = {
+      single_family: 'Single-Family Home',
+      townhome: 'Townhouse',
+      condo: 'Condo',
+      multi_family: 'Multi-Family Home',
+      apartment: 'Apartment',
+      mobile_home: 'Mobile Home',
+      land: 'Land / Lot',
+      commercial: 'Commercial Property',
+      office: 'Office Space',
+      retail: 'Retail Space',
+      restaurant: 'Restaurant Space',
+      industrial: 'Warehouse / Industrial Space',
+      industrial_flex: 'Flex Space',
+      mixed_use: 'Mixed-Use Property',
+      parking: 'Parking Space',
+      room: 'Room',
+      basement: 'Basement Apartment',
+      duplex: 'Duplex',
+      student_housing: 'Student Housing',
+      senior_housing: 'Senior Housing',
+      medical: 'Medical Space',
+      storage: 'Storage Facility',
+      cabin: 'Vacation Cabin',
+      guest_house: 'Guest House',
+    };
+
+    const typeName = typeLabels[propertyType] || 'Property';
+
+    if (intent === 'rent') {
+      return `List ${typeName} for Rent`;
+    }
+    if (intent === 'lease') {
+      return `Lease ${typeName}`;
+    }
+    if (intent === 'vacation') {
+      return `List ${typeName} (Vacation Rental)`;
+    }
+    return `List ${typeName} for Sale`;
+  };
+
   const getPropertySubtitle = () => {
-    if (intent === 'rent') return 'Specify rental details, lease terms, and pricing';
+    if (intent === 'rent') return 'Specify rental details, lease terms, and monthly rent';
     if (intent === 'lease') return 'Specify commercial space details, lease terms, and pricing';
-    if (intent === 'vacation') return 'Specify vacation rental details, amenities, and pricing';
-    return 'Specify property details, features, and pricing';
+    if (intent === 'vacation') return 'Specify vacation rental details, amenities, and nightly rates';
+    return 'Specify property details, features, and asking price';
   };
 
   return (
     <div>
       <PageHeader
-        title={onBack ? 'Property Listing Form' : 'List Real Estate'}
+        title={getPropertyTitle()}
         subtitle={getPropertySubtitle()}
         showBack={!!onBack}
         onBack={onBack}

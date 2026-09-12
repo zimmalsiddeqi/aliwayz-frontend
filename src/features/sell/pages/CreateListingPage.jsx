@@ -583,8 +583,8 @@ function RealEstateWizard({ store }) {
     return (
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
         <div className="space-y-2 text-center">
-          <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">What do you want to do?</h2>
-          <p className="text-sm text-[var(--color-text-secondary)]">Select the transaction type for your property</p>
+          <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">Real Estate Listing Type</h2>
+          <p className="text-sm text-[var(--color-text-secondary)]">Choose whether you are selling, renting, leasing, or listing a vacation stay</p>
         </div>
         <div className="space-y-3">
           {INTENTS.map((item) => (
@@ -623,9 +623,9 @@ function RealEstateWizard({ store }) {
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
         <div className="space-y-2 text-center">
           <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">
-            {intent === 'rent' ? 'What are you renting?' : intent === 'lease' ? 'What type of commercial space?' : intent === 'vacation' ? 'What type of vacation property?' : 'What type of property are you listing?'}
+            {intent === 'rent' ? 'What property are you renting out?' : intent === 'lease' ? 'What commercial space are you leasing?' : intent === 'vacation' ? 'What vacation property are you listing?' : 'What property are you selling?'}
           </h2>
-          <p className="text-sm text-[var(--color-text-secondary)]">Selected: {intentLabel}</p>
+          <p className="text-sm text-[var(--color-text-secondary)]">Category: Real Estate • {intentLabel}</p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {types.map((type) => (
