@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Store, Zap } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Store, Zap, Sparkles } from 'lucide-react';
 import useMyStore from '@hooks/useMyStore';
 import useAuthStore from '@store/auth.store';
 import StoreService from '@api/services/store.service';
@@ -19,6 +19,7 @@ import toast from '@lib/toast';
 export default function CreateListingPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
 
@@ -113,6 +114,25 @@ export default function CreateListingPage() {
       </Helmet>
 
       <div className="mx-auto max-w-2xl">
+        {/* Matching Wanted Request Context Banner */}
+        {location.state?.wantedTitle && (
+          <div className="mb-4 rounded-2xl border border-blue-200 bg-blue-50/80 p-3.5 dark:border-blue-900/50 dark:bg-blue-950/40 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="h-8 w-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                <Sparkles size={16} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-blue-900 dark:text-blue-200 truncate">
+                  Matching Buyer Request: {location.state.wantedTitle}
+                </p>
+                <p className="text-[11px] text-blue-700/80 dark:text-blue-400/80">
+                  Publish this listing and propose it directly to the buyer from Wanted.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Category Selector */}
         {!selectedCategory && <CategorySelector onSelect={(cat) => setSearchParams({ category: cat })} />}
 

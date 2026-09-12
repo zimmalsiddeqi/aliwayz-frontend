@@ -53,7 +53,14 @@ export default function IHaveThisModal({ isOpen, onClose, request }) {
 
   const handleCreateNew = () => {
     onClose();
-    navigate(`/sell/create?wanted_request_id=${request.id}`, {
+    const mappedCategory =
+      request.category === 'automotive' || request.category === 'vehicles'
+        ? 'vehicles'
+        : request.category === 'real_estate'
+        ? 'real_estate'
+        : 'essentials';
+
+    navigate(`/sell/create?category=${mappedCategory}&wanted_request_id=${request.id}`, {
       state: {
         wantedRequestId: request.id,
         wantedTitle: request.title,
