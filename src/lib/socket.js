@@ -1,25 +1,39 @@
 import { io } from 'socket.io-client';
+import { getAccessToken } from '@api/axios.instance';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'https://aliwayz-backend-production-1899.up.railway.app';
+export function getCleanSocketUrl() {
+  let url = import.meta.env.VITE_SOCKET_URL || 'https://aliwayz-backend-production-1899.up.railway.app';
+  // Strip any trailing /api/v1 or /api or trailing slash that may be mistakenly configured
+  url = url.replace(/\/api(\/v\d+)?\/?$/i, '').replace(/\/+$/, '');
+  return url;
+}
 
 let socketInstance = null;
 let connectionAttempts = 0;
 
 export function getSocket(token = null) {
+  const authToken = token || getAccessToken();
+
   // If already connected and valid, return existing
   if (socketInstance?.connected) {
     return socketInstance;
   }
 
-  // If exists but disconnected, try reconnecting
-  if (socketInstance && !socketInstance.connected && token) {
-    socketInstance.auth = { token };
+  // If exists and currently in the process of connecting, do not interrupt
+  if (socketInstance && !socketInstance.disconnected) {
+    return socketInstance;
+  }
+
+  // If exists but disconnected, try reconnecting with token
+  if (socketInstance && socketInstance.disconnected && authToken) {
+    console.log('[REALTIME_DEBUG] socket reconnecting with auth token');
+    socketInstance.auth = { token: authToken };
     socketInstance.connect();
     return socketInstance;
   }
 
   // Need new connection
-  if (!token) return null;
+  if (!authToken) return null;
 
   // Disconnect old socket if exists
   if (socketInstance) {
@@ -29,28 +43,32 @@ export function getSocket(token = null) {
   }
 
   connectionAttempts = 0;
+  const socketUrl = getCleanSocketUrl();
+  console.log('[REALTIME_DEBUG] socket creating with URL:', socketUrl);
 
-  socketInstance = io(SOCKET_URL, {
-    auth:                  { token },
-    transports:            ['websocket', 'polling'],
+  socketInstance = io(socketUrl, {
+    auth:                  { token: authToken },
+    transports:            ['polling', 'websocket'],
     reconnection:          true,
-    reconnectionAttempts:  10,
+    reconnectionAttempts:  15,
     reconnectionDelay:     1000,
     reconnectionDelayMax:  5000,
-    timeout:               15000,
+    timeout:               20000,
     autoConnect:           true,
     forceNew:              false,
   });
 
+  console.log('[REALTIME_DEBUG] socket connecting...');
+
   // Connection events for debugging
   socketInstance.on('connect', () => {
     connectionAttempts = 0;
-    console.info('[Socket] ✅ Connected:', socketInstance.id);
+    console.log(`[REALTIME_DEBUG] socket connected id=${socketInstance.id}`);
   });
 
   socketInstance.on('disconnect', (reason) => {
-    console.warn('[Socket] ❌ Disconnected:', reason);
-    // Auto-reconnect for these reasons
+    console.warn(`[REALTIME_DEBUG] socket disconnected reason=${reason}`);
+    // Auto-reconnect for server disconnects
     if (reason === 'io server disconnect') {
       socketInstance.connect();
     }
@@ -58,11 +76,11 @@ export function getSocket(token = null) {
 
   socketInstance.on('connect_error', (err) => {
     connectionAttempts++;
-    console.warn(`[Socket] Connection error (attempt ${connectionAttempts}):`, err.message);
+    console.warn(`[REALTIME_DEBUG] socket connection_error (attempt ${connectionAttempts}):`, err.message);
   });
 
   socketInstance.on('reconnect', (attempt) => {
-    console.info(`[Socket] ✅ Reconnected after ${attempt} attempts`);
+    console.log(`[REALTIME_DEBUG] socket reconnected after ${attempt} attempts id=${socketInstance.id}`);
   });
 
   return socketInstance;

@@ -7,6 +7,7 @@ import {
   getRefreshToken,
 } from '@api/axios.instance';
 import { disconnectSocket } from '@lib/socket';
+import { useFavoritesStore } from './favorites.store';
 
 const useAuthStore = create(
   subscribeWithSelector((set, get) => ({
@@ -29,10 +30,9 @@ const useAuthStore = create(
       });
       // Fetch user favorites upon successful authentication
       try {
-        const { useFavoritesStore } = require('./favorites.store');
         useFavoritesStore.getState().fetchFavorites();
       } catch (e) {
-        console.error('Failed to require favorites store:', e);
+        console.error('Failed to fetch favorites on setAuth:', e);
       }
     },
 
@@ -60,10 +60,9 @@ const useAuthStore = create(
       });
       // Clear favorites from store
       try {
-        const { useFavoritesStore } = require('./favorites.store');
         useFavoritesStore.getState().clear();
       } catch (e) {
-        console.error('Failed to require favorites store on logout:', e);
+        console.error('Failed to clear favorites store on logout:', e);
       }
     },
 

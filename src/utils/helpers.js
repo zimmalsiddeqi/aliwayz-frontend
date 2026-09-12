@@ -62,8 +62,12 @@ export function getUnreadCount(conversation, userId) {
  */
 export function getOtherParticipant(conversation, userId) {
   if (!conversation || !userId) return null;
-  if (conversation.buyer?.id === userId)  return conversation.seller;
-  if (conversation.seller?.id === userId) return conversation.buyer;
+  if (conversation.buyer?.id === userId || conversation.buyer_id === userId) {
+    return conversation.seller || (conversation.seller_id ? { id: conversation.seller_id } : null);
+  }
+  if (conversation.seller?.id === userId || conversation.seller_id === userId) {
+    return conversation.buyer || (conversation.buyer_id ? { id: conversation.buyer_id } : null);
+  }
   return null;
 }
 
