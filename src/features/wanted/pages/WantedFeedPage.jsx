@@ -92,14 +92,14 @@ export default function WantedFeedPage() {
   return (
     <>
       <Helmet>
-        <title>All Wanted Requests — Aliwayz</title>
+        <title>Wanted — Aliwayz</title>
         <meta
           name="description"
           content="Browse all buyer wanted requests in Philadelphia across electronics, vehicles, real estate, fashion, and home goods."
         />
       </Helmet>
 
-      {/* Top 3-tab navigation bar */}
+      {/* Wanted navigation bar */}
       <WantedNavTabs />
 
       <div className="container-app py-2 sm:py-4 space-y-4 pb-24 max-w-4xl mx-auto">
@@ -107,10 +107,10 @@ export default function WantedFeedPage() {
         <div className="flex items-center justify-between gap-3">
           <div>
             <h1 className="text-xl sm:text-2xl font-black text-[var(--color-text-primary)]">
-              Buyer Requests
+              Wanted
             </h1>
             <p className="text-xs sm:text-sm text-[var(--color-text-muted)]">
-              Browse all wanted items posted by buyers in Philadelphia.
+              Browse all wanted items and buyer requests in Philadelphia.
             </p>
           </div>
           <button

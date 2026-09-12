@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import AuthGuard from './guards/AuthGuard';
 import GuestGuard from './guards/GuestGuard';
 import SellerGuard from './guards/SellerGuard';
@@ -59,7 +59,6 @@ import {
   SafetyGuidelinesPage,
   ContactUsPage,
   AboutPage,
-  WantedHomePage,
   WantedFeedPage,
   PostWantedPage,
   MyWantedRequestsPage,
@@ -158,8 +157,8 @@ const router = createBrowserRouter(
         { path: '/about-us',                    element: <AboutPage /> },
 
         // Wanted Hub
-        { path: '/wanted',              element: <WantedHomePage /> },
-        { path: '/wanted/feed',         element: <WantedFeedPage /> },
+        { path: '/wanted',              element: <WantedFeedPage /> },
+        { path: '/wanted/feed',         element: <Navigate to="/wanted" replace /> },
         { path: '/wanted/create',       element: <PostWantedPage /> },
         {
           path: '/wanted/my-requests',

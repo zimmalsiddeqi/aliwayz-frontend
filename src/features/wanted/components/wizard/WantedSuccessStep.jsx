@@ -1,4 +1,4 @@
-﻿import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { CheckCircle2, Home, Sparkles, ArrowRight, Compass } from 'lucide-react';
 import Button from '@components/ui/Button';
 
@@ -79,7 +79,7 @@ export default function WantedSuccessStep({ createdRequest, onReset }) {
           className="w-full py-3 rounded-xl font-bold"
           onClick={() => navigate('/wanted')}
         >
-          Back to Home
+          Back to Wanted
         </Button>
       </div>
     </div>
