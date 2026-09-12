@@ -14,6 +14,7 @@ import axiosInstance from '@api/axios.instance';
 import { API } from '@api/api.endpoints';
 import useChatStore from '@store/chat.store';
 import { useFavoritesStore } from '@store/favorites.store';
+import toast from '@lib/toast';
 
 function AuthInitializer() {
   const initialized = useRef(false);
@@ -108,7 +109,18 @@ function SocketManager() {
     if (!socket) return;
 
     const handleMsg = ({ message, conversationId }) => {
-      if (message && conversationId) addMessage(conversationId, message);
+      if (message && conversationId) {
+        addMessage(conversationId, message);
+        queryClient.invalidateQueries({ queryKey: ['conversations'] });
+
+        // Show toast notification if recipient is not currently viewing this conversation page
+        if (message.sender_id !== user?.id && !window.location.pathname.includes(`/inbox/${conversationId}`)) {
+          toast.success(`New message from ${message.sender?.username || 'user'}: "${message.content?.substring(0, 45)}..."`, {
+            duration: 5000,
+            icon: '💬',
+          });
+        }
+      }
     };
     const handleTyping = ({ conversationId, userId }) => {
       if (conversationId && userId && userId !== user?.id) {
@@ -137,9 +149,13 @@ function SocketManager() {
     socket.on(SOCKET_EVENTS.USER_OFFLINE, handleOffline);
     socket.on(SOCKET_EVENTS.QR_SCANNED, handleQR);
 
+    if (socket.connected) {
+      socket.emit(SOCKET_EVENTS.PING_PRESENCE);
+    }
+
     const ping = setInterval(() => {
       if (socket.connected) socket.emit(SOCKET_EVENTS.PING_PRESENCE);
-    }, 20000);
+    }, 15000);
 
     return () => {
       socket.off(SOCKET_EVENTS.MESSAGE_RECEIVED, handleMsg);

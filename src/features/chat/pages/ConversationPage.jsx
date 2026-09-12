@@ -315,15 +315,15 @@ export default function ConversationPage() {
                   </motion.p>
                 ) : (
                   <p className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
-                    {isCompleted ? '✅ Deal completed' : isOtherOnline ? 'Active now' : 'Offline'}
+                    {isCompleted ? '✅ Deal completed' : (isOtherOnline || isJoined) ? 'Active now' : 'Active recently'}
                   </p>
                 )}
               </div>
             </div>
           </Link>
 
-          {/* Connection indicator */}
-          {!isConnected && (
+          {/* Connection indicator - only show if socket is truly disconnected and not joined */}
+          {(!isConnected && !isJoined) && (
             <div
               className="flex flex-shrink-0 items-center gap-1 rounded-full px-2 py-1"
               style={{
