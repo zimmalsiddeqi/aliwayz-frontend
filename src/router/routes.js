@@ -1,85 +1,105 @@
 import { lazy } from 'react';
 
+// Retry helper for smooth automatic updates on new deployments
+function lazyWithRetry(componentImport) {
+  return lazy(async () => {
+    const pageHasBeenRefreshed = sessionStorage.getItem('page_force_refreshed') === 'true';
+    try {
+      const component = await componentImport();
+      sessionStorage.setItem('page_force_refreshed', 'false');
+      return component;
+    } catch (error) {
+      if (!pageHasBeenRefreshed) {
+        sessionStorage.setItem('page_force_refreshed', 'true');
+        window.location.reload();
+        return { default: () => null };
+      }
+      throw error;
+    }
+  });
+}
+
+
 // ── Lazy loaded pages ──────────────────────────────────────────
 // Auth
-const LoginPage           = lazy(() => import('@features/auth/pages/LoginPage'));
-const RegisterPage        = lazy(() => import('@features/auth/pages/RegisterPage'));
-const VerifyEmailPage     = lazy(() => import('@features/auth/pages/VerifyEmailPage'));
-const ForgotPasswordPage  = lazy(() => import('@features/auth/pages/ForgotPasswordPage'));
-const ResetPasswordPage   = lazy(() => import('@features/auth/pages/ResetPasswordPage'));
-const CompleteProfilePage = lazy(() => import('@features/auth/pages/CompleteProfilePage'));
+const LoginPage           = lazyWithRetry(() => import('@features/auth/pages/LoginPage'));
+const RegisterPage        = lazyWithRetry(() => import('@features/auth/pages/RegisterPage'));
+const VerifyEmailPage     = lazyWithRetry(() => import('@features/auth/pages/VerifyEmailPage'));
+const ForgotPasswordPage  = lazyWithRetry(() => import('@features/auth/pages/ForgotPasswordPage'));
+const ResetPasswordPage   = lazyWithRetry(() => import('@features/auth/pages/ResetPasswordPage'));
+const CompleteProfilePage = lazyWithRetry(() => import('@features/auth/pages/CompleteProfilePage'));
 
 // Home
-const HomePage     = lazy(() => import('@features/home/pages/HomePage'));
-const CarsPage     = lazy(() => import('@features/home/pages/CarsPage'));
-const PropertyPage = lazy(() => import('@features/home/pages/PropertyPage'));
-const DailyUsePage = lazy(() => import('@features/home/pages/DailyUsePage'));
-const FAQPage      = lazy(() => import('@features/home/pages/FAQPage'));
+const HomePage     = lazyWithRetry(() => import('@features/home/pages/HomePage'));
+const CarsPage     = lazyWithRetry(() => import('@features/home/pages/CarsPage'));
+const PropertyPage = lazyWithRetry(() => import('@features/home/pages/PropertyPage'));
+const DailyUsePage = lazyWithRetry(() => import('@features/home/pages/DailyUsePage'));
+const FAQPage      = lazyWithRetry(() => import('@features/home/pages/FAQPage'));
 
 // Marketplace
-const MarketplacePage   = lazy(() => import('@features/marketplace/pages/MarketplacePage'));
-const ProductDetailPage = lazy(() => import('@features/marketplace/pages/ProductDetailPage'));
-const CategoryPage      = lazy(() => import('@features/marketplace/pages/CategoryPage'));
+const MarketplacePage   = lazyWithRetry(() => import('@features/marketplace/pages/MarketplacePage'));
+const ProductDetailPage = lazyWithRetry(() => import('@features/marketplace/pages/ProductDetailPage'));
+const CategoryPage      = lazyWithRetry(() => import('@features/marketplace/pages/CategoryPage'));
 
 // Search
-const SearchPage = lazy(() => import('@features/search/pages/SearchPage'));
+const SearchPage = lazyWithRetry(() => import('@features/search/pages/SearchPage'));
 
 // Store
-const StoreProfilePage   = lazy(() => import('@features/store/pages/StoreProfilePage'));
-const CreateStorePage    = lazy(() => import('@features/store/pages/CreateStorePage'));
-const EditStorePage      = lazy(() => import('@features/store/pages/EditStorePage'));
-const StoreAnalyticsPage = lazy(() => import('@features/store/pages/StoreAnalyticsPage'));
+const StoreProfilePage   = lazyWithRetry(() => import('@features/store/pages/StoreProfilePage'));
+const CreateStorePage    = lazyWithRetry(() => import('@features/store/pages/CreateStorePage'));
+const EditStorePage      = lazyWithRetry(() => import('@features/store/pages/EditStorePage'));
+const StoreAnalyticsPage = lazyWithRetry(() => import('@features/store/pages/StoreAnalyticsPage'));
 
 // Sell
-const CreateListingPage = lazy(() => import('@features/sell/pages/CreateListingPage'));
-const EditListingPage   = lazy(() => import('@features/sell/pages/EditListingPage'));
-const MyListingsPage    = lazy(() => import('@features/sell/pages/MyListingsPage'));
+const CreateListingPage = lazyWithRetry(() => import('@features/sell/pages/CreateListingPage'));
+const EditListingPage   = lazyWithRetry(() => import('@features/sell/pages/EditListingPage'));
+const MyListingsPage    = lazyWithRetry(() => import('@features/sell/pages/MyListingsPage'));
 
 // Chat
-const InboxPage        = lazy(() => import('@features/chat/pages/InboxPage'));
-const ConversationPage = lazy(() => import('@features/chat/pages/ConversationPage'));
+const InboxPage        = lazyWithRetry(() => import('@features/chat/pages/InboxPage'));
+const ConversationPage = lazyWithRetry(() => import('@features/chat/pages/ConversationPage'));
 
 // QR
-const QRVerificationPage = lazy(() => import('@features/qr/pages/QRVerificationPage'));
+const QRVerificationPage = lazyWithRetry(() => import('@features/qr/pages/QRVerificationPage'));
 
 // Profile
-const MyProfilePage       = lazy(() => import('@features/profile/pages/MyProfilePage'));
-const PublicProfilePage   = lazy(() => import('@features/profile/pages/PublicProfilePage'));
-const EditProfilePage     = lazy(() => import('@features/profile/pages/EditProfilePage'));
-const PurchaseHistoryPage = lazy(() => import('@features/profile/pages/PurchaseHistoryPage'));
-const FavoritesPage       = lazy(() => import('@features/profile/pages/FavoritesPage'));
-const FollowingPage       = lazy(() => import('@features/profile/pages/FollowingPage'));
+const MyProfilePage       = lazyWithRetry(() => import('@features/profile/pages/MyProfilePage'));
+const PublicProfilePage   = lazyWithRetry(() => import('@features/profile/pages/PublicProfilePage'));
+const EditProfilePage     = lazyWithRetry(() => import('@features/profile/pages/EditProfilePage'));
+const PurchaseHistoryPage = lazyWithRetry(() => import('@features/profile/pages/PurchaseHistoryPage'));
+const FavoritesPage       = lazyWithRetry(() => import('@features/profile/pages/FavoritesPage'));
+const FollowingPage       = lazyWithRetry(() => import('@features/profile/pages/FollowingPage'));
 
 // Notifications
-const NotificationsPage = lazy(() => import('@features/notifications/pages/NotificationsPage'));
+const NotificationsPage = lazyWithRetry(() => import('@features/notifications/pages/NotificationsPage'));
 
 // Verification
-const VerificationPage = lazy(() => import('@features/verification/pages/VerificationPage'));
+const VerificationPage = lazyWithRetry(() => import('@features/verification/pages/VerificationPage'));
 
 // Legal
-const LegalIndexPage           = lazy(() => import('@features/legal/pages/LegalIndexPage'));
-const PrivacyPolicyPage        = lazy(() => import('@features/legal/pages/PrivacyPolicyPage'));
-const TermsPage                = lazy(() => import('@features/legal/pages/TermsPage'));
-const CookiePolicyPage         = lazy(() => import('@features/legal/pages/CookiePolicyPage'));
-const SellerPolicyPage         = lazy(() => import('@features/legal/pages/SellerPolicyPage'));
-const BuyerPolicyPage          = lazy(() => import('@features/legal/pages/BuyerPolicyPage'));
-const CommunityGuidelinesPage  = lazy(() => import('@features/legal/pages/CommunityGuidelinesPage'));
-const ProhibitedItemsPage      = lazy(() => import('@features/legal/pages/ProhibitedItemsPage'));
-const AccountDeletionPage      = lazy(() => import('@features/legal/pages/AccountDeletionPage'));
-const DataDeletionPage         = lazy(() => import('@features/legal/pages/DataDeletionPage'));
-const ReportAbusePage          = lazy(() => import('@features/legal/pages/ReportAbusePage'));
-const IntellectualPropertyPage = lazy(() => import('@features/legal/pages/IntellectualPropertyPage'));
-const CopyrightPage            = lazy(() => import('@features/legal/pages/CopyrightPage'));
-const DisclaimerPage           = lazy(() => import('@features/legal/pages/DisclaimerPage'));
-const SafetyGuidelinesPage     = lazy(() => import('@features/legal/pages/SafetyGuidelinesPage'));
-const ContactUsPage            = lazy(() => import('@features/legal/pages/ContactUsPage'));
-const AboutPage                = lazy(() => import('@features/legal/pages/AboutPage'));
+const LegalIndexPage           = lazyWithRetry(() => import('@features/legal/pages/LegalIndexPage'));
+const PrivacyPolicyPage        = lazyWithRetry(() => import('@features/legal/pages/PrivacyPolicyPage'));
+const TermsPage                = lazyWithRetry(() => import('@features/legal/pages/TermsPage'));
+const CookiePolicyPage         = lazyWithRetry(() => import('@features/legal/pages/CookiePolicyPage'));
+const SellerPolicyPage         = lazyWithRetry(() => import('@features/legal/pages/SellerPolicyPage'));
+const BuyerPolicyPage          = lazyWithRetry(() => import('@features/legal/pages/BuyerPolicyPage'));
+const CommunityGuidelinesPage  = lazyWithRetry(() => import('@features/legal/pages/CommunityGuidelinesPage'));
+const ProhibitedItemsPage      = lazyWithRetry(() => import('@features/legal/pages/ProhibitedItemsPage'));
+const AccountDeletionPage      = lazyWithRetry(() => import('@features/legal/pages/AccountDeletionPage'));
+const DataDeletionPage         = lazyWithRetry(() => import('@features/legal/pages/DataDeletionPage'));
+const ReportAbusePage          = lazyWithRetry(() => import('@features/legal/pages/ReportAbusePage'));
+const IntellectualPropertyPage = lazyWithRetry(() => import('@features/legal/pages/IntellectualPropertyPage'));
+const CopyrightPage            = lazyWithRetry(() => import('@features/legal/pages/CopyrightPage'));
+const DisclaimerPage           = lazyWithRetry(() => import('@features/legal/pages/DisclaimerPage'));
+const SafetyGuidelinesPage     = lazyWithRetry(() => import('@features/legal/pages/SafetyGuidelinesPage'));
+const ContactUsPage            = lazyWithRetry(() => import('@features/legal/pages/ContactUsPage'));
+const AboutPage                = lazyWithRetry(() => import('@features/legal/pages/AboutPage'));
 
 // Wanted
-const WantedHomePage        = lazy(() => import('@features/wanted/pages/WantedHomePage'));
-const WantedFeedPage        = lazy(() => import('@features/wanted/pages/WantedFeedPage'));
-const PostWantedPage        = lazy(() => import('@features/wanted/pages/PostWantedPage'));
-const MyWantedRequestsPage  = lazy(() => import('@features/wanted/pages/MyWantedRequestsPage'));
+const WantedHomePage        = lazyWithRetry(() => import('@features/wanted/pages/WantedHomePage'));
+const WantedFeedPage        = lazyWithRetry(() => import('@features/wanted/pages/WantedFeedPage'));
+const PostWantedPage        = lazyWithRetry(() => import('@features/wanted/pages/PostWantedPage'));
+const MyWantedRequestsPage  = lazyWithRetry(() => import('@features/wanted/pages/MyWantedRequestsPage'));
 
 export {
   LoginPage, RegisterPage, VerifyEmailPage, ForgotPasswordPage,

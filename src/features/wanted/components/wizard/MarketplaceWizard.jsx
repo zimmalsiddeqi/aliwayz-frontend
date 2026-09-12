@@ -30,8 +30,9 @@ export default function MarketplaceWizard({
 
   // Form State - empty defaults with clean placeholders
   const [title, setTitle] = useState('');
-  const [condition, setCondition] = useState('');
+  const [titleError, setTitleError] = useState('');
   const [brand, setBrand] = useState('');
+  const [condition, setCondition] = useState('any');
   const [budgetMin, setBudgetMin] = useState('');
   const [budgetMax, setBudgetMax] = useState('');
   const [description, setDescription] = useState('');
@@ -41,7 +42,8 @@ export default function MarketplaceWizard({
 
   const handleSubmit = () => {
     if (!title.trim()) {
-      alert('Please enter an item name');
+      setTitleError('Please enter an item name');
+      setStep(1);
       return;
     }
 
@@ -87,15 +89,28 @@ export default function MarketplaceWizard({
         <div className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider mb-1">
-              Item Name / Model
+              Item Name / Model <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                if (titleError) setTitleError('');
+              }}
               placeholder="e.g. Sony WH-1000XM5, iPhone 15 Pro, Herman Miller Chair"
-              className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-3 text-sm font-semibold text-[var(--color-text-primary)] focus:border-emerald-600 focus:outline-none"
+              className={cn(
+                "w-full rounded-xl border bg-[var(--color-bg-input)] p-3 text-sm font-semibold text-[var(--color-text-primary)] focus:outline-none transition-all",
+                titleError
+                  ? "border-red-500 bg-red-500/5 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
+                  : "border-[var(--color-border)] focus:border-emerald-600"
+              )}
             />
+            {titleError && (
+              <p className="mt-1 text-xs font-medium text-red-500 flex items-center gap-1">
+                ⚠️ {titleError}
+              </p>
+            )}
           </div>
 
           <div>
@@ -151,7 +166,7 @@ export default function MarketplaceWizard({
             type="button"
             onClick={() => {
               if (!title.trim()) {
-                alert('Please enter an item name');
+                setTitleError('Please enter an item name');
                 return;
               }
               setStep(2);
