@@ -186,7 +186,7 @@ function SocketManager() {
             playChatNotificationSound();
             const senderName = message.sender?.username || 'User';
             toast.success(`💬 Message from ${senderName}: "${message.content?.substring(0, 45)}..."`, {
-              duration: 7000,
+              duration: 1000,
               style: {
                 background: 'var(--color-surface-elevated)',
                 color: 'var(--color-text-primary)',

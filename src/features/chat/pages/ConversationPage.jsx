@@ -176,7 +176,7 @@ export default function ConversationPage() {
       if (data.conversationId === conversationId && isProductBuyer) {
         setQrReadyAlert(true);
         toast.success('Seller generated a QR code! Check the chat.', {
-          duration: 6000,
+          duration: 1000,
           icon: '📱',
         });
       }

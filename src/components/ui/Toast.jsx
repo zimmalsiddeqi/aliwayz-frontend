@@ -49,6 +49,7 @@ function addToast(toast) {
     duration:  1000,
     centered:  false,
     ...toast,
+    ...(toast.type !== 'loading' ? { duration: 1000 } : {}),
     createdAt: Date.now(),
   };
   // Maximum 2 active toasts to avoid covering mobile screen
@@ -370,23 +371,6 @@ function MiniToast({ toast, onDismiss }) {
   const config = TOAST_CONFIG[toast.type] || TOAST_CONFIG.info;
   const Icon   = config.icon;
 
-  const [progress, setProgress] = useState(100);
-
-  useEffect(() => {
-    if (toast.duration <= 0) return;
-    const start    = Date.now();
-    const interval = setInterval(() => {
-      const elapsed = Date.now() - start;
-      const remaining = Math.max(
-        0,
-        100 - (elapsed / toast.duration) * 100
-      );
-      setProgress(remaining);
-      if (remaining <= 0) clearInterval(interval);
-    }, 50);
-    return () => clearInterval(interval);
-  }, [toast.duration]);
-
   return (
     <motion.div
       layout
@@ -435,21 +419,6 @@ function MiniToast({ toast, onDismiss }) {
           <X size={13} />
         </button>
       </div>
-
-      {toast.duration > 0 && !toast.hideProgress && (
-        <div
-          className="h-[2px] w-full"
-          style={{ backgroundColor: config.bg }}
-        >
-          <motion.div
-            className="h-full"
-            style={{ backgroundColor: config.progress }}
-            initial={{ width: '100%' }}
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.1, ease: 'linear' }}
-          />
-        </div>
-      )}
     </motion.div>
   );
 }
