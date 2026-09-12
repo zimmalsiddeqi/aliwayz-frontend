@@ -32,6 +32,7 @@ import { formatRelativeTime, formatCompactNumber } from '@utils/formatters';
 import { getPrimaryImage } from '@utils/helpers';
 import toast from '@lib/toast';
 import ConfirmDeleteModal from '@components/modals/ConfirmDeleteModal';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function MyListingsPage() {
   const navigate = useNavigate();
@@ -43,25 +44,27 @@ export default function MyListingsPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [qrTarget, setQrTarget] = useState(null);
 
-  // Fetch products
+  // Fetch all store products once so tab counts and client filtering are accurate and instantaneous
   const { data, isLoading } = useQuery({
-    queryKey: ['my-listings', store?.slug, statusFilter],
+    queryKey: ['my-listings', store?.slug],
     queryFn: () =>
       StoreService.getProducts(store.slug, {
         page: 1,
         limit: 100,
-        status: statusFilter === 'all' ? undefined : statusFilter,
+        status: 'all',
       }),
     enabled: !!store?.slug,
   });
 
   const allProducts = data?.data || [];
 
-  // Filter client-side for status or QR codes
+  // Filter client-side for status or QR codes (QR codes are for active, non-sold listings)
   const products =
-    statusFilter === 'all' || statusFilter === 'qr'
+    statusFilter === 'all'
       ? allProducts
-      : allProducts.filter((p) => p.status === statusFilter);
+      : statusFilter === 'qr'
+        ? allProducts.filter((p) => p.status !== 'sold')
+        : allProducts.filter((p) => p.status === statusFilter);
 
   // ── Status mutation ────────────────────────────────────
   const statusMutation = useMutation({
@@ -128,7 +131,7 @@ export default function MyListingsPage() {
     {
       value: 'qr',
       label: '▣ QR Codes',
-      count: allProducts.length,
+      count: allProducts.filter((p) => p.status !== 'sold').length,
     },
     {
       value: 'reserved',
@@ -204,10 +207,20 @@ export default function MyListingsPage() {
       {/* ── Products List ─────────────────────────────────── */}
       {products.length === 0 ? (
         <EmptyState
-          icon={statusFilter === 'all' ? '📦' : '🔍'}
-          title={statusFilter === 'all' ? 'No listings yet' : `No ${statusFilter} listings`}
+          icon={statusFilter === 'all' ? '📦' : statusFilter === 'qr' ? '▣' : '🔍'}
+          title={
+            statusFilter === 'all'
+              ? 'No listings yet'
+              : statusFilter === 'qr'
+                ? 'No active QR codes'
+                : `No ${statusFilter} listings`
+          }
           description={
-            statusFilter === 'all' ? 'Create your first listing!' : 'Try changing the filter'
+            statusFilter === 'all'
+              ? 'Create your first listing!'
+              : statusFilter === 'qr'
+                ? 'QR codes are generated for active listings'
+                : 'Try changing the filter'
           }
           actionLabel={statusFilter === 'all' ? 'Create Listing' : undefined}
           actionTo={statusFilter === 'all' ? '/sell/create' : undefined}
@@ -281,89 +294,150 @@ export default function MyListingsPage() {
                       </div>
                     </div>
 
-                    {/* Actions dropdown */}
-                    <div className="flex-shrink-0 self-center flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setQrTarget(product)}
-                        className="gap-1.5 px-2.5 py-1 text-xs"
-                        title="View / Download QR Code"
-                      >
-                        <QrCode size={14} />
-                        <span className="hidden sm:inline">QR Code</span>
-                      </Button>
-
-                      <Dropdown
-                        align="right"
-                        trigger={
-                          <span
-                            className="inline-flex rounded-xl p-2 hover:bg-[var(--glass-bg-strong)]"
-                            style={{ color: 'var(--color-text-muted)' }}
-                          >
-                            <MoreVertical size={16} />
+                    {/* If in QR Codes tab, display the live QR code inline */}
+                    {statusFilter === 'qr' ? (
+                      <div className="flex-shrink-0 flex items-center gap-3 self-center rounded-2xl bg-white p-2.5 border border-[var(--color-border)] shadow-sm">
+                        <div
+                          onClick={() => setQrTarget(product)}
+                          className="cursor-pointer flex flex-col items-center hover:opacity-85 transition-opacity"
+                          title="Click to view full QR flyer / print"
+                        >
+                          <QRCodeSVG
+                            value={`${window.location.origin}/product/${product.id}`}
+                            size={76}
+                            level="M"
+                          />
+                          <span className="mt-1 text-[8px] font-black text-slate-800 tracking-wider">
+                            SCAN ME
                           </span>
-                        }
-                        items={[
-                          {
-                            icon: <Edit3 size={14} />,
-                            label: 'Edit',
-                            onClick: () => navigate(`/sell/edit/${product.id}`),
-                          },
-                          {
-                            icon: <Eye size={14} />,
-                            label: 'View',
-                            onClick: () => navigate(`/product/${product.id}`),
-                          },
-                          {
-                            icon: <QrCode size={14} />,
-                            label: '▣ Listing QR Code',
-                            onClick: () => setQrTarget(product),
-                          },
-                          { divider: true },
-                          ...(product.status !== 'available'
-                            ? [
-                                {
-                                  icon: <Eye size={14} />,
-                                  label: 'Mark Available',
-                                  onClick: () =>
-                                    statusMutation.mutate({ id: product.id, status: 'available' }),
-                                },
-                              ]
-                            : []),
-                          ...(product.status !== 'hidden'
-                            ? [
-                                {
-                                  icon: <EyeOff size={14} />,
-                                  label: 'Hide',
-                                  onClick: () =>
-                                    statusMutation.mutate({ id: product.id, status: 'hidden' }),
-                                },
-                              ]
-                            : []),
-                          ...(product.status !== 'reserved'
-                            ? [
-                                {
-                                  icon: <Archive size={14} />,
-                                  label: 'Mark Reserved',
-                                  onClick: () =>
-                                    statusMutation.mutate({ id: product.id, status: 'reserved' }),
-                                },
-                              ]
-                            : []),
-                          { divider: true },
-                          {
-                            icon: <Trash2 size={14} />,
-                            label: 'Delete',
-                            danger: true,
-                            onClick: () => {
-                              setDeleteTarget(product);
-                              setShowDeleteModal(true);
-                            },
-                          },
-                        ]}
-                      />
-                    </div>
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <Button
+                            size="xs"
+                            variant="brand"
+                            leftIcon={<QrCode size={12} />}
+                            onClick={() => setQrTarget(product)}
+                          >
+                            Print Flyer
+                          </Button>
+                          <Button
+                            size="xs"
+                            variant="outline"
+                            leftIcon={<Eye size={12} />}
+                            onClick={() => navigate(`/product/${product.id}`)}
+                          >
+                            View
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Actions for other tabs */
+                      <div className="flex-shrink-0 self-center flex items-center gap-2">
+                        {/* Sold products do NOT get a QR Code button */}
+                        {product.status !== 'sold' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setQrTarget(product)}
+                            className="gap-1.5 px-2.5 py-1 text-xs"
+                            title="View / Download QR Code"
+                          >
+                            <QrCode size={14} />
+                            <span className="hidden sm:inline">QR Code</span>
+                          </Button>
+                        )}
+
+                        <Dropdown
+                          align="right"
+                          trigger={
+                            <span
+                              className="inline-flex rounded-xl p-2 hover:bg-[var(--glass-bg-strong)]"
+                              style={{ color: 'var(--color-text-muted)' }}
+                            >
+                              <MoreVertical size={16} />
+                            </span>
+                          }
+                          items={
+                            product.status === 'sold'
+                              ? [
+                                  {
+                                    icon: <Eye size={14} />,
+                                    label: 'View',
+                                    onClick: () => navigate(`/product/${product.id}`),
+                                  },
+                                  { divider: true },
+                                  {
+                                    icon: <Trash2 size={14} />,
+                                    label: 'Delete',
+                                    danger: true,
+                                    onClick: () => {
+                                      setDeleteTarget(product);
+                                      setShowDeleteModal(true);
+                                    },
+                                  },
+                                ]
+                              : [
+                                  {
+                                    icon: <Edit3 size={14} />,
+                                    label: 'Edit',
+                                    onClick: () => navigate(`/sell/edit/${product.id}`),
+                                  },
+                                  {
+                                    icon: <Eye size={14} />,
+                                    label: 'View',
+                                    onClick: () => navigate(`/product/${product.id}`),
+                                  },
+                                  {
+                                    icon: <QrCode size={14} />,
+                                    label: '▣ Listing QR Code',
+                                    onClick: () => setQrTarget(product),
+                                  },
+                                  { divider: true },
+                                  ...(product.status !== 'available'
+                                    ? [
+                                        {
+                                          icon: <Eye size={14} />,
+                                          label: 'Mark Available',
+                                          onClick: () =>
+                                            statusMutation.mutate({ id: product.id, status: 'available' }),
+                                        },
+                                      ]
+                                    : []),
+                                  ...(product.status !== 'hidden'
+                                    ? [
+                                        {
+                                          icon: <EyeOff size={14} />,
+                                          label: 'Hide',
+                                          onClick: () =>
+                                            statusMutation.mutate({ id: product.id, status: 'hidden' }),
+                                        },
+                                      ]
+                                    : []),
+                                  ...(product.status !== 'reserved'
+                                    ? [
+                                        {
+                                          icon: <Archive size={14} />,
+                                          label: 'Mark Reserved',
+                                          onClick: () =>
+                                            statusMutation.mutate({ id: product.id, status: 'reserved' }),
+                                        },
+                                      ]
+                                    : []),
+                                  { divider: true },
+                                  {
+                                    icon: <Trash2 size={14} />,
+                                    label: 'Delete',
+                                    danger: true,
+                                    onClick: () => {
+                                      setDeleteTarget(product);
+                                      setShowDeleteModal(true);
+                                    },
+                                  },
+                                ]
+                          }
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               </motion.div>

@@ -50,17 +50,22 @@ queryFn:  () => CategoryService.getFlat().then((r) => r.data),
 });
 
 useEffect(() => {
-if (product?.product_images) {
-setExistingImages(
-product.product_images.map((img) => ({
-id:         img.id,
-url:        img.cdn_url || img.storage_url,
-is_primary: img.is_primary,
-isExisting: true,
-}))
-);
-}
-}, [product]);
+  if (product && product.status === 'sold') {
+    toast.error('Sold products cannot be edited');
+    navigate('/sell/listings');
+    return;
+  }
+  if (product?.product_images) {
+    setExistingImages(
+      product.product_images.map((img) => ({
+        id:         img.id,
+        url:        img.cdn_url || img.storage_url,
+        is_primary: img.is_primary,
+        isExisting: true,
+      }))
+    );
+  }
+}, [product, navigate]);
 
 const {
 register,
