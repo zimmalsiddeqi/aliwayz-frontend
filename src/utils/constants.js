@@ -172,13 +172,139 @@ export const MAIN_CATEGORY_CONFIG = [
 // CAR-SPECIFIC OPTIONS
 // ═══════════════════════════════════════════════════════════════
 
+export const VEHICLE_MODELS = {
+  'Acura': ['Integra', 'TLX', 'ADX', 'RDX', 'MDX', 'ZDX', 'NSX'],
+  'Alfa Romeo': ['Giulia', 'Stelvio', 'Tonale', '4C'],
+  'Aston Martin': ['DB11', 'DB12', 'DBS', 'Vantage', 'Vanquish', 'DBX', 'Valkyrie'],
+  'Audi': [
+    'A3', 'A4', 'A5', 'A6', 'A7', 'A8',
+    'Q3', 'Q4 e-tron', 'Q5', 'Q6 e-tron', 'Q7', 'Q8',
+    'e-tron GT', 'R8', 'RS3', 'RS5', 'RS6', 'RS7', 'RS Q8'
+  ],
+  'Bentley': ['Continental GT', 'Continental GTC', 'Flying Spur', 'Bentayga'],
+  'BMW': [
+    '2 Series', '3 Series', '4 Series', '5 Series', '7 Series', '8 Series',
+    'X1', 'X2', 'X3', 'X4', 'X5', 'X6', 'X7', 'XM',
+    'i3', 'i4', 'i5', 'i7', 'iX', 'iX3', 'Z4',
+    'M2', 'M3', 'M4', 'M5', 'M8', 'X3 M', 'X4 M', 'X5 M', 'X6 M'
+  ],
+  'Bugatti': ['Chiron', 'Veyron', 'Tourbillon', 'Divo', 'Centodieci', 'Mistral', 'Bolide'],
+  'Buick': ['Encore', 'Encore GX', 'Envision', 'Enclave'],
+  'Cadillac': [
+    'CT4', 'CT5', 'CT6', 'XT4', 'XT5', 'XT6',
+    'Escalade', 'Escalade ESV', 'Lyriq', 'Optiq', 'Vistiq', 'Celestiq'
+  ],
+  'Chevrolet': [
+    'Trax', 'Trailblazer', 'Equinox', 'Blazer', 'Traverse', 'Tahoe',
+    'Suburban', 'Colorado', 'Silverado 1500', 'Silverado 2500HD',
+    'Silverado 3500HD', 'Corvette', 'Camaro', 'Malibu', 'Bolt EV',
+    'Bolt EUV', 'Equinox EV', 'Blazer EV', 'Silverado EV'
+  ],
+  'Chrysler': ['300', 'Pacifica', 'Pacifica Hybrid', 'Voyager'],
+  'Dodge': ['Charger', 'Challenger', 'Durango', 'Hornet', 'Journey', 'Grand Caravan'],
+  'Ferrari': [
+    '296 GTB', '296 GTS', 'Roma', 'Roma Spider', 'Purosangue',
+    'SF90 Stradale', 'SF90 Spider', '12Cilindri', '12Cilindri Spider'
+  ],
+  'Ford': [
+    'Bronco', 'Bronco Sport', 'Escape', 'Explorer', 'Expedition',
+    'Mustang', 'Mustang Mach-E', 'Maverick', 'Ranger', 'F-150',
+    'Super Duty F-250', 'Super Duty F-350', 'Super Duty F-450',
+    'Transit', 'Transit Connect'
+  ],
+  'Genesis': [
+    'G70', 'G80', 'G90', 'GV60', 'GV70', 'GV80',
+    'Electrified G80', 'Electrified GV70'
+  ],
+  'GMC': [
+    'Terrain', 'Acadia', 'Yukon', 'Yukon XL', 'Canyon',
+    'Sierra 1500', 'Sierra 2500HD', 'Sierra 3500HD',
+    'Hummer EV Pickup', 'Hummer EV SUV'
+  ],
+  'Honda': [
+    'Civic', 'Accord', 'Insight', 'HR-V', 'CR-V', 'Passport', 'Pilot',
+    'Ridgeline', 'Odyssey', 'Prologue', 'Civic Type R'
+  ],
+  'Hyundai': [
+    'Elantra', 'Sonata', 'Accent', 'Venue', 'Kona', 'Tucson', 'Santa Fe',
+    'Palisade', 'Ioniq 5', 'Ioniq 6', 'Ioniq 9', 'Santa Cruz', 'Veloster'
+  ],
+  'Infiniti': ['Q50', 'QX50', 'QX55', 'QX60', 'QX80'],
+  'Jaguar': ['F-Pace', 'E-Pace', 'F-Type', 'XE', 'XF', 'XJ', 'I-Pace'],
+  'Jeep': [
+    'Wrangler', 'Wrangler 4xe', 'Grand Cherokee', 'Grand Cherokee 4xe',
+    'Cherokee', 'Compass', 'Renegade', 'Gladiator', 'Wagoneer',
+    'Grand Wagoneer', 'Wagoneer S'
+  ],
+  'Kia': [
+    'Forte', 'K4', 'K5', 'Rio', 'Soul', 'Seltos', 'Sportage', 'Sorento',
+    'Telluride', 'Carnival', 'EV6', 'EV9', 'Niro', 'Stinger'
+  ],
+  'Lamborghini': ['Revuelto', 'Temerario', 'Urus', 'Urus S', 'Urus Performante', 'Urus SE'],
+  'Land Rover': [
+    'Defender', 'Discovery', 'Discovery Sport', 'Range Rover',
+    'Range Rover Sport', 'Range Rover Velar', 'Range Rover Evoque'
+  ],
+  'Lexus': [
+    'IS', 'ES', 'LS', 'RC', 'LC', 'UX', 'NX', 'RX', 'TX', 'GX', 'LX', 'RZ'
+  ],
+  'Lincoln': ['Corsair', 'Nautilus', 'Aviator', 'Navigator', 'Navigator L'],
+  'Maserati': [
+    'Ghibli', 'Quattroporte', 'Levante', 'Grecale', 'GranTurismo',
+    'GranCabrio', 'MC20', 'MC20 Cielo'
+  ],
+  'Mazda': [
+    'Mazda3', 'Mazda6', 'CX-30', 'CX-5', 'CX-50', 'CX-70', 'CX-90',
+    'MX-5 Miata', 'MX-30'
+  ],
+  'McLaren': [
+    'Artura', '570S', '600LT', '720S', '750S', '765LT', '7900',
+    'GT', 'Senna', 'Speedtail'
+  ],
+  'Mercedes-Benz': [
+    'A-Class', 'C-Class', 'E-Class', 'S-Class', 'CLA', 'CLE', 'CLS',
+    'GLA', 'GLB', 'GLC', 'GLE', 'GLS', 'G-Class',
+    'EQB', 'EQE', 'EQS', 'EQE SUV', 'EQS SUV', 'AMG GT', 'SL'
+  ],
+  'Mini': ['Cooper', 'Countryman', 'Clubman'],
+  'Mitsubishi': ['Mirage', 'Mirage G4', 'Outlander', 'Outlander Sport', 'Eclipse Cross'],
+  'Nissan': [
+    'Versa', 'Sentra', 'Altima', 'Maxima', 'Kicks', 'Rogue', 'Murano',
+    'Pathfinder', 'Armada', 'Frontier', 'Titan', 'Z', 'GT-R', 'Ariya'
+  ],
+  'Polestar': ['Polestar 2', 'Polestar 3', 'Polestar 4', 'Polestar 5', 'Polestar 6'],
+  'Porsche': [
+    '718 Boxster', '718 Cayman', '911', 'Taycan', 'Panamera', 'Macan', 'Cayenne'
+  ],
+  'Ram': ['1500', '2500', '3500', 'ProMaster'],
+  'Rimac': ['Nevera'],
+  'Rivian': ['R1T', 'R1S', 'R2', 'R3', 'R3X'],
+  'Rolls-Royce': [
+    'Ghost', 'Phantom', 'Phantom Extended', 'Cullinan', 'Spectre', 'Dawn', 'Wraith'
+  ],
+  'Subaru': [
+    'Impreza', 'Legacy', 'WRX', 'BRZ', 'Crosstrek', 'Forester', 'Outback',
+    'Ascent', 'Solterra'
+  ],
+  'Tesla': ['Model 3', 'Model Y', 'Model S', 'Model X', 'Cybertruck', 'Roadster'],
+  'Toyota': [
+    'Corolla', 'Camry', 'Prius', 'Crown', 'GR86', 'GR Corolla', 'GR Supra',
+    'RAV4', 'Highlander', 'Grand Highlander', '4Runner', 'Sequoia',
+    'Land Cruiser', 'Tacoma', 'Tundra', 'Sienna', 'Venza', 'bZ4X'
+  ],
+  'Volkswagen': [
+    'Jetta', 'Passat', 'Golf', 'Golf GTI', 'Golf R', 'Taos', 'Tiguan',
+    'Atlas', 'Atlas Cross Sport', 'ID.4', 'ID. Buzz'
+  ],
+  'Volvo': [
+    'S60', 'S90', 'V60', 'V90', 'XC40', 'XC60', 'XC90',
+    'EX30', 'EX40', 'EX90', 'EM90'
+  ],
+};
+
 export const VEHICLE_MAKES = [
-  'Acura', 'Audi', 'BMW', 'Buick', 'Cadillac', 'Chevrolet',
-  'Chrysler', 'Dodge', 'Ford', 'GMC', 'Honda', 'Hyundai',
-  'Infiniti', 'Jeep', 'Kia', 'Land Rover', 'Lexus', 'Lincoln',
-  'Mazda', 'Mercedes-Benz', 'Mini', 'Mitsubishi', 'Nissan',
-  'Porsche', 'Ram', 'Subaru', 'Tesla', 'Toyota', 'Volkswagen',
-  'Volvo', 'Other',
+  ...Object.keys(VEHICLE_MODELS).sort((a, b) => a.localeCompare(b)),
+  'Other',
 ];
 
 export const VEHICLE_BODY_TYPES = [
@@ -430,6 +556,7 @@ export const DAILY_USE_CATEGORY_IDS = [
 
 // Vehicle aliases (old CAR_ → new VEHICLE_)
 export const CAR_MAKES         = VEHICLE_MAKES;
+export const CAR_MODELS        = VEHICLE_MODELS;
 export const CAR_BODY_TYPES    = VEHICLE_BODY_TYPES;
 export const CAR_FUEL_TYPES    = VEHICLE_FUEL_TYPES;
 export const CAR_TRANSMISSIONS = VEHICLE_TRANSMISSIONS;

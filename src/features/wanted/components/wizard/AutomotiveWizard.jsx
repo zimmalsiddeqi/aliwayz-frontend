@@ -17,6 +17,7 @@ import { cn } from '@lib/utils';
 import WizardProgressBar from './WizardProgressBar';
 import {
   VEHICLE_MAKES,
+  VEHICLE_MODELS,
   VEHICLE_BODY_TYPES,
   VEHICLE_FUEL_TYPES,
   VEHICLE_TRANSMISSIONS,
@@ -285,10 +286,18 @@ export default function AutomotiveWizard({ onSubmit, isSubmitting, onBackToCateg
               <input
                 type="text"
                 value={model}
+                list="automotive-models"
                 onChange={(e) => setModel(e.target.value)}
-                placeholder="e.g. Camry, Civic, F-150, Model 3"
+                placeholder={make && VEHICLE_MODELS[make] ? `e.g. ${VEHICLE_MODELS[make].slice(0, 3).join(', ')}` : "e.g. Camry, Civic, F-150, Model 3"}
                 className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-2.5 text-sm font-semibold text-[var(--color-text-primary)] focus:border-amber-500 focus:outline-none"
               />
+              {make && VEHICLE_MODELS[make] && (
+                <datalist id="automotive-models">
+                  {VEHICLE_MODELS[make].map((mod) => (
+                    <option key={mod} value={mod} />
+                  ))}
+                </datalist>
+              )}
             </div>
           </div>
         </div>

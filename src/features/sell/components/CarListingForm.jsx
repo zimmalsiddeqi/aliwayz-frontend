@@ -20,6 +20,7 @@ import useFormDraft from '@hooks/useFormDraft';
 import { validateImageFile, createFilePreview, revokeFilePreview, getProductListingLocation } from '@utils/helpers';
 import {
   VEHICLE_MAKES,
+  VEHICLE_MODELS,
   VEHICLE_BODY_TYPES,
   VEHICLE_FUEL_TYPES,
   VEHICLE_TRANSMISSIONS,
@@ -52,6 +53,8 @@ export default function CarListingForm({ store }) {
   const [images, setImages] = useState([]);
   const [selectedFeatures, setSelectedFeatures] = useState([]);
   const [publishedProduct, setPublishedProduct] = useState(null);
+  const [customMake, setCustomMake] = useState('');
+  const [customModel, setCustomModel] = useState('');
 
   const defaultValues = useMemo(() => ({
     title: '',
@@ -85,10 +88,23 @@ export default function CarListingForm({ store }) {
     control,
     watch,
     reset,
+    setValue,
     formState: { errors },
   } = useForm({
     defaultValues,
   });
+
+  const selectedMake = watch('make');
+  const selectedModel = watch('model');
+
+  const modelOptions = useMemo(() => {
+    if (!selectedMake || selectedMake === 'Other') return [];
+    const models = VEHICLE_MODELS[selectedMake] || [];
+    return [
+      ...models.map((m) => ({ value: m, label: m })),
+      { value: 'Other', label: 'Other Model...' },
+    ];
+  }, [selectedMake]);
 
   const selectedCategoryId = watch('vehicle_category');
   const isAccessories = ACCESSORIES_IDS.includes(selectedCategoryId);
@@ -129,15 +145,23 @@ export default function CarListingForm({ store }) {
 
   const createMutation = useMutation({
     mutationFn: async (formData) => {
+      const finalMake = (formData.make === 'Other' && customMake.trim())
+        ? customMake.trim()
+        : formData.make;
+
+      const finalModel = (formData.model === 'Other' && customModel.trim())
+        ? customModel.trim()
+        : formData.model;
+
       const title = isAccessories
         ? formData.title
-        : `${formData.year} ${formData.make} ${formData.model}`.trim();
+        : `${formData.year} ${finalMake} ${finalModel}`.trim();
 
       const details = isAccessories
         ? formData.description
         : [
-            `Make: ${formData.make}`,
-            `Model: ${formData.model}`,
+            `Make: ${finalMake}`,
+            `Model: ${finalModel}`,
             `Year: ${formData.year}`,
             formData.mileage && `Mileage: ${formData.mileage} miles`,
             `Fuel: ${VEHICLE_FUEL_TYPES.find((f) => f.value === formData.fuel_type)?.label || formData.fuel_type}`,
@@ -145,7 +169,7 @@ export default function CarListingForm({ store }) {
             formData.drivetrain &&
               `Drivetrain: ${VEHICLE_DRIVETRAINS.find((d) => d.value === formData.drivetrain)?.label || formData.drivetrain}`,
             `Body: ${VEHICLE_BODY_TYPES.find((b) => b.value === formData.body_type)?.label || formData.body_type}`,
-            formData.engine_size && `Engine: ${formData.engine_size}L`,
+            formData.engine_size && `Engine: ${formData.engine_size}${/^\d+(\.\d+)?$/.test(String(formData.engine_size).trim()) ? 'L' : ''}`,
             formData.color && `Color: ${formData.color}`,
             `Previous Owners: ${formData.num_owners}`,
             formData.title_status &&
@@ -191,7 +215,7 @@ export default function CarListingForm({ store }) {
                 ? 'like_new'
                 : 'good'),
         category_id: formData.vehicle_category || CATEGORY_IDS.AUTOMOTIVE,
-        brand: (isAccessories ? formData.brand : formData.make) || undefined,
+        brand: (isAccessories ? formData.brand : finalMake) || undefined,
         color: formData.color || undefined,
         quantity: 1,
         location_city: finalCity,
@@ -331,15 +355,62 @@ export default function CarListingForm({ store }) {
                   placeholder="Select make"
                   options={VEHICLE_MAKES.map((m) => ({ value: m, label: m }))}
                   error={errors.make?.message}
-                  {...register('make', { required: !isAccessories ? 'Required' : false })}
+                  {...register('make', {
+                    required: !isAccessories ? 'Required' : false,
+                    onChange: (e) => {
+                      setValue('model', '');
+                      setCustomModel('');
+                      if (e.target.value !== 'Other') {
+                        setCustomMake('');
+                      }
+                    },
+                  })}
                 />
-                <Input
-                  label="Model *"
-                  placeholder="Camry, Civic, F-150..."
-                  error={errors.model?.message}
-                  {...register('model', { required: !isAccessories ? 'Required' : false })}
-                />
+                {selectedMake === 'Other' ? (
+                  <Input
+                    label="Model *"
+                    placeholder="Enter model name"
+                    error={errors.model?.message}
+                    {...register('model', { required: !isAccessories ? 'Required' : false })}
+                  />
+                ) : (
+                  <Select
+                    label="Model *"
+                    placeholder={selectedMake ? 'Select model' : 'Select make first'}
+                    disabled={!selectedMake}
+                    options={modelOptions}
+                    error={errors.model?.message}
+                    {...register('model', {
+                      required: !isAccessories ? 'Required' : false,
+                      onChange: (e) => {
+                        if (e.target.value !== 'Other') {
+                          setCustomModel('');
+                        }
+                      },
+                    })}
+                  />
+                )}
               </div>
+
+              {/* Custom Make input if "Other" is chosen */}
+              {selectedMake === 'Other' && (
+                <Input
+                  label="Specify Make *"
+                  placeholder="e.g. Lucid, Genesis, Plymouth..."
+                  value={customMake}
+                  onChange={(e) => setCustomMake(e.target.value)}
+                />
+              )}
+
+              {/* Custom Model input if "Other Model..." is chosen */}
+              {selectedMake && selectedMake !== 'Other' && selectedModel === 'Other' && (
+                <Input
+                  label="Specify Model *"
+                  placeholder="Enter custom model or trim"
+                  value={customModel}
+                  onChange={(e) => setCustomModel(e.target.value)}
+                />
+              )}
 
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 <Select
@@ -356,10 +427,8 @@ export default function CarListingForm({ store }) {
                   {...register('mileage')}
                 />
                 <Input
-                  label="Engine Size (L)"
-                  type="number"
-                  placeholder="2.0"
-                  step="0.1"
+                  label="Engin"
+                  placeholder="e.g. 2.0, 3.5L, V6, Electric"
                   {...register('engine_size')}
                 />
               </div>
