@@ -10,6 +10,12 @@ const NotificationService = {
 
   markAllAsRead: () =>
     api.put(API.NOTIFICATIONS.READ_ALL).then((r) => r.data),
+
+  delete: (id) =>
+    api.delete(API.NOTIFICATIONS.DELETE(id)).then((r) => r.data),
+
+  deleteAll: () =>
+    api.delete(API.NOTIFICATIONS.DELETE_ALL).then((r) => r.data),
 };
 
 export default NotificationService;

@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCheck } from 'lucide-react';
+import { CheckCheck, Trash2, Loader2 } from 'lucide-react';
 import NotificationService from '@api/services/notification.service';
 import { queryKeys } from '@lib/queryClient';
 import useNotificationStore from '@store/notification.store';
@@ -29,12 +29,15 @@ export default function NotificationsPage() {
 
   const {
     unreadCount,
-    markAsRead:       storeMarkAsRead,
-    markAllAsRead:    storeMarkAllAsRead,
-    setNotifications: storeSetNotifications,
+    markAsRead:         storeMarkAsRead,
+    markAllAsRead:      storeMarkAllAsRead,
+    setNotifications:   storeSetNotifications,
+    deleteNotification: storeDeleteNotification,
+    clearAll:           storeClearAll,
   } = useNotificationStore();
 
   const [activeFilter, setActiveFilter] = useState('');
+  const [deletingId, setDeletingId]     = useState(null);
 
   // ✅ FIX: useQuery MUST be declared BEFORE useEffect
   const { data, isLoading } = useQuery({
@@ -83,6 +86,62 @@ export default function NotificationsPage() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id) => {
+      setDeletingId(id);
+      return NotificationService.delete(id);
+    },
+    onSuccess: (_, id) => {
+      storeDeleteNotification(id);
+      queryClient.setQueryData(queryKeys.notifications.all(), (old) => {
+        if (!old || !old.data) return old;
+        const remaining = old.data.filter((n) => n.id !== id);
+        return {
+          ...old,
+          data: remaining,
+          unread_count: remaining.filter((n) => !n.is_read).length,
+          pagination: {
+            ...old.pagination,
+            total: Math.max(0, (old.pagination?.total || 1) - 1),
+          },
+        };
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.all(),
+      });
+    },
+    onSettled: () => {
+      setDeletingId(null);
+    },
+  });
+
+  const deleteAllMutation = useMutation({
+    mutationFn: () => NotificationService.deleteAll(),
+    onSuccess: () => {
+      storeClearAll();
+      queryClient.setQueryData(queryKeys.notifications.all(), (old) => ({
+        ...old,
+        data: [],
+        unread_count: 0,
+        pagination: { ...old?.pagination, total: 0 },
+      }));
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.all(),
+      });
+    },
+  });
+
+  const handleClearAll = () => {
+    if (window.confirm('Are you sure you want to delete all notifications?')) {
+      deleteAllMutation.mutate();
+    }
+  };
+
+  const handleDeleteOne = (e, id) => {
+    e.stopPropagation();
+    deleteMutation.mutate(id);
+  };
+
   const handleClick = (notif) => {
     if (!notif.is_read) {
       readMutation.mutate(notif.id);
@@ -111,17 +170,31 @@ export default function NotificationsPage() {
               : 'All caught up!'
           }
           rightAction={
-            unreadCount > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                leftIcon={<CheckCheck size={14} />}
-                isLoading={readAllMutation.isPending}
-                onClick={() => readAllMutation.mutate()}
-              >
-                Mark all read
-              </Button>
-            )
+            <div className="flex items-center gap-2">
+              {unreadCount > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  leftIcon={<CheckCheck size={14} />}
+                  isLoading={readAllMutation.isPending}
+                  onClick={() => readAllMutation.mutate()}
+                >
+                  Mark all read
+                </Button>
+              )}
+              {notifications.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  leftIcon={<Trash2 size={14} />}
+                  isLoading={deleteAllMutation.isPending}
+                  onClick={handleClearAll}
+                  className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                >
+                  Clear all
+                </Button>
+              )}
+            </div>
           }
         />
 
@@ -216,17 +289,26 @@ export default function NotificationsPage() {
           <AnimatePresence>
             <div className="space-y-1">
               {filtered.map((notif, i) => (
-                <motion.button
+                <motion.div
                   key={notif.id}
+                  layout
+                  role="button"
+                  tabIndex={0}
                   onClick={() => handleClick(notif)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      handleClick(notif);
+                    }
+                  }}
                   className={cn(
-                    'flex w-full items-start gap-3 rounded-2xl p-3.5 text-left transition-all duration-200 hover:bg-[var(--glass-bg-strong)] sm:p-4',
+                    'group relative flex w-full items-start gap-3 rounded-2xl p-3.5 text-left cursor-pointer transition-all duration-200 hover:bg-[var(--glass-bg-strong)] sm:p-4',
                     !notif.is_read &&
                       'bg-[var(--glass-bg)]'
                   )}
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.03 }}
+                  exit={{ opacity: 0, scale: 0.95, height: 0, overflow: 'hidden' }}
+                  transition={{ delay: i * 0.02 }}
                 >
                   <span className="mt-0.5 flex-shrink-0 text-xl">
                     {getNotificationIcon(notif.type)}
@@ -269,22 +351,38 @@ export default function NotificationsPage() {
                     </p>
                   </div>
 
-                  {!notif.is_read && (
-                    <motion.div
-                      className="mt-1.5 h-2.5 w-2.5 flex-shrink-0 rounded-full"
-                      style={{
-                        backgroundColor:
-                          'var(--color-brand)',
-                      }}
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{
-                        type: 'spring',
-                        stiffness: 400,
-                      }}
-                    />
-                  )}
-                </motion.button>
+                  <div className="flex items-center gap-2 flex-shrink-0 self-center">
+                    {!notif.is_read && (
+                      <motion.div
+                        className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
+                        style={{
+                          backgroundColor:
+                            'var(--color-brand)',
+                        }}
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{
+                          type: 'spring',
+                          stiffness: 400,
+                        }}
+                      />
+                    )}
+                    <button
+                      type="button"
+                      onClick={(e) => handleDeleteOne(e, notif.id)}
+                      disabled={deleteMutation.isPending && deletingId === notif.id}
+                      className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-red-500 hover:bg-red-500/10 transition-colors opacity-70 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100"
+                      title="Delete notification"
+                      aria-label="Delete notification"
+                    >
+                      {deleteMutation.isPending && deletingId === notif.id ? (
+                        <Loader2 size={15} className="animate-spin text-red-500" />
+                      ) : (
+                        <Trash2 size={15} />
+                      )}
+                    </button>
+                  </div>
+                </motion.div>
               ))}
             </div>
           </AnimatePresence>

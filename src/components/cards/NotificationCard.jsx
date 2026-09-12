@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { Trash2 } from 'lucide-react';
 import { cn, getNotificationIcon, formatRelativeTime } from '@lib/utils';
 
-export default function NotificationCard({ notification, onRead, index = 0 }) {
+export default function NotificationCard({ notification, onRead, onDelete, index = 0 }) {
   const navigate = useNavigate();
 
   const handleClick = () => {
@@ -13,15 +14,28 @@ export default function NotificationCard({ notification, onRead, index = 0 }) {
     else if (d.storeSlug)  navigate(`/store/${d.storeSlug}`);
   };
 
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    onDelete?.(notification.id);
+  };
+
   return (
-    <motion.button
+    <motion.div
+      role="button"
+      tabIndex={0}
       onClick={handleClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          handleClick();
+        }
+      }}
       className={cn(
-        'w-full flex items-start gap-3 p-4 rounded-2xl text-left transition-all duration-200 hover:bg-[var(--glass-bg-strong)]',
+        'group relative w-full flex items-start gap-3 p-4 rounded-2xl text-left cursor-pointer transition-all duration-200 hover:bg-[var(--glass-bg-strong)]',
         !notification.is_read && 'bg-[var(--glass-bg)]'
       )}
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
       transition={{ delay: index * 0.03 }}
     >
       <span className="text-xl flex-shrink-0 mt-0.5">
@@ -43,9 +57,22 @@ export default function NotificationCard({ notification, onRead, index = 0 }) {
         </p>
       </div>
 
-      {!notification.is_read && (
-        <div className="pulse-dot mt-2 flex-shrink-0" />
-      )}
-    </motion.button>
+      <div className="flex items-center gap-2 flex-shrink-0 self-center">
+        {!notification.is_read && (
+          <div className="pulse-dot flex-shrink-0" />
+        )}
+        {onDelete && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-red-500 hover:bg-red-500/10 transition-colors opacity-70 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100"
+            title="Delete notification"
+            aria-label="Delete notification"
+          >
+            <Trash2 size={15} />
+          </button>
+        )}
+      </div>
+    </motion.div>
   );
 }

@@ -60,6 +60,23 @@ const useNotificationStore = create((set, get) => ({
     });
   },
 
+  deleteNotification: (notificationId) => {
+    set((state) => {
+      const list = Array.isArray(state.notifications) ? state.notifications : [];
+      const target = list.find((n) => n.id === notificationId);
+      const notifications = list.filter((n) => n.id !== notificationId);
+      const wasUnread = target && !target.is_read;
+      return {
+        notifications,
+        unreadCount: wasUnread
+          ? Math.max(0, (state.unreadCount || 0) - 1)
+          : (state.unreadCount || 0),
+      };
+    });
+  },
+
+  clearAll: () => set({ notifications: [], unreadCount: 0 }),
+
   setUnreadCount: (count) => set({ unreadCount: count || 0 }),
 
   reset: () => set({ notifications: [], unreadCount: 0 }),

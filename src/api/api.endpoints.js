@@ -146,6 +146,8 @@ export const API = {
     LIST: '/notifications',
     READ: (id) => `/notifications/${id}/read`,
     READ_ALL: '/notifications/read-all',
+    DELETE: (id) => `/notifications/${id}`,
+    DELETE_ALL: '/notifications',
   },
 
   // ── Reports ───────────────────────────────────────────────────
