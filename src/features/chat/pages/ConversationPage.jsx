@@ -18,6 +18,8 @@ import {
   Clock,
   WifiOff,
   MessageCircle,
+  Check,
+  CheckCheck,
 } from 'lucide-react';
 import ChatService from '@api/services/chat.service';
 import QRService from '@api/services/qr.service';
@@ -598,19 +600,18 @@ export default function ConversationPage() {
                         {formatChatTime(msg.created_at)}
                       </span>
 
-                      {/* Delivery indicators */}
+                      {/* Delivery indicators (WhatsApp style: Clock -> Single Check -> Double Check -> Blue Double Check) */}
                       {isMine && (
-                        <span
-                          className="text-[10px]"
-                          style={{
-                            color: msg.is_read
-                              ? 'rgba(255,255,255,0.9)'
-                              : msg.isPending
-                                ? 'rgba(255,255,255,0.3)'
-                                : 'rgba(255,255,255,0.5)',
-                          }}
-                        >
-                          {msg.isPending ? '⏳' : msg.is_read ? '✓✓' : '✓'}
+                        <span className="flex items-center ml-0.5">
+                          {msg.isPending ? (
+                            <Clock size={11} className="opacity-50 animate-pulse text-white" />
+                          ) : msg.is_read ? (
+                            <CheckCheck size={14} className="text-[#38bdf8] font-bold" />
+                          ) : isOtherOnline ? (
+                            <CheckCheck size={14} className="text-white/70" />
+                          ) : (
+                            <Check size={14} className="text-white/60" />
+                          )}
                         </span>
                       )}
                     </div>
