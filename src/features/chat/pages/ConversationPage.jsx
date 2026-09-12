@@ -158,25 +158,28 @@ export default function ConversationPage() {
     if (!socket) return;
 
     const handleQRScanned = (data) => {
-      if (data.conversationId === conversationId) {
+      const matchesConv = !data?.conversationId || data.conversationId === conversationId;
+      const matchesProd = !data?.productId || data.productId === product?.id;
+      if (matchesConv || matchesProd) {
         // Automatically disappear QR Code from Seller screen immediately
         setShowQRGenerator(false);
         setShowQRScanner(false);
         setSaleCompleted(true);
-        setTransactionId(data.transactionId || data.transaction_id);
+        const tId = data?.transactionId || data?.transaction_id;
+        if (tId) setTransactionId(tId);
         queryClient.invalidateQueries({
           queryKey: queryKeys.conversations.byId(conversationId),
         });
         queryClient.invalidateQueries({
           queryKey: queryKeys.conversations.messages(conversationId),
         });
-        setTimeout(() => handleOpenReviewModal(), 1500);
+        setTimeout(() => setShowReviewModal(true), 1500);
         toast.success('🎉 Deal completed!');
       }
     };
 
     const handleQRGenerated = (data) => {
-      if (data.conversationId === conversationId && isProductBuyer) {
+      if ((!data?.conversationId || data.conversationId === conversationId) && isProductBuyer) {
         setQrReadyAlert(true);
         toast.success('Seller generated a QR code! Check the chat.', {
           duration: 1000,
@@ -186,13 +189,17 @@ export default function ConversationPage() {
     };
 
     socket.on(SOCKET_EVENTS.QR_SCANNED, handleQRScanned);
+    socket.on('qr_scanned', handleQRScanned);
+    socket.on('sale_completed', handleQRScanned);
     socket.on('qr_generated', handleQRGenerated);
 
     return () => {
       socket.off(SOCKET_EVENTS.QR_SCANNED, handleQRScanned);
+      socket.off('qr_scanned', handleQRScanned);
+      socket.off('sale_completed', handleQRScanned);
       socket.off('qr_generated', handleQRGenerated);
     };
-  }, [conversationId, isProductBuyer, queryClient]);
+  }, [conversationId, isProductBuyer, product?.id, queryClient]);
 
   // Automatically disappear QR modals whenever deal is completed
   useEffect(() => {
@@ -974,6 +981,7 @@ export default function ConversationPage() {
           product={product}
           buyerId={conversation?.buyer_id}
           conversationId={conversationId}
+          isCompleted={isCompleted}
         />
       )}
 
@@ -1137,20 +1145,31 @@ function QRMessageBubble({ message, isMine, showAvatar, sender, onScanClick }) {
 // ──────────────────────────────────────────────────────────────
 // QR GENERATOR MODAL (Seller)
 // ──────────────────────────────────────────────────────────────
-function QRGeneratorModal({ isOpen, onClose, product, buyerId, conversationId }) {
+function QRGeneratorModal({ isOpen, onClose, product, buyerId, conversationId, isCompleted }) {
   const [qrData, setQrData] = useState(null);
   const [countdown, setCountdown] = useState('10:00');
   const [expired, setExpired] = useState(false);
   const [copied, setCopied] = useState(false);
   const intervalRef = useRef(null);
 
-  // Automatically close and disappear QR code when buyer scans it
+  // Automatically close if parent marks deal as completed
+  useEffect(() => {
+    if (isCompleted) {
+      clearInterval(intervalRef.current);
+      setQrData(null);
+      onClose();
+    }
+  }, [isCompleted, onClose]);
+
+  // Automatically close and disappear QR code when buyer scans it (Socket events)
   useEffect(() => {
     const socket = getSocket();
     if (!socket) return;
 
     const handleScanned = (data) => {
-      if (!data?.conversationId || data.conversationId === conversationId) {
+      const matchesConv = !data?.conversationId || data.conversationId === conversationId;
+      const matchesProd = !data?.productId || data.productId === product?.id;
+      if (matchesConv || matchesProd) {
         clearInterval(intervalRef.current);
         setQrData(null);
         onClose();
@@ -1159,12 +1178,36 @@ function QRGeneratorModal({ isOpen, onClose, product, buyerId, conversationId })
 
     socket.on(SOCKET_EVENTS.QR_SCANNED, handleScanned);
     socket.on('qr_scanned', handleScanned);
+    socket.on('sale_completed', handleScanned);
 
     return () => {
       socket.off(SOCKET_EVENTS.QR_SCANNED, handleScanned);
       socket.off('qr_scanned', handleScanned);
+      socket.off('sale_completed', handleScanned);
     };
-  }, [conversationId, onClose]);
+  }, [conversationId, product?.id, onClose]);
+
+  // Active polling fallback: check QR status every 1.5s while modal is open
+  useEffect(() => {
+    if (!isOpen || !product?.id) return;
+
+    const checkStatus = async () => {
+      try {
+        const res = await QRService.getStatus(product.id);
+        const st = res?.data?.status;
+        if (st === 'scanned' || st === 'completed' || res?.data?.is_used) {
+          clearInterval(intervalRef.current);
+          setQrData(null);
+          onClose();
+        }
+      } catch {
+        // ignore polling errors
+      }
+    };
+
+    const pollInterval = setInterval(checkStatus, 1500);
+    return () => clearInterval(pollInterval);
+  }, [isOpen, product?.id, onClose]);
 
   useEffect(() => () => clearInterval(intervalRef.current), []);
 
