@@ -479,7 +479,7 @@ export default function Navbar() {
                 style={{ borderBottom: '1px solid var(--color-border)' }}
               >
                 <div className="flex items-center gap-2.5">
-                  <img src="/logo.png" alt="Aliwayz Logo" className="h-6 w-auto object-contain" />
+                  <img src="/navbar-logo.png" alt="Aliwayz Logo" className="h-6 w-auto object-contain" />
                 </div>
                 <button
                   onClick={() => setMobileMenuOpen(false)}

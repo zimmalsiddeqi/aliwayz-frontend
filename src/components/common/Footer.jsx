@@ -165,7 +165,7 @@ export default function Footer() {
               {/* Brand — always visible */}
               <div className="mb-6 flex items-center gap-2.5">
                 <Link to="/" className="flex flex-shrink-0 items-center gap-2">
-                  <img src="/logo.png" alt="Aliwayz Logo" className="h-6 w-auto object-contain" />
+                  <img src="/navbar-logo.png" alt="Aliwayz Logo" className="h-6 w-auto object-contain" />
                 </Link>
               </div>
 
@@ -251,7 +251,7 @@ export default function Footer() {
               {/* Brand column */}
               <div className="col-span-2 space-y-4 sm:col-span-1">
                 <Link to="/" className="flex items-center gap-2.5">
-                  <img src="/logo.png" alt="Aliwayz Logo" className="h-7 w-auto object-contain" />
+                  <img src="/navbar-logo.png" alt="Aliwayz Logo" className="h-7 w-auto object-contain" />
                 </Link>
                 <p
                   className="max-w-[200px] text-xs leading-relaxed"
