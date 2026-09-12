@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, Link } from 'react-router-dom';
 import { Suspense } from 'react';
 import { motion } from 'framer-motion';
 import LoadingScreen from '@components/common/LoadingScreen';
@@ -53,9 +53,9 @@ export default function AuthLayout() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <div className="w-20 h-20 rounded-3xl bg-white/15 backdrop-blur-xl border border-white/20 flex items-center justify-center mx-auto mb-8 shadow-xl">
-            <span className="text-4xl font-bold">A</span>
-          </div>
+          <Link to="/" className="inline-block mx-auto mb-8">
+            <img src="/navbar-logo.png" alt="Aliwayz" className="h-12 w-auto object-contain drop-shadow-lg brightness-0 invert" />
+          </Link>
           <h1 className="text-4xl xl:text-5xl font-bold mb-4 leading-tight">
             Buy & Sell
             <br />

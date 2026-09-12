@@ -84,17 +84,10 @@ export default function RegisterPage() {
     >
       {/* Header */}
       <div className="text-center lg:text-left">
-        <div className="flex items-center gap-2.5 mb-6 lg:hidden justify-center">
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{
-              background: 'linear-gradient(135deg, var(--color-brand), #8B5CF6)',
-              boxShadow:  'var(--shadow-brand)',
-            }}
-          >
-            <span className="text-white text-lg font-bold">A</span>
-          </div>
-          <span className="text-xl font-bold text-gradient-brand">Aliwayz</span>
+        <div className="flex items-center mb-6 lg:hidden justify-center">
+          <Link to="/" className="inline-block">
+            <img src="/navbar-logo.png" alt="Aliwayz" className="h-9 w-auto object-contain" />
+          </Link>
         </div>
 
         <h2

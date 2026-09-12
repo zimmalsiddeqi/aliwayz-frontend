@@ -53,17 +53,10 @@ export default function LoginPage() {
     >
       {/* Mobile logo */}
       <div className="text-center lg:text-left">
-        <div className="mb-6 flex items-center justify-center gap-2.5 lg:hidden">
-          <div
-            className="flex h-10 w-10 items-center justify-center rounded-xl"
-            style={{
-              background: 'linear-gradient(135deg, var(--color-brand), #8B5CF6)',
-              boxShadow: 'var(--shadow-brand)',
-            }}
-          >
-            <span className="text-lg font-bold text-white">A</span>
-          </div>
-          <span className="text-gradient-brand text-xl font-bold">Aliwayz</span>
+        <div className="mb-6 flex items-center justify-center lg:hidden">
+          <Link to="/" className="inline-block">
+            <img src="/navbar-logo.png" alt="Aliwayz" className="h-9 w-auto object-contain" />
+          </Link>
         </div>
 
         <h2
