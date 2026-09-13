@@ -3,6 +3,7 @@ import { useEffect, Suspense } from 'react';
 import Navbar from '@components/common/Navbar';
 import Footer from '@components/common/Footer';
 import LoadingScreen from '@components/common/LoadingScreen';
+import LegalConsentModal from '@features/legal/components/LegalConsentModal';
 
 export default function RootLayout() {
   const { pathname } = useLocation();
@@ -28,6 +29,7 @@ export default function RootLayout() {
       <div className="hidden md:block">
         <Footer />
       </div>
+      <LegalConsentModal />
     </div>
   );
 }
