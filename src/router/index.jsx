@@ -128,6 +128,7 @@ const router = createBrowserRouter(
 
         // Legal Center
         { path: '/legal',                       element: <LegalIndexPage /> },
+        { path: '/legal/privacy',               element: <PrivacyPolicyPage /> },
         { path: '/legal/privacy-policy',        element: <PrivacyPolicyPage /> },
         { path: '/privacy',                     element: <PrivacyPolicyPage /> },
         { path: '/privacy-policy',              element: <PrivacyPolicyPage /> },
@@ -139,6 +140,7 @@ const router = createBrowserRouter(
         { path: '/legal/buyer-policy',          element: <BuyerPolicyPage /> },
         { path: '/legal/community-guidelines',  element: <CommunityGuidelinesPage /> },
         { path: '/legal/prohibited-items',      element: <ProhibitedItemsPage /> },
+        { path: '/prohibited-items',            element: <ProhibitedItemsPage /> },
         { path: '/legal/account-deletion',      element: <AccountDeletionPage /> },
         { path: '/account-deletion',            element: <AccountDeletionPage /> },
         { path: '/delete-account',              element: <AccountDeletionPage /> },
@@ -148,7 +150,9 @@ const router = createBrowserRouter(
         { path: '/legal/intellectual-property', element: <IntellectualPropertyPage /> },
         { path: '/legal/copyright',             element: <CopyrightPage /> },
         { path: '/legal/disclaimer',            element: <DisclaimerPage /> },
+        { path: '/legal/safety',                element: <SafetyGuidelinesPage /> },
         { path: '/legal/safety-guidelines',     element: <SafetyGuidelinesPage /> },
+        { path: '/safety',                      element: <SafetyGuidelinesPage /> },
         { path: '/legal/contact',               element: <ContactUsPage /> },
         { path: '/contact',                     element: <ContactUsPage /> },
         { path: '/contact-us',                  element: <ContactUsPage /> },

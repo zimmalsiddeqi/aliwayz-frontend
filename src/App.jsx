@@ -17,6 +17,7 @@ import useNotificationStore from '@store/notification.store';
 import NotificationService from '@api/services/notification.service';
 import ChatService from '@api/services/chat.service';
 import { useFavoritesStore } from '@store/favorites.store';
+import LegalConsentModal from './features/legal/components/LegalConsentModal';
 import toast from '@lib/toast';
 
 function AuthInitializer() {
@@ -298,6 +299,7 @@ export default function App() {
           <FavoritesManager />
           <SocketManager />
           <AppRouter />
+          <LegalConsentModal />
           <ToastContainer />
           {import.meta.env.DEV && (
             <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />

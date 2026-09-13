@@ -45,6 +45,9 @@ export const registerSchema = z.object({
   username:  usernameField,
   full_name: z.string().min(2, 'Full name required').max(100).trim().optional(),
   role:      z.enum(['buyer', 'seller', 'both']).default('buyer'),
+  terms_accepted: z.literal(true, {
+    errorMap: () => ({ message: 'You must agree to the Terms of Use and acknowledge the Privacy Policy' }),
+  }),
 });
 
 export const forgotPasswordSchema = z.object({

@@ -19,6 +19,7 @@ export const API = {
     PHONE_VERIFY_REQUEST: '/auth/phone/verify-request',
     PHONE_VERIFY_CONFIRM: '/auth/phone/verify-confirm',
     COMPLETE_PROFILE: '/auth/complete-profile',
+    LEGAL_CONSENT: '/auth/legal-consent',
   },
 
   // ── Users ─────────────────────────────────────────────────────

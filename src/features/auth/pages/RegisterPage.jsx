@@ -54,11 +54,12 @@ export default function RegisterPage() {
   } = useForm({
     resolver:     zodResolver(registerSchema),
     defaultValues: {
-      email:     '',
-      password:  '',
-      username:  '',
-      full_name: '',
-      role:      '',
+      email:          '',
+      password:       '',
+      username:       '',
+      full_name:      '',
+      role:           '',
+      terms_accepted: false,
     },
   });
 
@@ -261,6 +262,43 @@ export default function RegisterPage() {
               {...register('password')}
             />
 
+            <div className="space-y-1 pt-1 pb-1">
+              <label className="flex items-start gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  className="mt-1 h-4 w-4 rounded border-[var(--color-border-strong)] text-[var(--color-brand)] focus:ring-[var(--color-brand)] cursor-pointer"
+                  {...register('terms_accepted')}
+                />
+                <span className="text-xs leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
+                  I agree to the{' '}
+                  <Link
+                    to="/legal/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium underline underline-offset-2 transition-colors hover:text-[var(--color-brand)]"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
+                    Aliwayz Terms of Use
+                  </Link>{' '}
+                  and acknowledge the{' '}
+                  <Link
+                    to="/legal/privacy-policy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium underline underline-offset-2 transition-colors hover:text-[var(--color-brand)]"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
+                    Privacy Policy
+                  </Link>.
+                </span>
+              </label>
+              {errors.terms_accepted && (
+                <p className="text-xs font-medium pl-7" style={{ color: 'var(--color-error, #EF4444)' }}>
+                  {errors.terms_accepted.message}
+                </p>
+              )}
+            </div>
+
             <Button
               type="submit"
               fullWidth
@@ -276,26 +314,17 @@ export default function RegisterPage() {
             className="text-xs text-center leading-relaxed"
             style={{ color: 'var(--color-text-muted)' }}
           >
-            By creating an account, you agree to our{' '}
+            Review our complete{' '}
             <Link
-              to="/terms"
+              to="/legal"
               target="_blank"
               rel="noopener noreferrer"
               className="font-medium underline underline-offset-2 transition-colors hover:text-[var(--color-brand)]"
               style={{ color: 'var(--color-text-secondary)' }}
             >
-              Terms of Service
+              Legal Center
             </Link>{' '}
-            and{' '}
-            <Link
-              to="/privacy"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium underline underline-offset-2 transition-colors hover:text-[var(--color-brand)]"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              Privacy Policy
-            </Link>
+            for all marketplace policies and community standards.
           </p>
         </motion.div>
       )}
