@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronRight, ArrowLeft, Search, Check, AlertCircle } from 'lucide-react';
+import { ChevronRight, ArrowLeft, Search, Check, AlertCircle, X } from 'lucide-react';
 import CategoryService from '@api/services/category.service';
 import { queryKeys } from '@lib/queryClient';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,6 +10,18 @@ export default function CategorySelector({ value, onChange, rootCategoryId = nul
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [history, setHistory] = useState([]);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
   // Fetch categories flat list & tree list
   const { data: flatData } = useQuery({
@@ -158,168 +171,172 @@ export default function CategorySelector({ value, onChange, rootCategoryId = nul
         </p>
       )}
 
-      {/* Popup selection modal */}
-      <AnimatePresence>
-        {isOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsOpen(false)}
-              className="absolute inset-0 bg-black"
-            />
+      {/* Popup selection modal portalled to document.body for true center viewport positioning */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {isOpen && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.6 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsOpen(false)}
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+              />
 
-            {/* Modal Body */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative flex h-full max-h-[500px] w-full max-w-lg flex-col rounded-3xl border shadow-2xl overflow-hidden"
-              style={{
-                backgroundColor: 'var(--color-surface)',
-                borderColor: 'var(--color-border)',
-              }}
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between border-b p-4">
-                <span className="text-base font-bold" style={{ color: 'var(--color-text-primary)' }}>
-                  Select Category
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="rounded-full p-1.5 transition-colors hover:bg-[var(--glass-bg-strong)]"
-                  style={{ color: 'var(--color-text-secondary)' }}
-                >
-                  Close
-                </button>
-              </div>
-
-              {/* Search input */}
-              <div className="border-b p-3">
-                <div className="relative flex items-center">
-                  <Search size={16} className="absolute left-3" style={{ color: 'var(--color-text-secondary)' }} />
-                  <input
-                    type="text"
-                    placeholder="Search categories..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full rounded-xl border py-2 pl-9 pr-4 text-sm outline-none transition-all"
-                    style={{
-                      backgroundColor: 'var(--color-bg)',
-                      borderColor: 'var(--color-border)',
-                      color: 'var(--color-text-primary)',
-                    }}
-                  />
+              {/* Modal Body */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                className="relative z-10 flex h-full max-h-[520px] w-full max-w-lg flex-col rounded-3xl border shadow-2xl overflow-hidden my-auto"
+                style={{
+                  backgroundColor: 'var(--color-surface)',
+                  borderColor: 'var(--color-border)',
+                }}
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between border-b p-4 sm:px-6">
+                  <span className="text-base font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                    Select Category
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsOpen(false)}
+                    className="rounded-full p-1.5 transition-colors hover:bg-[var(--glass-bg-strong)]"
+                    style={{ color: 'var(--color-text-secondary)' }}
+                  >
+                    <X size={18} />
+                  </button>
                 </div>
-              </div>
 
-              {/* Options list */}
-              <div className="flex-1 overflow-y-auto p-2">
-                {isLoading ? (
-                  <div className="flex h-40 flex-col items-center justify-center gap-2">
-                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--color-brand)] border-t-transparent" />
-                    <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                      Loading categories...
-                    </span>
+                {/* Search input */}
+                <div className="border-b p-3 sm:px-6">
+                  <div className="relative flex items-center">
+                    <Search size={16} className="absolute left-3" style={{ color: 'var(--color-text-secondary)' }} />
+                    <input
+                      type="text"
+                      placeholder="Search categories..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full rounded-xl border py-2 pl-9 pr-4 text-sm outline-none transition-all"
+                      style={{
+                        backgroundColor: 'var(--color-bg)',
+                        borderColor: 'var(--color-border)',
+                        color: 'var(--color-text-primary)',
+                      }}
+                    />
                   </div>
-                ) : searchQuery.trim() ? (
-                  // Search view
-                  <div>
-                    {searchResults.length === 0 ? (
-                      <div className="p-8 text-center text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                        No categories found
-                      </div>
-                    ) : (
-                      searchResults.map((cat) => (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          onClick={() => {
-                            onChange(cat.id);
-                            setIsOpen(false);
-                          }}
-                          className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition-colors hover:bg-[var(--glass-bg-strong)]"
-                        >
-                          <div>
-                            <p className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>{cat.name}</p>
-                            <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{getBreadcrumbPath(cat.id)}</p>
+                </div>
+
+                {/* Options list */}
+                <div className="flex-1 overflow-y-auto p-3 sm:p-4">
+                  {isLoading ? (
+                    <div className="flex h-40 flex-col items-center justify-center gap-2">
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--color-brand)] border-t-transparent" />
+                      <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                        Loading categories...
+                      </span>
+                    </div>
+                  ) : searchQuery.trim() ? (
+                    // Search view
+                    <div>
+                      {searchResults.length === 0 ? (
+                        <div className="p-8 text-center text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                          No categories found
+                        </div>
+                      ) : (
+                        searchResults.map((cat) => (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => {
+                              onChange(cat.id);
+                              setIsOpen(false);
+                            }}
+                            className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition-colors hover:bg-[var(--glass-bg-strong)]"
+                          >
+                            <div>
+                              <p className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>{cat.name}</p>
+                              <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{getBreadcrumbPath(cat.id)}</p>
+                            </div>
+                            {value === cat.id && <Check size={16} className="text-[var(--color-brand)]" />}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  ) : (
+                    // Drill-down view
+                    <div className="space-y-1">
+                      {history.length > 0 && (
+                        <div className="border-b pb-2 mb-2">
+                          <button
+                            type="button"
+                            onClick={handleBackClick}
+                            className="flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-sm font-semibold transition-colors hover:bg-[var(--glass-bg-strong)]"
+                            style={{ color: 'var(--color-brand)' }}
+                          >
+                            <ArrowLeft size={16} />
+                            Back
+                          </button>
+                          <div className="px-3 pt-2 text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                            {history.map((h, index) => (
+                              <span key={h.id}>
+                                {index > 0 && ' › '}
+                                {h.name}
+                              </span>
+                            ))}
                           </div>
-                          {value === cat.id && <Check size={16} className="text-[var(--color-brand)]" />}
-                        </button>
-                      ))
-                    )}
-                  </div>
-                ) : (
-                  // Drill-down view
-                  <div className="space-y-1">
-                    {history.length > 0 && (
-                      <div className="border-b pb-2 mb-2">
+                        </div>
+                      )}
+
+                      {/* View all / select parent option */}
+                      {currentCategory && (
                         <button
                           type="button"
-                          onClick={handleBackClick}
-                          className="flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-sm font-semibold transition-colors hover:bg-[var(--glass-bg-strong)]"
+                          onClick={() => handleSelectParent(currentCategory)}
+                          className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition-colors hover:bg-[var(--glass-bg-strong)]"
                           style={{ color: 'var(--color-brand)' }}
                         >
-                          <ArrowLeft size={16} />
-                          Back
+                          <span>Select this category ({currentCategory.name})</span>
+                          {value === currentCategory.id && <Check size={16} />}
                         </button>
-                        <div className="px-3 pt-2 text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                          {history.map((h, index) => (
-                            <span key={h.id}>
-                              {index > 0 && ' › '}
-                              {h.name}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* View all / select parent option */}
-                    {currentCategory && (
-                      <button
-                        type="button"
-                        onClick={() => handleSelectParent(currentCategory)}
-                        className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition-colors hover:bg-[var(--glass-bg-strong)]"
-                        style={{ color: 'var(--color-brand)' }}
-                      >
-                        <span>Select this category ({currentCategory.name})</span>
-                        {value === currentCategory.id && <Check size={16} />}
-                      </button>
-                    )}
-
-                    {displayItems.map((cat) => {
-                      const hasChildren = cat.children && cat.children.length > 0;
-                      return (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          onClick={() => handleItemClick(cat)}
-                          className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition-colors hover:bg-[var(--glass-bg-strong)]"
-                        >
-                          <span
-                            className={hasChildren ? 'font-medium' : ''}
-                            style={{ color: 'var(--color-text-primary)' }}
+                      {displayItems.map((cat) => {
+                        const hasChildren = cat.children && cat.children.length > 0;
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => handleItemClick(cat)}
+                            className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition-colors hover:bg-[var(--glass-bg-strong)]"
                           >
-                            {cat.name}
-                          </span>
-                          {hasChildren ? (
-                            <ChevronRight size={16} style={{ color: 'var(--color-text-secondary)' }} />
-                          ) : (
-                            value === cat.id && <Check size={16} className="text-[var(--color-brand)]" />
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+                            <span
+                              className={hasChildren ? 'font-medium' : ''}
+                              style={{ color: 'var(--color-text-primary)' }}
+                            >
+                              {cat.name}
+                            </span>
+                            {hasChildren ? (
+                              <ChevronRight size={16} style={{ color: 'var(--color-text-secondary)' }} />
+                            ) : (
+                              value === cat.id && <Check size={16} className="text-[var(--color-brand)]" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 }
