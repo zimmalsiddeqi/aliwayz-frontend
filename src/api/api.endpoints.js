@@ -59,6 +59,7 @@ export const API = {
   // ── Products ──────────────────────────────────────────────────
   PRODUCTS: {
     CREATE: '/products',
+    MY: '/products/my',
     BROWSE: '/products',
     TRENDING: '/products/feed/trending',
     RECENT: '/products/feed/recent',

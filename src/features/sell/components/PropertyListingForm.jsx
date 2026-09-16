@@ -1,10 +1,11 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
-import { useMutation } from '@tanstack/react-query';
-import { ImagePlus, X, ArrowLeft, Crosshair, MapPin, Compass } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { ImagePlus, X, ArrowLeft, Crosshair, MapPin, Compass, Sparkles } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import ProductService from '@api/services/product.service';
+import WantedService from '@api/services/wanted.service';
 import Input from '@components/ui/Input';
 import Textarea from '@components/ui/Textarea';
 import Select from '@components/ui/Select';
@@ -25,7 +26,8 @@ import {
 import toast from '@lib/toast';
 import ListingQRModal from '@components/modals/ListingQRModal';
 
-export default function PropertyListingForm({ store, intent = 'sale', propertyType = 'single_family', onBack }) {
+export default function PropertyListingForm({ store, intent = 'sale', propertyType = 'single_family', onBack, wantedContext }) {
+  const queryClient = useQueryClient();
   const { lat: userLat, lng: userLng, city: userCity, state: userState } = useLocationStore();
   const navigate = useNavigate();
   const [images, setImages] = useState([]);
@@ -306,10 +308,28 @@ export default function PropertyListingForm({ store, intent = 'sale', propertyTy
       }
       return product;
     },
-    onSuccess: (product) => {
+    onSuccess: async (product) => {
       images.forEach((img) => revokeFilePreview(img.preview));
       clearDraft();
-      toast.success('Property listed successfully! 🏠');
+
+      if (wantedContext?.wantedRequestId && product?.id) {
+        try {
+          await WantedService.submitMatch(wantedContext.wantedRequestId, {
+            product_id: product.id,
+            inform_buyer: true,
+            message: `I created a new real estate listing "${product.title}" matching your request!`,
+          });
+          queryClient.invalidateQueries({ queryKey: ['wanted-requests'] });
+          queryClient.invalidateQueries({ queryKey: ['my-wanted-requests'] });
+          queryClient.invalidateQueries({ queryKey: ['wanted-request', wantedContext.wantedRequestId] });
+          toast.success('Property listed & buyer automatically informed of your match! 🎯');
+        } catch (matchErr) {
+          toast.success('Property listed successfully! 🏠');
+        }
+      } else {
+        toast.success('Property listed successfully! 🏠');
+      }
+
       setPublishedProduct(product);
     },
     onError: (err) => toast.error(getErrorMessage(err)),

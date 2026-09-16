@@ -5,6 +5,9 @@ const ProductService = {
   create: (data) =>
     api.post(API.PRODUCTS.CREATE, data).then((r) => r.data),
 
+  getMyListings: (params) =>
+    api.get(API.PRODUCTS.MY, { params }).then((r) => r.data),
+
   browse: (params) =>
     api.get(API.PRODUCTS.BROWSE, { params }).then((r) => r.data),
 

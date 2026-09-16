@@ -114,6 +114,17 @@ export default function CreateListingPage() {
     }
   };
 
+  const wantedRequestId = searchParams.get('wanted_request_id') || location.state?.wantedRequestId || null;
+  const wantedTitle = location.state?.wantedTitle || searchParams.get('wanted_title') || '';
+  const wantedContext = wantedRequestId ? {
+    wantedRequestId,
+    wantedTitle,
+    buyerId: location.state?.buyerId,
+    budgetMin: location.state?.budget_min,
+    budgetMax: location.state?.budget_max,
+    locationCity: location.state?.location_city,
+  } : null;
+
   return (
     <>
       <Helmet>
@@ -122,18 +133,18 @@ export default function CreateListingPage() {
 
       <div className="mx-auto max-w-2xl">
         {/* Matching Wanted Request Context Banner */}
-        {location.state?.wantedTitle && (
-          <div className="mb-4 rounded-2xl border border-blue-200 bg-blue-50/80 p-3.5 dark:border-blue-900/50 dark:bg-blue-950/40 flex items-center justify-between gap-3">
+        {wantedContext && (
+          <div className="mb-4 rounded-2xl border border-indigo-200 bg-indigo-50/80 p-3.5 dark:border-indigo-900/50 dark:bg-indigo-950/40 flex items-center justify-between gap-3 shadow-sm">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="h-8 w-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+              <div className="h-8 w-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm">
                 <Sparkles size={16} />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-bold text-blue-900 dark:text-blue-200 truncate">
-                  Matching Buyer Request: {location.state.wantedTitle}
+                <p className="text-xs font-bold text-indigo-950 dark:text-indigo-200 truncate">
+                  Matching Buyer Request: {wantedContext.wantedTitle || 'Wanted Item'}
                 </p>
-                <p className="text-[11px] text-blue-700/80 dark:text-blue-400/80">
-                  Publish this listing and propose it directly to the buyer from Wanted.
+                <p className="text-[11px] text-indigo-700/90 dark:text-indigo-400/90">
+                  Once this listing is published, the buyer will be automatically notified with your match proposal!
                 </p>
               </div>
             </div>
@@ -141,7 +152,11 @@ export default function CreateListingPage() {
         )}
 
         {/* Category Selector */}
-        {!selectedCategory && <CategorySelector onSelect={(cat) => setSearchParams({ category: cat })} />}
+        {!selectedCategory && <CategorySelector onSelect={(cat) => {
+          const params = { category: cat };
+          if (wantedRequestId) params.wanted_request_id = wantedRequestId;
+          setSearchParams(params);
+        }} />}
 
         {/* Category-Specific Form */}
         <AnimatePresence mode="wait">
@@ -167,17 +182,18 @@ export default function CreateListingPage() {
               </div>
 
               {(selectedCategory === MAIN_CATEGORIES.VEHICLES || selectedCategory === 'vehicles' || selectedCategory === 'automotive') && (
-                <CarListingForm store={store} />
+                <CarListingForm store={store} wantedContext={wantedContext} />
               )}
 
               {(selectedCategory === MAIN_CATEGORIES.REAL_ESTATE || selectedCategory === 'real-estate' || selectedCategory === 'real_estate') && (
                 <RealEstateWizard
                   store={store}
+                  wantedContext={wantedContext}
                 />
               )}
 
               {(selectedCategory === MAIN_CATEGORIES.ESSENTIALS || selectedCategory === 'essentials' || selectedCategory === 'marketplace') && (
-                <DailyProductForm store={store} />
+                <DailyProductForm store={store} wantedContext={wantedContext} />
               )}
             </motion.div>
           )}
@@ -509,7 +525,7 @@ function CategorySelector({ onSelect }) {
   );
 }
 
-function RealEstateWizard({ store }) {
+function RealEstateWizard({ store, wantedContext }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const stepStr = searchParams.get('step');
@@ -681,6 +697,7 @@ function RealEstateWizard({ store }) {
       store={store}
       intent={intent}
       propertyType={propertyType}
+      wantedContext={wantedContext}
     />
   );
 }

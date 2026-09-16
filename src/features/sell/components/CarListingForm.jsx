@@ -1,11 +1,12 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { ImagePlus, X } from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ImagePlus, X, Sparkles } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import ProductService from '@api/services/product.service';
 import CategoryService from '@api/services/category.service';
+import WantedService from '@api/services/wanted.service';
 import CategorySelector from './CategorySelector';
 import LocationOptionSelector from './LocationOptionSelector';
 import { queryKeys } from '@lib/queryClient';
@@ -47,7 +48,8 @@ const ACCESSORIES_IDS = [
   '09d8dc12-1ce4-549a-8639-4392d44a4f7b', // Interior Accessories
 ];
 
-export default function CarListingForm({ store }) {
+export default function CarListingForm({ store, wantedContext }) {
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { lat: userLat, lng: userLng, city: userCity, state: userState } = useLocationStore();
   const [images, setImages] = useState([]);
@@ -238,10 +240,28 @@ export default function CarListingForm({ store }) {
 
       return product;
     },
-    onSuccess: (product) => {
+    onSuccess: async (product) => {
       images.forEach((img) => revokeFilePreview(img.preview));
       clearDraft();
-      toast.success('Vehicle listed successfully! 🚗');
+
+      if (wantedContext?.wantedRequestId && product?.id) {
+        try {
+          await WantedService.submitMatch(wantedContext.wantedRequestId, {
+            product_id: product.id,
+            inform_buyer: true,
+            message: `I created a new automotive listing "${product.title}" matching your request!`,
+          });
+          queryClient.invalidateQueries({ queryKey: ['wanted-requests'] });
+          queryClient.invalidateQueries({ queryKey: ['my-wanted-requests'] });
+          queryClient.invalidateQueries({ queryKey: ['wanted-request', wantedContext.wantedRequestId] });
+          toast.success('Vehicle listed & buyer automatically informed of your match! 🎯');
+        } catch (matchErr) {
+          toast.success('Vehicle listed successfully! 🚗');
+        }
+      } else {
+        toast.success('Vehicle listed successfully! 🚗');
+      }
+
       setPublishedProduct(product);
     },
     onError: (err) => toast.error(getErrorMessage(err)),

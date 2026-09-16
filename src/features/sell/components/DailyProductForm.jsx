@@ -2,12 +2,13 @@ import { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { ImagePlus, X } from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ImagePlus, X, Sparkles } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { createProductSchema } from '@lib/validators';
 import ProductService from '@api/services/product.service';
 import CategoryService from '@api/services/category.service';
+import WantedService from '@api/services/wanted.service';
 import CategorySelector from './CategorySelector';
 import LocationOptionSelector from './LocationOptionSelector';
 import { queryKeys } from '@lib/queryClient';
@@ -29,24 +30,25 @@ import {
 import { ITEM_CONDITIONS, MAX_PRODUCT_IMAGES, CATEGORY_IDS } from '@utils/constants';
 import toast from '@lib/toast';
 
-export default function DailyProductForm({ store }) {
+export default function DailyProductForm({ store, wantedContext }) {
+  const queryClient = useQueryClient();
   const { lat: userLat, lng: userLng, city: userCity, state: userState } = useLocationStore();
   const navigate = useNavigate();
   const [images, setImages] = useState([]);
 
   const defaultValues = useMemo(() => ({
-    title: '',
+    title: wantedContext?.wantedTitle ? wantedContext.wantedTitle : '',
     description: '',
     category_id: '',
     condition: '',
-    price: '',
+    price: wantedContext?.budgetMax ? String(wantedContext.budgetMax) : '',
     brand: '',
     color: '',
     quantity: 1,
-    location_city: store?.location_city || '',
+    location_city: wantedContext?.locationCity || store?.location_city || '',
     location_type: store?.description === 'Personal listings' ? 'approximate' : (store?.location_city ? 'store' : 'approximate'),
     status: 'available',
-  }), [store?.description, store?.location_city]);
+  }), [store?.description, store?.location_city, wantedContext]);
 
   const {
     register,
@@ -139,10 +141,28 @@ export default function DailyProductForm({ store }) {
       }
       return product;
     },
-    onSuccess: (product) => {
+    onSuccess: async (product) => {
       images.forEach((img) => revokeFilePreview(img.preview));
       clearDraft();
-      toast.success('Item listed! 🛒');
+
+      if (wantedContext?.wantedRequestId && product?.id) {
+        try {
+          await WantedService.submitMatch(wantedContext.wantedRequestId, {
+            product_id: product.id,
+            inform_buyer: true,
+            message: `I created a new listing "${product.title}" matching your request!`,
+          });
+          queryClient.invalidateQueries({ queryKey: ['wanted-requests'] });
+          queryClient.invalidateQueries({ queryKey: ['my-wanted-requests'] });
+          queryClient.invalidateQueries({ queryKey: ['wanted-request', wantedContext.wantedRequestId] });
+          toast.success('Listing published & buyer automatically informed of your match! 🎯');
+        } catch (matchErr) {
+          toast.success('Item listed! 🛒');
+        }
+      } else {
+        toast.success('Item listed! 🛒');
+      }
+
       navigate(`/product/${product.id}`);
     },
     onError: (err) => {
