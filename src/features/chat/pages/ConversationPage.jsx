@@ -1428,7 +1428,10 @@ function QRScannerModal({ isOpen, onClose, prefillToken, productId, onSuccess })
   }, [prefillToken]);
 
   const scanMutation = useMutation({
-    mutationFn: () => QRService.scan({ product_id: productId, token: token.trim() }),
+    mutationFn: (overrideToken) => {
+      const finalToken = (typeof overrideToken === 'string' ? overrideToken : token).trim();
+      return QRService.scan({ product_id: productId, token: finalToken });
+    },
     onSuccess: (res) => {
       onSuccess(res.data);
       onClose();
@@ -1452,7 +1455,7 @@ function QRScannerModal({ isOpen, onClose, prefillToken, productId, onSuccess })
 
     const cameraConfig = { facingMode: 'environment' };
     const scanConfig = {
-      fps: 25,
+      fps: 30,
       aspectRatio: undefined,
       videoConstraints: {
         facingMode: 'environment',
@@ -1478,6 +1481,9 @@ function QRScannerModal({ isOpen, onClose, prefillToken, productId, onSuccess })
                 setUseCamera(false);
                 const cleanedToken = extractQRToken(decodedText);
                 setToken(cleanedToken);
+                if (cleanedToken) {
+                  scanMutation.mutate(cleanedToken);
+                }
               }
             });
         },
@@ -1501,31 +1507,46 @@ function QRScannerModal({ isOpen, onClose, prefillToken, productId, onSuccess })
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Confirm Purchase" size="sm">
       <div className="mt-4 space-y-4">
-        <div
-          className="flex flex-col items-center rounded-2xl py-4"
+        {/* Top "Scan QR" Card/Button */}
+        <button
+          type="button"
+          onClick={() => setUseCamera((prev) => !prev)}
+          className={cn(
+            'w-full flex flex-col items-center justify-center rounded-2xl py-4 px-3 transition-all duration-200 cursor-pointer text-center',
+            useCamera
+              ? 'ring-2 ring-brand-500 bg-brand-500/10'
+              : 'hover:bg-brand-500/5 hover:border-brand-500/40'
+          )}
           style={{
-            background: 'linear-gradient(135deg, rgba(91,110,245,0.1), rgba(139,92,246,0.05))',
-            border: '1px solid rgba(91,110,245,0.2)',
+            background: useCamera
+              ? 'linear-gradient(135deg, rgba(91,110,245,0.18), rgba(139,92,246,0.1))'
+              : 'linear-gradient(135deg, rgba(91,110,245,0.1), rgba(139,92,246,0.05))',
+            border: '1px solid rgba(91,110,245,0.25)',
           }}
         >
-          <ScanLine size={40} style={{ color: 'var(--color-brand)' }} />
-          <p className="mt-2 text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
-            QR Verification
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-500/20 text-brand-500 mb-1.5">
+            <ScanLine size={28} />
+          </div>
+          <p className="text-sm font-semibold text-gradient-brand">
+            Scan QR
           </p>
-          {prefillToken && (
-            <p className="mt-1 text-[11px]" style={{ color: 'var(--color-success)' }}>
-              ✓ Token loaded from chat
-            </p>
-          )}
-        </div>
+          <p className="mt-1 text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+            {useCamera
+              ? '📸 Camera active — point at QR code'
+              : token
+              ? '✓ QR Token loaded & ready'
+              : 'Tap to open camera and scan QR instantly'}
+          </p>
+        </button>
 
-        {useCamera ? (
+        {/* Camera Viewfinder (shows when useCamera is true) */}
+        {useCamera && (
           <div className="space-y-2">
-            <div className="overflow-hidden rounded-2xl bg-black/90 relative min-h-[280px] flex items-center justify-center border border-white/10 shadow-inner">
-              <div id="chat-qr-reader" className="w-full h-full min-h-[280px] [&>div]:border-none [&_video]:w-full [&_video]:h-full [&_video]:object-cover" />
+            <div className="overflow-hidden rounded-2xl bg-black/90 relative min-h-[260px] flex items-center justify-center border border-white/10 shadow-inner">
+              <div id="chat-qr-reader" className="w-full h-full min-h-[260px] [&>div]:border-none [&_video]:w-full [&_video]:h-full [&_video]:object-cover" />
               {/* Reticle Overlay */}
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                <div className="relative w-48 h-48 border-2 border-brand-500/40 rounded-2xl">
+                <div className="relative w-44 h-44 border-2 border-brand-500/50 rounded-2xl">
                   <div className="absolute -top-0.5 -left-0.5 w-5 h-5 border-t-2 border-l-2 border-brand-400 rounded-tl-md" />
                   <div className="absolute -top-0.5 -right-0.5 w-5 h-5 border-t-2 border-r-2 border-brand-400 rounded-tr-md" />
                   <div className="absolute -bottom-0.5 -left-0.5 w-5 h-5 border-b-2 border-l-2 border-brand-400 rounded-bl-md" />
@@ -1535,30 +1556,17 @@ function QRScannerModal({ isOpen, onClose, prefillToken, productId, onSuccess })
               </div>
             </div>
             <button 
+              type="button"
               onClick={() => setUseCamera(false)} 
               className="py-1 text-xs text-center w-full hover:underline block" 
               style={{ color: 'var(--color-text-muted)' }}
             >
-               Cancel Camera
+              Cancel Camera
             </button>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <textarea
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              placeholder="Token auto-fills from chat message..."
-              rows={3}
-              className="input-base resize-none font-mono text-[10px] sm:text-[11px] w-full"
-            />
-            {!prefillToken && (
-              <Button fullWidth variant="outline" size="sm" onClick={() => setUseCamera(true)}>
-                Open Camera to Scan
-              </Button>
-            )}
           </div>
         )}
 
+        {/* Safety Note */}
         <div
           className="flex items-start gap-2 rounded-xl p-2.5 text-[11px]"
           style={{
@@ -1571,6 +1579,7 @@ function QRScannerModal({ isOpen, onClose, prefillToken, productId, onSuccess })
           <span>Only confirm from sellers you've met in person.</span>
         </div>
 
+        {/* Confirm Purchase Button */}
         <Button
           fullWidth
           size="lg"
@@ -1578,7 +1587,7 @@ function QRScannerModal({ isOpen, onClose, prefillToken, productId, onSuccess })
           isLoading={scanMutation.isPending}
           loadingText="Verifying..."
           leftIcon={<CheckCircle size={18} />}
-          onClick={() => scanMutation.mutate()}
+          onClick={() => scanMutation.mutate(token.trim())}
         >
           Confirm Purchase
         </Button>

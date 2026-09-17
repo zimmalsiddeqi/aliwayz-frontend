@@ -243,20 +243,39 @@ export function getProductListingLocation({ store, userLat, userLng }) {
 }
 
 /**
- * Extract QR verification token from raw string or URL
+ * Extract QR verification token from raw string, JSON payload, or URL
  */
 export function extractQRToken(raw = '') {
   if (!raw) return '';
-  const text = String(raw).trim();
+  let text = String(raw).trim();
+  // Strip surrounding quotes
+  text = text.replace(/^["']|["']$/g, '');
+
+  // Check if it's a JSON string containing a token
+  if (text.startsWith('{') && text.endsWith('}')) {
+    try {
+      const parsed = JSON.parse(text);
+      if (parsed.token) return String(parsed.token).trim();
+    } catch {}
+  }
+
+  // Check if it's a URL or contains token= parameter
   if (text.includes('token=')) {
     try {
       const url = new URL(text.startsWith('http') ? text : `https://${text}`);
       const param = url.searchParams.get('token');
-      if (param) return param;
+      if (param) return decodeURIComponent(param).trim();
     } catch {
       const match = text.match(/[?&]token=([^&#]+)/);
-      if (match) return decodeURIComponent(match[1]);
+      if (match) return decodeURIComponent(match[1]).trim();
     }
   }
-  return text;
+
+  if (text.includes('%')) {
+    try {
+      text = decodeURIComponent(text);
+    } catch {}
+  }
+
+  return text.trim();
 }
