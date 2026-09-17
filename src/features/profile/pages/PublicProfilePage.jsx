@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Helmet } from 'react-helmet-async';
+import SEOHead from '@components/seo/SEOHead';
+import { buildProfileSchema, buildBreadcrumbSchema } from '@components/seo/structuredData';
 import { motion } from 'framer-motion';
 import {
   MapPin,
@@ -152,9 +153,21 @@ const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'http://localhost:5174';
 
   return (
     <>
-      <Helmet>
-        <title>{profile.full_name || profile.username} — Aliwayz</title>
-      </Helmet>
+      <SEOHead
+        title={`${profile.full_name || profile.username} (@${profile.username}) — Aliwayz User Profile`}
+        description={profile.bio || `View ${profile.full_name || profile.username}'s public profile on Aliwayz.`}
+        canonical={`/user/${username}`}
+        ogImage={profile.avatar_url}
+        ogImageAlt={profile.full_name || profile.username}
+        structuredData={[
+          buildProfileSchema(profile),
+          buildBreadcrumbSchema([
+            { name: 'Home', url: '/' },
+            { name: 'Users', url: '/marketplace' },
+            { name: profile.full_name || profile.username, url: `/user/${username}` },
+          ]),
+        ].filter(Boolean)}
+      />
 
       <div className="container-app max-w-3xl space-y-5 py-4 pb-24 sm:py-6 md:pb-8">
         <PageHeader showBack title="" />

@@ -156,6 +156,7 @@ export default function MyListingsPage() {
     <>
       <Helmet>
         <title>My Listings — Aliwayz</title>
+        <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
       <PageHeader

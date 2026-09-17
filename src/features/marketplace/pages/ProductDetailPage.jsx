@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Helmet } from 'react-helmet-async';
+import SEOHead from '@components/seo/SEOHead';
+import { buildProductSchema, buildBreadcrumbSchema } from '@components/seo/structuredData';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Heart,
@@ -168,12 +169,35 @@ export default function ProductDetailPage() {
     }
   };
 
+  const cleanDescription = product.description
+    ? product.description.replace(/\[.*?\]/g, '').replace(/\s+/g, ' ').substring(0, 180).trim()
+    : `Buy ${product.title} locally on Aliwayz with QR verified transaction.`;
+  const primaryImageUrl = product.product_images?.find((img) => img.is_primary)?.cdn_url
+    || product.product_images?.[0]?.cdn_url
+    || images[0];
+  const productBreadcrumbs = [
+    { name: 'Home', url: '/' },
+    {
+      name: product.categories?.name || 'Marketplace',
+      url: product.categories?.slug ? `/category/${product.categories.slug}` : '/marketplace',
+    },
+    { name: product.title, url: `/product/${product.id}` },
+  ];
+
   return (
     <>
-      <Helmet>
-        <title>{product.title} — Aliwayz</title>
-        <meta name="description" content={product.description?.substring(0, 160)} />
-      </Helmet>
+      <SEOHead
+        title={`${product.title}${product.price ? ` — $${Number(product.price).toLocaleString()}` : ''} — Aliwayz`}
+        description={cleanDescription}
+        canonical={`/product/${product.id}`}
+        ogType="product"
+        ogImage={primaryImageUrl}
+        ogImageAlt={product.title}
+        structuredData={[
+          buildProductSchema(product),
+          buildBreadcrumbSchema(productBreadcrumbs),
+        ].filter(Boolean)}
+      />
 
       <div className="container-app py-4 pb-24 sm:py-8 md:pb-10">
         {/* Back button */}
@@ -270,7 +294,7 @@ export default function ProductDetailPage() {
                       opacity: activeImage === i ? 1 : 0.6,
                     }}
                   >
-                    <img src={img} alt="" className="h-full w-full object-cover" />
+                    <img src={img} alt={`${product.title} photo ${i + 1}`} loading="lazy" className="h-full w-full object-cover" />
                   </button>
                 ))}
               </div>
@@ -746,7 +770,8 @@ export default function ProductDetailPage() {
                   {images.length > 0 ? (
                     <img
                       src={images[0]}
-                      alt=""
+                      alt={product.title}
+                      loading="lazy"
                       className="h-12 w-12 flex-shrink-0 rounded-lg object-cover"
                     />
                   ) : (

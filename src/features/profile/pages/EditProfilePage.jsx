@@ -175,6 +175,7 @@ export default function EditProfilePage() {
     <>
       <Helmet>
         <title>Edit Profile — Aliwayz</title>
+        <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
       <div className="container-app py-4 sm:py-6 max-w-lg pb-24 md:pb-8">

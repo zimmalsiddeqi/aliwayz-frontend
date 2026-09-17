@@ -1,7 +1,8 @@
 import { useState, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { Helmet } from 'react-helmet-async';
+import SEOHead from '@components/seo/SEOHead';
+import { buildBreadcrumbSchema } from '@components/seo/structuredData';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SlidersHorizontal, X, ChevronDown, Grid3X3, LayoutList } from 'lucide-react';
 import ProductService from '@api/services/product.service';
@@ -88,9 +89,15 @@ export default function MarketplacePage() {
 
   return (
     <>
-      <Helmet>
-        <title>Marketplace — Aliwayz</title>
-      </Helmet>
+      <SEOHead
+        title="Marketplace — Browse All Items Locally on Aliwayz"
+        description="Browse all local marketplace listings on Aliwayz. Discover great deals on electronics, vehicles, real estate, furniture, clothing, and more."
+        canonical="/marketplace"
+        structuredData={buildBreadcrumbSchema([
+          { name: 'Home', url: '/' },
+          { name: 'Marketplace', url: '/marketplace' },
+        ])}
+      />
       <div className="container-app py-6">
         <PageHeader
           title="Marketplace"

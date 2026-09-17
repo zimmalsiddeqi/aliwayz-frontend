@@ -251,6 +251,7 @@ export default function EditStorePage() {
     <>
       <Helmet>
         <title>Edit Store — Aliwayz</title>
+        <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
       <div className="mx-auto max-w-lg">

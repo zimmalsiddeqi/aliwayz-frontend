@@ -165,18 +165,6 @@ export default function Navbar() {
         });
       }
 
-      // Browse
-      sections.push({
-        title: 'Browse',
-        items: [
-          { to: '/essentials', icon: Compass, label: '🛒 Marketplace' },
-          { to: '/vehicles', icon: Compass, label: '🚗 Automotive' },
-          { to: '/real-estate', icon: Compass, label: '🏠 Real Estate' },
-          { to: '/marketplace', icon: Compass, label: 'All Listings' },
-          { to: '/faq', icon: HelpCircle, label: 'FAQ & Help' },
-        ],
-      });
-
       // Admin
       if (isAdmin(role)) {
         sections.push({
@@ -187,6 +175,18 @@ export default function Navbar() {
         });
       }
     }
+
+    // Browse (Always available for guests, users, and search crawlers)
+    sections.push({
+      title: 'Browse',
+      items: [
+        { to: '/essentials', icon: Compass, label: '🛒 Marketplace' },
+        { to: '/vehicles', icon: Compass, label: '🚗 Automotive' },
+        { to: '/real-estate', icon: Compass, label: '🏠 Real Estate' },
+        { to: '/marketplace', icon: Compass, label: 'All Listings' },
+        { to: '/faq', icon: HelpCircle, label: 'FAQ & Help' },
+      ],
+    });
 
     return sections;
   };

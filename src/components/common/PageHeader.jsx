@@ -24,12 +24,14 @@ export default function PageHeader({
           </button>
         )}
         <div className="min-w-0">
-          <h1
-            className="text-xl sm:text-2xl font-bold truncate"
-            style={{ color: 'var(--color-text-primary)' }}
-          >
-            {title}
-          </h1>
+          {title && (
+            <h1
+              className="text-xl sm:text-2xl font-bold truncate"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
+              {title}
+            </h1>
+          )}
           {subtitle && (
             <p
               className="text-sm mt-0.5"

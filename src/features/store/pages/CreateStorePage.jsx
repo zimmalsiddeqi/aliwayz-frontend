@@ -241,6 +241,7 @@ export default function CreateStorePage() {
     <>
       <Helmet>
         <title>Create Store — Aliwayz</title>
+        <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
       <div className="container-app py-6">

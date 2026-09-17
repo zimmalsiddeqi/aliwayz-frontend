@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { HelmetProvider } from 'react-helmet-async';
+import { HelmetProvider, Helmet } from 'react-helmet-async';
 import { queryClient } from '@lib/queryClient';
 import AppRouter from '@router/index';
 import ErrorBoundary from '@components/common/ErrorBoundary';
@@ -298,6 +298,12 @@ export default function App() {
   return (
     <ErrorBoundary>
       <HelmetProvider>
+        <Helmet
+          defaultTitle="Aliwayz — Buy & Sell Cars, Property & Products Locally"
+        >
+          <meta property="og:site_name" content="Aliwayz" />
+          <meta property="og:locale" content="en_US" />
+        </Helmet>
         <QueryClientProvider client={queryClient}>
           <ThemeInitializer />
           <AuthInitializer />

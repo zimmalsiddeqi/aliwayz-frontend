@@ -53,6 +53,7 @@ export default function SearchPage() {
     <>
       <Helmet>
         <title>{query ? `"${query}" — Search` : 'Search'} — Aliwayz</title>
+        <meta name="robots" content="noindex, follow" />
       </Helmet>
 
       <div className="container-app py-6 space-y-6">

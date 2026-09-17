@@ -102,6 +102,7 @@ export default function MyWantedRequestsPage() {
     <>
       <Helmet>
         <title>My Wanted Requests — Aliwayz</title>
+        <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
       <WantedNavTabs />

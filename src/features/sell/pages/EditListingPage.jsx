@@ -210,6 +210,7 @@ export default function EditListingPage() {
     <>
       <Helmet>
         <title>Edit: {product.title} — Aliwayz</title>
+        <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
       <div className="max-w-2xl mx-auto py-6 px-4 pb-24">

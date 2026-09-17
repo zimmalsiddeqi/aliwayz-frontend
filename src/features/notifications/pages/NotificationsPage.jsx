@@ -159,6 +159,7 @@ export default function NotificationsPage() {
     <>
       <Helmet>
         <title>Notifications — Aliwayz</title>
+        <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
       <div className="container-app max-w-2xl py-4 pb-24 sm:py-6 md:pb-8">

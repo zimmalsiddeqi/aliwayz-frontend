@@ -391,6 +391,7 @@ export default function ConversationPage() {
     <>
       <Helmet>
         <title>{displayName || 'Chat'} — Aliwayz</title>
+        <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
       <div

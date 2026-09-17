@@ -153,7 +153,10 @@ export default function QRVerificationPage() {
 
   return (
     <>
-      <Helmet><title>QR Verification — Aliwayz</title></Helmet>
+      <Helmet>
+        <title>QR Verification — Aliwayz</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
 
       <div className="container-app py-6 max-w-lg mx-auto">
         <PageHeader showBack title="QR Verification" />

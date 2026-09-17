@@ -46,7 +46,10 @@ export default function StoreAnalyticsPage() {
 
   return (
     <>
-      <Helmet><title>Store Analytics — Aliwayz</title></Helmet>
+      <Helmet>
+        <title>Store Analytics — Aliwayz</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
 
       <PageHeader
         title="Store Analytics"

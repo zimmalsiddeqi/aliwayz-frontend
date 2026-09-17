@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { Helmet } from 'react-helmet-async';
+import SEOHead from '@components/seo/SEOHead';
+import { buildBreadcrumbSchema, buildCollectionPageSchema } from '@components/seo/structuredData';
 import { ChevronDown, SlidersHorizontal, MapPin, Search } from 'lucide-react';
 import CategoryService from '@api/services/category.service';
 import { queryKeys } from '@lib/queryClient';
@@ -78,9 +79,19 @@ export default function CategoryPage() {
 
   return (
     <>
-      <Helmet>
-        <title>{category?.name || 'Category'} — Aliwayz</title>
-      </Helmet>
+      <SEOHead
+        title={`${category?.name || 'Category'} — Aliwayz Marketplace`}
+        description={`Browse ${category?.name || 'marketplace'} listings locally on Aliwayz. Find great deals near you with fast local communication and QR verified transactions.`}
+        canonical={`/category/${slug}`}
+        structuredData={[
+          buildBreadcrumbSchema([
+            { name: 'Home', url: '/' },
+            { name: 'Marketplace', url: '/marketplace' },
+            { name: category?.name || 'Category', url: `/category/${slug}` },
+          ]),
+          buildCollectionPageSchema(category?.name || 'Category', `/category/${slug}`, products),
+        ].filter(Boolean)}
+      />
 
       <div className="container-app py-6">
         <PageHeader

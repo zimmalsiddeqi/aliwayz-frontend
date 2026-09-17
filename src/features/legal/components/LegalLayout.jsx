@@ -136,8 +136,9 @@ export default function LegalLayout({ slug, children }) {
       name: 'Aliwayz Legal and Privacy Disclosures',
     },
     publisher: {
-      '@type': 'Person',
-      name: DEVELOPER,
+      '@type': 'Organization',
+      name: 'Aliwayz LLC',
+      url: SITE_URL,
     },
     dateModified: LAST_UPDATED_ISO,
     lastReviewed: LAST_UPDATED_ISO,

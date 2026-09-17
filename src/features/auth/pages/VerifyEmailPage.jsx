@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
+import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { Mail, CheckCircle, RefreshCw } from 'lucide-react';
 import AuthService from '@api/services/auth.service';
@@ -72,6 +73,10 @@ export default function VerifyEmailPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-6"
          style={{ backgroundColor: 'var(--color-bg)' }}>
+      <Helmet>
+        <title>Verify Email | Aliwayz</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       <motion.div
         className="text-center space-y-6 max-w-sm"
         initial={{ opacity: 0, y: 10 }}

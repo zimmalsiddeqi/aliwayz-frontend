@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { Helmet } from 'react-helmet-async';
+import SEOHead from '@components/seo/SEOHead';
+import { buildBreadcrumbSchema } from '@components/seo/structuredData';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, SlidersHorizontal, PlusCircle, ChevronDown, ArrowLeft, X, MapPin } from 'lucide-react';
 import ProductService from '@api/services/product.service';
@@ -138,9 +139,15 @@ export default function CarsPage() {
 
   return (
     <>
-      <Helmet>
-        <title>Automotive — Aliwayz</title>
-      </Helmet>
+      <SEOHead
+        title="Cars, Trucks & Vehicles For Sale Locally — Aliwayz Automotive"
+        description="Find new and used cars, trucks, motorcycles, and auto parts for sale near you on Aliwayz. Connect directly with verified local private sellers and dealers."
+        canonical="/vehicles"
+        structuredData={buildBreadcrumbSchema([
+          { name: 'Home', url: '/' },
+          { name: 'Vehicles', url: '/vehicles' },
+        ])}
+      />
       <div className="pb-24 md:pb-10">
         {/* Shrunk blue hero banner */}
         <div

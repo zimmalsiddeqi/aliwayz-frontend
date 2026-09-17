@@ -63,6 +63,7 @@ export default function VerificationPage() {
     <div className="mx-auto max-w-2xl space-y-6">
       <Helmet>
         <title>Identity Verification — Aliwayz</title>
+        <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
       <PageHeader 

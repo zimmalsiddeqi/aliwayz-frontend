@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
@@ -51,6 +52,10 @@ export default function LoginPage() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
+      <Helmet>
+        <title>Sign In | Aliwayz</title>
+      </Helmet>
+
       {/* Mobile logo */}
       <div className="text-center lg:text-left">
         <div className="mb-6 flex items-center justify-center lg:hidden">
@@ -115,9 +120,7 @@ export default function LoginPage() {
       <p className="text-center text-xs leading-relaxed px-2" style={{ color: 'var(--color-text-muted)' }}>
         By signing in with Google or Apple, you agree to our{' '}
         <Link
-          to="/terms"
-          target="_blank"
-          rel="noopener noreferrer"
+          to="/legal/terms"
           className="font-medium underline underline-offset-2 transition-colors hover:text-[var(--color-brand)]"
           style={{ color: 'var(--color-text-secondary)' }}
         >
@@ -125,9 +128,7 @@ export default function LoginPage() {
         </Link>{' '}
         and{' '}
         <Link
-          to="/privacy"
-          target="_blank"
-          rel="noopener noreferrer"
+          to="/legal/privacy-policy"
           className="font-medium underline underline-offset-2 transition-colors hover:text-[var(--color-brand)]"
           style={{ color: 'var(--color-text-secondary)' }}
         >

@@ -65,6 +65,7 @@ export default function PostWantedPage() {
     <>
       <Helmet>
         <title>Post a Wanted Request — Aliwayz</title>
+        <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
       <div className="container-app py-4 sm:py-6 pb-24 max-w-2xl mx-auto">

@@ -1,4 +1,5 @@
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import AuthGuard from './guards/AuthGuard';
 import GuestGuard from './guards/GuestGuard';
 import SellerGuard from './guards/SellerGuard';
@@ -126,39 +127,39 @@ const router = createBrowserRouter(
         { path: '/essentials', element: <DailyUsePage /> },
         { path: '/faq', element: <FAQPage /> },
 
-        // Legal Center
+        // Legal Center (Canonical routes + clean redirects for aliases)
         { path: '/legal',                       element: <LegalIndexPage /> },
-        { path: '/legal/privacy',               element: <PrivacyPolicyPage /> },
         { path: '/legal/privacy-policy',        element: <PrivacyPolicyPage /> },
-        { path: '/privacy',                     element: <PrivacyPolicyPage /> },
-        { path: '/privacy-policy',              element: <PrivacyPolicyPage /> },
+        { path: '/legal/privacy',               element: <Navigate to="/legal/privacy-policy" replace /> },
+        { path: '/privacy',                     element: <Navigate to="/legal/privacy-policy" replace /> },
+        { path: '/privacy-policy',              element: <Navigate to="/legal/privacy-policy" replace /> },
         { path: '/legal/terms',                 element: <TermsPage /> },
-        { path: '/terms',                       element: <TermsPage /> },
-        { path: '/terms-of-service',            element: <TermsPage /> },
+        { path: '/terms',                       element: <Navigate to="/legal/terms" replace /> },
+        { path: '/terms-of-service',            element: <Navigate to="/legal/terms" replace /> },
         { path: '/legal/cookie-policy',         element: <CookiePolicyPage /> },
         { path: '/legal/seller-policy',         element: <SellerPolicyPage /> },
         { path: '/legal/buyer-policy',          element: <BuyerPolicyPage /> },
         { path: '/legal/community-guidelines',  element: <CommunityGuidelinesPage /> },
         { path: '/legal/prohibited-items',      element: <ProhibitedItemsPage /> },
-        { path: '/prohibited-items',            element: <ProhibitedItemsPage /> },
+        { path: '/prohibited-items',            element: <Navigate to="/legal/prohibited-items" replace /> },
         { path: '/legal/account-deletion',      element: <AccountDeletionPage /> },
-        { path: '/account-deletion',            element: <AccountDeletionPage /> },
-        { path: '/delete-account',              element: <AccountDeletionPage /> },
+        { path: '/account-deletion',            element: <Navigate to="/legal/account-deletion" replace /> },
+        { path: '/delete-account',              element: <Navigate to="/legal/account-deletion" replace /> },
         { path: '/legal/data-deletion',         element: <DataDeletionPage /> },
-        { path: '/data-deletion',               element: <DataDeletionPage /> },
+        { path: '/data-deletion',               element: <Navigate to="/legal/data-deletion" replace /> },
         { path: '/legal/report-abuse',          element: <ReportAbusePage /> },
         { path: '/legal/intellectual-property', element: <IntellectualPropertyPage /> },
         { path: '/legal/copyright',             element: <CopyrightPage /> },
         { path: '/legal/disclaimer',            element: <DisclaimerPage /> },
         { path: '/legal/safety',                element: <SafetyGuidelinesPage /> },
-        { path: '/legal/safety-guidelines',     element: <SafetyGuidelinesPage /> },
-        { path: '/safety',                      element: <SafetyGuidelinesPage /> },
+        { path: '/legal/safety-guidelines',     element: <Navigate to="/legal/safety" replace /> },
+        { path: '/safety',                      element: <Navigate to="/legal/safety" replace /> },
         { path: '/legal/contact',               element: <ContactUsPage /> },
-        { path: '/contact',                     element: <ContactUsPage /> },
-        { path: '/contact-us',                  element: <ContactUsPage /> },
+        { path: '/contact',                     element: <Navigate to="/legal/contact" replace /> },
+        { path: '/contact-us',                  element: <Navigate to="/legal/contact" replace /> },
         { path: '/legal/about',                 element: <AboutPage /> },
-        { path: '/about',                       element: <AboutPage /> },
-        { path: '/about-us',                    element: <AboutPage /> },
+        { path: '/about',                       element: <Navigate to="/legal/about" replace /> },
+        { path: '/about-us',                    element: <Navigate to="/legal/about" replace /> },
 
         // Wanted Hub
         { path: '/wanted',              element: <WantedFeedPage /> },
@@ -271,18 +272,24 @@ const router = createBrowserRouter(
     {
       path: '*',
       element: (
-        <div
-          className="flex min-h-screen items-center justify-center"
-          style={{ backgroundColor: 'var(--color-bg)' }}
-        >
-          <div className="space-y-4 text-center">
-            <h1 className="text-gradient text-6xl font-bold">404</h1>
-            <p style={{ color: 'var(--color-text-secondary)' }}>Page not found</p>
-            <a href="/" className="btn-brand inline-block rounded-xl px-6 py-2.5">
-              Go Home
-            </a>
+        <>
+          <Helmet>
+            <title>Page Not Found | Aliwayz</title>
+            <meta name="robots" content="noindex, nofollow" />
+          </Helmet>
+          <div
+            className="flex min-h-screen items-center justify-center"
+            style={{ backgroundColor: 'var(--color-bg)' }}
+          >
+            <div className="space-y-4 text-center">
+              <h1 className="text-gradient text-6xl font-bold">404</h1>
+              <p style={{ color: 'var(--color-text-secondary)' }}>Page not found</p>
+              <Link to="/" className="btn-brand inline-block rounded-xl px-6 py-2.5">
+                Go Home
+              </Link>
+            </div>
           </div>
-        </div>
+        </>
       ),
     },
   ],

@@ -2,6 +2,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
+import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { User, MapPin, ShoppingBag, Store, ArrowRight } from 'lucide-react';
 import { completeProfileSchema } from '@lib/validators';
@@ -52,6 +53,10 @@ export default function CompleteProfilePage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-6"
          style={{ backgroundColor: 'var(--color-bg)' }}>
+      <Helmet>
+        <title>Complete Profile | Aliwayz</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       <motion.div
         className="w-full max-w-md space-y-8"
         initial={{ opacity: 0, y: 20 }}

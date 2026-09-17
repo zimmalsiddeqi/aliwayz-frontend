@@ -1,0 +1,54 @@
+# https://aliwayz.com/robots.txt
+# Aliwayz — Local Marketplace
+
+User-agent: *
+
+# Public pages — allowed
+Allow: /
+Allow: /vehicles
+Allow: /real-estate
+Allow: /essentials
+Allow: /marketplace
+Allow: /product/
+Allow: /category/
+Allow: /store/
+Allow: /user/
+Allow: /wanted
+Allow: /faq
+Allow: /legal/
+
+# Auth & account pages — blocked
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /complete-profile
+
+# Private user pages — blocked
+Disallow: /dashboard
+Disallow: /inbox
+Disallow: /notifications
+Disallow: /profile
+Disallow: /favorites
+Disallow: /purchases
+Disallow: /following
+
+# Seller pages — blocked
+Disallow: /sell/
+Disallow: /my-store/
+Disallow: /store/create
+
+# QR & utility — blocked
+Disallow: /qr/
+Disallow: /search
+
+# Wanted creation/management — blocked
+Disallow: /wanted/create
+Disallow: /wanted/my-requests
+
+# API — blocked
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://aliwayz.com/sitemap.xml

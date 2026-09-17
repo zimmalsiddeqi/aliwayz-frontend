@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
-import { Helmet } from 'react-helmet-async';
+import SEOHead from '@components/seo/SEOHead';
+import { buildStoreSchema, buildBreadcrumbSchema } from '@components/seo/structuredData';
 import { motion } from 'framer-motion';
 import {
   MapPin,
@@ -206,9 +207,21 @@ const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'http://localhost:5174';
 
   return (
     <>
-      <Helmet>
-        <title>{store.store_name} — Aliwayz</title>
-      </Helmet>
+      <SEOHead
+        title={`${store.store_name} — Aliwayz Store`}
+        description={store.description || `Visit ${store.store_name} on Aliwayz. Browse products, check ratings, and buy directly from this local seller.`}
+        canonical={`/store/${slug}`}
+        ogImage={store.logo_url || store.banner_url}
+        ogImageAlt={store.store_name}
+        structuredData={[
+          buildStoreSchema(store),
+          buildBreadcrumbSchema([
+            { name: 'Home', url: '/' },
+            { name: 'Stores', url: '/marketplace' },
+            { name: store.store_name, url: `/store/${slug}` },
+          ]),
+        ].filter(Boolean)}
+      />
 
       <div className="pb-24 md:pb-10">
         {/* ═══ BANNER ═════════════════════════════════════ */}
@@ -620,7 +633,7 @@ const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'http://localhost:5174';
                             key={i}
                             href={url}
                             target="_blank"
-                            rel="noopener noreferrer"
+                            rel="noopener noreferrer nofollow ugc"
                             className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs transition-colors hover:bg-[var(--glass-bg-strong)]"
                             style={{
                               color: 'var(--color-brand)',

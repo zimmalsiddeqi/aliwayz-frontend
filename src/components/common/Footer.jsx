@@ -78,16 +78,17 @@ export default function Footer() {
 
   const COMPANY_LINKS = [
     { label: 'About Us', to: '/legal/about' },
-    { label: 'FAQ', to: '/faq' },
+    { label: 'Legal Center', to: '/legal' },
     { label: 'Privacy Policy', to: '/legal/privacy-policy' },
     { label: 'Terms of Use', to: '/legal/terms' },
-    { label: 'Contact', to: '#', onClick: () => setShowFeedback(true) },
+    { label: 'Contact Us', to: '/legal/contact' },
   ];
 
   const SUPPORT_LINKS = [
-    { label: 'Help Center', to: '/faq' },
-    { label: 'FAQ', to: '/faq' },
-    { label: 'Safety Tips', to: '/legal/safety-guidelines' },
+    { label: 'Help Center & FAQ', to: '/faq' },
+    { label: 'Safety Guidelines', to: '/legal/safety' },
+    { label: 'Seller Policy', to: '/legal/seller-policy' },
+    { label: 'Buyer Policy', to: '/legal/buyer-policy' },
     {
       label: 'Report an Issue',
       to: '#',

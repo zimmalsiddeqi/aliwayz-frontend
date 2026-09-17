@@ -1,5 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Suspense, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import LoadingScreen from '@components/common/LoadingScreen';
 import ThemeToggle from '@components/common/ThemeToggle';
@@ -14,6 +15,9 @@ export default function AuthLayout() {
   }, [pathname]);
   return (
     <div className="min-h-screen flex" style={{ backgroundColor: 'var(--color-bg)' }}>
+      <Helmet>
+        <meta name="robots" content="noindex, follow" />
+      </Helmet>
 
       {/* Theme toggle — top right */}
       <div className="fixed top-4 right-4 z-50">

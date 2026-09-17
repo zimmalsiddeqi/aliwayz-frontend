@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Helmet } from 'react-helmet-async';
+import SEOHead from '@components/seo/SEOHead';
+import { buildBreadcrumbSchema } from '@components/seo/structuredData';
 import {
   SlidersHorizontal,
   Home,
@@ -99,13 +100,15 @@ export default function WantedFeedPage() {
 
   return (
     <>
-      <Helmet>
-        <title>Wanted — Aliwayz</title>
-        <meta
-          name="description"
-          content="Browse all buyer wanted requests in Philadelphia across electronics, vehicles, real estate, fashion, and home goods."
-        />
-      </Helmet>
+      <SEOHead
+        title="Buyer Wanted Requests — Aliwayz Wanted Feed"
+        description="Browse local buyer requests on Aliwayz. See what items, cars, electronics, and goods local buyers are looking to purchase right now."
+        canonical="/wanted"
+        structuredData={buildBreadcrumbSchema([
+          { name: 'Home', url: '/' },
+          { name: 'Wanted', url: '/wanted' },
+        ])}
+      />
 
       {/* Wanted navigation bar */}
       <WantedNavTabs />

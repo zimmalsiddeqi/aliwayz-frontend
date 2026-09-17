@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
@@ -83,6 +84,10 @@ export default function RegisterPage() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
+      <Helmet>
+        <title>Create Account | Aliwayz</title>
+      </Helmet>
+
       {/* Header */}
       <div className="text-center lg:text-left">
         <div className="flex items-center mb-6 lg:hidden justify-center">

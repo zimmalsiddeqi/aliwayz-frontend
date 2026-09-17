@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
+import SEOHead from '@components/seo/SEOHead';
+import { buildFAQSchema, buildBreadcrumbSchema } from '@components/seo/structuredData';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ChevronDown, Search, MessageSquare,
@@ -262,10 +263,18 @@ export default function FAQPage() {
 
   return (
     <>
-      <Helmet>
-        <title>FAQ — Aliwayz</title>
-        <meta name="description" content="Frequently asked questions about buying and selling on Aliwayz." />
-      </Helmet>
+      <SEOHead
+        title="Frequently Asked Questions (FAQ) — Aliwayz Help Center"
+        description="Find answers to frequently asked questions about buying, selling, QR code verification, account security, and local transactions on Aliwayz."
+        canonical="/faq"
+        structuredData={[
+          buildFAQSchema(FAQ_SECTIONS),
+          buildBreadcrumbSchema([
+            { name: 'Home', url: '/' },
+            { name: 'FAQ', url: '/faq' },
+          ]),
+        ].filter(Boolean)}
+      />
 
       <div className="container-app py-6 sm:py-10 max-w-4xl pb-24 md:pb-10">
         {/* Header */}

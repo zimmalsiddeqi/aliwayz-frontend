@@ -76,6 +76,7 @@ export default function MyProfilePage() {
     <>
       <Helmet>
         <title>My Profile — Aliwayz</title>
+        <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
       <div className="container-app py-4 sm:py-6 max-w-3xl space-y-4 sm:space-y-6 pb-24 md:pb-8">

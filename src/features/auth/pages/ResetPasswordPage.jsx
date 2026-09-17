@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
@@ -74,6 +75,9 @@ export default function ResetPasswordPage() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
     >
+      <Helmet>
+        <title>Reset Password | Aliwayz</title>
+      </Helmet>
       <div className="text-center lg:text-left">
         <h2
           className="text-2xl font-bold"

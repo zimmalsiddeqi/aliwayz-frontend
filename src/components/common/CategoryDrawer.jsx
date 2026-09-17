@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { X, ChevronRight, ArrowLeft, Search, FolderOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -203,17 +203,15 @@ export default function CategoryDrawer({ isOpen, onClose }) {
                     </div>
                   ) : (
                     searchResults.map((cat) => (
-                      <button
+                      <Link
                         key={`search-${cat.id}`}
-                        onClick={() => {
-                          navigate(`/category/${cat.slug}`);
-                          onClose();
-                        }}
+                        to={`/category/${cat.slug}`}
+                        onClick={onClose}
                         className="group flex w-full items-center justify-between rounded-xl px-2.5 py-2.5 text-left text-xs transition-all duration-150 hover:bg-[var(--glass-bg-strong)] hover:translate-x-1"
                       >
                         <span style={{ color: 'var(--color-text-primary)' }}>{cat.name}</span>
                         <ChevronRight size={14} className="text-[var(--color-text-secondary)] transition-transform group-hover:translate-x-0.5" />
-                      </button>
+                      </Link>
                     ))
                   )}
                 </div>
@@ -244,19 +242,32 @@ export default function CategoryDrawer({ isOpen, onClose }) {
 
                   {/* "View All" Option (Level 2 or 3) */}
                   {currentCategory && (
-                    <button
-                      onClick={() => handleViewAllClick(currentCategory)}
+                    <Link
+                      to={`/category/${currentCategory.slug}`}
+                      onClick={onClose}
                       className="group flex w-full items-center justify-between rounded-xl px-2.5 py-2.5 text-left text-xs font-semibold transition-all duration-150 hover:bg-[var(--glass-bg-strong)] hover:translate-x-1"
                       style={{ color: 'var(--color-brand)' }}
                     >
                       <span>View All {currentCategory.name}</span>
                       <ChevronRight size={14} className="transition-transform group-hover:translate-x-0.5" />
-                    </button>
+                    </Link>
                   )}
 
                   {/* Category Children List */}
                   {displayCategories.map((cat) => {
                     const hasChildren = cat.children && cat.children.length > 0;
+                    if (!hasChildren) {
+                      return (
+                        <Link
+                          key={cat.id}
+                          to={`/category/${cat.slug}`}
+                          onClick={onClose}
+                          className="group flex w-full items-center justify-between rounded-xl px-2.5 py-2.5 text-left text-xs transition-all duration-150 hover:bg-[var(--glass-bg-strong)] hover:translate-x-1"
+                        >
+                          <span style={{ color: 'var(--color-text-primary)' }}>{cat.name}</span>
+                        </Link>
+                      );
+                    }
                     return (
                       <button
                         key={cat.id}

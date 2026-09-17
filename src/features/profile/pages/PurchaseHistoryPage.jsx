@@ -76,6 +76,7 @@ export default function PurchaseHistoryPage() {
     <>
       <Helmet>
         <title>Purchase History — Aliwayz</title>
+        <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
       <div className="container-app py-4 sm:py-6 max-w-2xl pb-24 md:pb-8">

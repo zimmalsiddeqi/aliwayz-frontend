@@ -128,7 +128,8 @@ export default function CreateListingPage() {
   return (
     <>
       <Helmet>
-        <title>Sell — Aliwayz</title>
+        <title>Create Listing — Aliwayz</title>
+        <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
       <div className="mx-auto max-w-2xl">

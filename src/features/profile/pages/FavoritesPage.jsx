@@ -122,6 +122,7 @@ export default function FavoritesPage() {
     <>
       <Helmet>
         <title>Favorites — Aliwayz</title>
+        <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
       <div className="container-app py-4 sm:py-6 pb-24 md:pb-8">

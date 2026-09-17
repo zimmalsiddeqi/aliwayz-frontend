@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
@@ -80,6 +81,9 @@ export default function ForgotPasswordPage() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
     >
+      <Helmet>
+        <title>Forgot Password | Aliwayz</title>
+      </Helmet>
       <div className="text-center lg:text-left">
         <h2
           className="text-2xl font-bold"

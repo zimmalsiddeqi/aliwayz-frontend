@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { Helmet } from 'react-helmet-async';
+import SEOHead from '@components/seo/SEOHead';
+import { buildBreadcrumbSchema } from '@components/seo/structuredData';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, SlidersHorizontal, PlusCircle, ChevronDown, ArrowLeft, X, MapPin } from 'lucide-react';
 import ProductService from '@api/services/product.service';
@@ -158,9 +159,15 @@ export default function PropertyPage() {
 
   return (
     <>
-      <Helmet>
-        <title>Real Estate — Aliwayz</title>
-      </Helmet>
+      <SEOHead
+        title="Real Estate For Sale & Rent — Aliwayz Properties"
+        description="Search local houses, apartments, condos, land, and commercial properties for sale or rent on Aliwayz. Connect directly with owners and agents."
+        canonical="/real-estate"
+        structuredData={buildBreadcrumbSchema([
+          { name: 'Home', url: '/' },
+          { name: 'Real Estate', url: '/real-estate' },
+        ])}
+      />
       <div className="pb-24 md:pb-10">
         {/* Simplified tall green header */}
         <div

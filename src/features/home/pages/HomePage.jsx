@@ -1,8 +1,9 @@
 import { useState, useCallback, useMemo } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
+import SEOHead from '@components/seo/SEOHead';
+import { buildOrganizationSchema, buildWebSiteSchema } from '@components/seo/structuredData';
 import { Search, SlidersHorizontal, ChevronDown, X, ShoppingBag, Car, Home, ArrowRight } from 'lucide-react';
 import useAuthStore from '@store/auth.store';
 import useLocationStore from '@store/location.store';
@@ -207,12 +208,15 @@ export default function HomePage() {
 
   return (
     <>
-      <Helmet>
-        <title>Aliwayz — Local Marketplace</title>
-        <meta name="description" content="Buy and sell vehicles, real estate, and everyday items locally." />
-      </Helmet>
+      <SEOHead
+        title="Aliwayz — Buy & Sell Cars, Property & Everyday Products Locally"
+        description="Aliwayz is a USA local marketplace to buy and sell vehicles, real estate, and everyday items with fast local communication and QR verified transactions."
+        canonical="/"
+        structuredData={[buildOrganizationSchema(), buildWebSiteSchema()]}
+      />
 
       <div className="min-h-screen pb-24 md:pb-10">
+        <h1 className="sr-only">Aliwayz — Buy & Sell Cars, Property & Everyday Products Locally</h1>
         {/* ═══ SEARCH BAR ══════════════════════════════════ */}
         <section className="container-app pt-4 pb-2 sm:pt-6 sm:pb-3">
           <div className="max-w-2xl mx-auto space-y-2.5">
@@ -513,16 +517,16 @@ function CategoryCard({ cat, sellerOnly, onNavigate }) {
       }}
       className="h-full"
     >
-      <motion.div
-        className="relative overflow-hidden rounded-[22px] sm:rounded-[26px] cursor-pointer group flex flex-col justify-between h-[195px] sm:h-[225px] p-3.5 sm:p-4 text-left border border-white/15"
-        style={{
-          background: cat.gradient,
-          boxShadow: `0 12px 28px -4px ${cat.glow}, 0 4px 12px rgba(0,0,0,0.15)`,
-        }}
-        whileHover={{ y: -5, boxShadow: `0 18px 36px -2px ${cat.glow}, 0 6px 16px rgba(0,0,0,0.2)` }}
-        whileTap={{ scale: 0.97 }}
-        onClick={() => onNavigate(cat.path)}
-      >
+      <Link to={cat.path} className="block h-full text-inherit no-underline group focus:outline-none">
+        <motion.div
+          className="relative overflow-hidden rounded-[22px] sm:rounded-[26px] cursor-pointer flex flex-col justify-between h-[195px] sm:h-[225px] p-3.5 sm:p-4 text-left border border-white/15"
+          style={{
+            background: cat.gradient,
+            boxShadow: `0 12px 28px -4px ${cat.glow}, 0 4px 12px rgba(0,0,0,0.15)`,
+          }}
+          whileHover={{ y: -5, boxShadow: `0 18px 36px -2px ${cat.glow}, 0 6px 16px rgba(0,0,0,0.2)` }}
+          whileTap={{ scale: 0.97 }}
+        >
         {/* Top 3D / Realistic Category Image */}
         {cat.image && (
           <div className="absolute top-0 left-0 right-0 h-[62%] overflow-hidden">
@@ -568,6 +572,7 @@ function CategoryCard({ cat, sellerOnly, onNavigate }) {
           </div>
         </div>
       </motion.div>
+      </Link>
     </motion.div>
   );
 }

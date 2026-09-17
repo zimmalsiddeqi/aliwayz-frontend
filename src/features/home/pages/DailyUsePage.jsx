@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { Helmet } from 'react-helmet-async';
+import SEOHead from '@components/seo/SEOHead';
+import { buildBreadcrumbSchema } from '@components/seo/structuredData';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
@@ -150,9 +151,15 @@ export default function DailyUsePage() {
 
   return (
     <>
-      <Helmet>
-        <title>Marketplace — Aliwayz</title>
-      </Helmet>
+      <SEOHead
+        title="Everyday Essentials & Products — Aliwayz Essentials"
+        description="Shop local everyday essentials, electronics, furniture, clothing, and household goods on Aliwayz with fast local pickup and QR verification."
+        canonical="/essentials"
+        structuredData={buildBreadcrumbSchema([
+          { name: 'Home', url: '/' },
+          { name: 'Essentials', url: '/essentials' },
+        ])}
+      />
       <div className="pb-24 md:pb-10">
         <div
           className="relative overflow-hidden"

@@ -106,6 +106,7 @@ export default function InboxPage() {
     <>
       <Helmet>
         <title>Inbox — Aliwayz</title>
+        <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
       <div className="container-app py-6 max-w-2xl">
