@@ -9,6 +9,7 @@ import useInterestStore from '@store/interest.store';
 import ProductService from '@api/services/product.service';
 import BadgeUI from '@components/ui/Badge';
 import { cn, formatPrice, formatRelativeTime, getConditionLabel, getConditionColor } from '@lib/utils';
+import { getPrimaryImage } from '@utils/helpers';
 import { formatCompactNumber } from '@utils/formatters';
 import toast from '@lib/toast';
 import { parsePropertyDescription, getProductUrl } from '@utils/categoryHelpers';
