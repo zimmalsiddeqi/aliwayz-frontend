@@ -1,18 +1,18 @@
 import { useState, useCallback, useRef, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import SEOHead from '@components/seo/SEOHead';
 import { buildBreadcrumbSchema } from '@components/seo/structuredData';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SlidersHorizontal, X, ChevronDown, Grid3X3, LayoutList } from 'lucide-react';
+import { SlidersHorizontal, X, ChevronDown, Grid3X3, LayoutList, PlusCircle } from 'lucide-react';
 import ProductService from '@api/services/product.service';
 import CategoryService from '@api/services/category.service';
 import { queryKeys } from '@lib/queryClient';
+import useAuthStore from '@store/auth.store';
 import useLocationStore from '@store/location.store';
 import ProductCard from '@components/cards/ProductCard';
 import { ProductCardSkeleton } from '@components/ui/Skeleton';
 import PageHeader from '@components/common/PageHeader';
-import LocationSelector from '@components/common/LocationSelector';
 import Button from '@components/ui/Button';
 import Input from '@components/ui/Input';
 import Select from '@components/ui/Select';
@@ -31,6 +31,7 @@ export default function MarketplacePage() {
   useOnClickOutside(filtersRef, () => setFiltersOpen(false));
   const [viewMode, setViewMode] = useState('grid');
 
+  const { isAuthenticated } = useAuthStore();
   const { lat, lng, isLocated, radiusMiles } = useLocationStore();
 
   const filters = {
@@ -115,6 +116,16 @@ export default function MarketplacePage() {
           subtitle={`${data?.pages?.[0]?.pagination?.total || 0} listings`}
           rightAction={
             <div className="flex items-center gap-2">
+              <Link to={isAuthenticated ? '/sell/create?category=essentials' : '/login'}>
+                <Button
+                  variant="brand"
+                  size="sm"
+                  leftIcon={<PlusCircle size={14} />}
+                  className="font-medium shadow-sm whitespace-nowrap"
+                >
+                  Sell an Item
+                </Button>
+              </Link>
               <div
                 className="hidden items-center overflow-hidden rounded-xl sm:flex"
                 style={{ border: '1px solid var(--color-border)' }}

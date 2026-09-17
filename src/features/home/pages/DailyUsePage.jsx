@@ -24,8 +24,7 @@ import Button from '@components/ui/Button';
 import Select from '@components/ui/Select';
 import Input from '@components/ui/Input';
 import EmptyState from '@components/common/EmptyState';
-import LocationSelector from '@components/common/LocationSelector';
-import { isSeller, cn } from '@lib/utils';
+import { cn } from '@lib/utils';
 import { ITEM_CONDITIONS, CATEGORY_IDS } from '@utils/constants';
 import { getMarketplaceCategories } from '@utils/categoryHelpers';
 import useMediaQuery from '@hooks/useMediaQuery';
@@ -55,9 +54,8 @@ const CATEGORY_ICONS = {
 
 export default function DailyUsePage() {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const { lat, lng, isLocated, radiusMiles } = useLocationStore();
-  const canSell = isAuthenticated && isSeller(user?.role);
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   const [searchCategoriesOpen, setSearchCategoriesOpen] = useState(false);
@@ -197,17 +195,15 @@ export default function DailyUsePage() {
                   {total} item{total !== 1 ? 's' : ''} available
                 </p>
               </div>
-              {canSell && (
-                <Link to="/sell/create?category=essentials">
-                  <Button
-                    size="md"
-                    leftIcon={<PlusCircle size={16} />}
-                    className="!border-white/30 !bg-white/20 !text-white backdrop-blur-md hover:!bg-white/30"
-                  >
-                    List an Item
-                  </Button>
-                </Link>
-              )}
+              <Link to={isAuthenticated ? '/sell/create?category=essentials' : '/login'}>
+                <Button
+                  size="md"
+                  leftIcon={<PlusCircle size={16} />}
+                  className="!border-white/30 !bg-white/20 !text-white backdrop-blur-md hover:!bg-white/30"
+                >
+                  Sell an Item
+                </Button>
+              </Link>
             </div>
             <div className="mt-5 max-w-xl">
               <div className="relative">
@@ -374,9 +370,9 @@ export default function DailyUsePage() {
                     ? 'No items in this category'
                     : 'No items listed yet'
               }
-              description={canSell ? 'List your first item!' : 'Check back later.'}
-              actionLabel={canSell ? 'Sell an Item' : undefined}
-              actionTo={canSell ? '/sell/create?category=essentials' : undefined}
+              description="Be the first to list an item or try adjusting your search!"
+              actionLabel="Sell an Item"
+              actionTo={isAuthenticated ? '/sell/create?category=essentials' : '/login'}
             />
           ) : (
             <>
