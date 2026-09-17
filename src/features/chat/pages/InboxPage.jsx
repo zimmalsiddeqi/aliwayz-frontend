@@ -20,12 +20,9 @@ import { getOtherParticipant, getUnreadCount, getPrimaryImage } from '@utils/hel
 import toast from '@lib/toast';
 
 const STARTER_MESSAGES = [
-  'Hi! Is this still available?',
-  'Hello, I am interested in this item. Can we discuss?',
-  'Hey! What is the lowest price you would accept?',
-  'Hi there! Can I come see this in person?',
-  'Hello! Is the price negotiable?',
-  'Hey, can you tell me more about the condition?',
+  'Hi, is this still available?',
+  'Hi, are you flexible on the price?',
+  'Hi, when are you available for pickup?',
 ];
 
 export default function InboxPage() {
