@@ -112,20 +112,32 @@ export default function SearchBar({ className, autoFocus = false, onClose }) {
   }, [autoFocus]);
 
   const handleSearch = useCallback((searchTerm) => {
-    const term = searchTerm || localQuery;
-    if (!term.trim()) return;
-    addRecentSearch(term.trim());
-    setQuery(term.trim());
+    const term = (searchTerm !== undefined && typeof searchTerm === 'string' ? searchTerm : localQuery).trim();
+    
+    // If no text typed, but a category is selected in the dropdown:
+    if (!term) {
+      if (selectedCategory) {
+        const catObj = allCategories.find((c) => c.id === selectedCategory || c.slug === selectedCategory);
+        const targetSlug = catObj?.slug || selectedCategory;
+        setIsFocused(false);
+        navigate(`/category/${encodeURIComponent(targetSlug)}`);
+        if (onClose) onClose();
+      }
+      return;
+    }
+
+    addRecentSearch(term);
+    setQuery(term);
     setIsFocused(false);
     
-    let searchUrl = `/search?q=${encodeURIComponent(term.trim())}`;
+    let searchUrl = `/search?q=${encodeURIComponent(term)}`;
     if (selectedCategory) {
       searchUrl += `&category_id=${encodeURIComponent(selectedCategory)}`;
     }
     navigate(searchUrl);
     
     if (onClose) onClose();
-  }, [localQuery, navigate, addRecentSearch, setQuery, onClose, selectedCategory]);
+  }, [localQuery, selectedCategory, allCategories, navigate, addRecentSearch, setQuery, onClose]);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') handleSearch();
