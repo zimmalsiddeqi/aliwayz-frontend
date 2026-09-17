@@ -9,6 +9,7 @@ import { getProductUrl } from '@utils/categoryHelpers';
 
 const SITE_URL = 'https://aliwayz.com';
 const SITE_NAME = 'Aliwayz';
+const ORG_NAME = 'Aliwayz LLC';
 const LOGO_URL = `${SITE_URL}/logo.png`;
 
 /**
