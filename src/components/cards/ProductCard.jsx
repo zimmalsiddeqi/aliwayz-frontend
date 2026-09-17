@@ -112,6 +112,114 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
     }
   };
 
+  // ── Price Formatter ───────────────────────────────────────────
+  const formattedPrice = (() => {
+    const basePrice = formatPrice(product.price, product.currency);
+    if (isRealEstate) {
+      const attrs = parsePropertyDescription(product.description);
+      const intentStr = (attrs.intent || '').toLowerCase();
+      const descLower = (product.description || '').toLowerCase();
+      const titleLower = (product.title || '').toLowerCase();
+
+      if (
+        intentStr.includes('rent') ||
+        descLower.includes('for rent') ||
+        titleLower.includes('for rent') ||
+        descLower.includes('listing: for rent')
+      ) {
+        return `${basePrice} / mo`;
+      }
+      if (intentStr === 'vacation') return `${basePrice} / night`;
+      if (intentStr === 'lease' || descLower.includes('for lease')) {
+        const leaseTypeMatch = product.description?.match(/Pricing Type:\s*(\w+)/);
+        const leaseType = leaseTypeMatch ? leaseTypeMatch[1] : '';
+        if (leaseType === 'year') return `${basePrice} / yr`;
+        if (leaseType === 'sqft_month') return `${basePrice} / SF / mo`;
+        if (leaseType === 'sqft_year') return `${basePrice} / SF / yr`;
+        return `${basePrice} / mo`;
+      }
+    }
+    return basePrice;
+  })();
+
+  // ── Subtitle Attributes (Real Estate / Automotive / Condition) ──
+  const subtitleText = (() => {
+    if (isRealEstate) {
+      const attrs = parsePropertyDescription(product.description);
+      const subtitleParts = [];
+      if (attrs.propertyType === 'land') {
+        const acMatch = product.description?.match(/Acreage:\s*([^\n]+)/i);
+        if (acMatch) subtitleParts.push(`${acMatch[1]} acres`);
+      } else if (
+        ['commercial', 'office', 'industrial'].includes(attrs.propertyType) ||
+        attrs.intent === 'lease'
+      ) {
+        if (attrs.areaSize) subtitleParts.push(`${attrs.areaSize} sq ft`);
+      } else {
+        if (attrs.bedrooms) {
+          subtitleParts.push(attrs.bedrooms === 'studio' ? 'Studio' : `${attrs.bedrooms} bd`);
+        }
+        if (attrs.bathrooms) subtitleParts.push(`${attrs.bathrooms} ba`);
+        if (attrs.areaSize) subtitleParts.push(`${attrs.areaSize} sq ft`);
+      }
+      return subtitleParts.join(' · ');
+    }
+
+    if (isAutomotive) {
+      const directMileage = product.mileage || product.attributes?.mileage;
+      let mileageStr = '';
+
+      if (directMileage) {
+        const rawNum = String(directMileage).replace(/\D/g, '');
+        if (rawNum) {
+          const num = Number(rawNum);
+          if (num >= 1000) {
+            const inK = num / 1000;
+            mileageStr = `${inK % 1 === 0 ? inK : inK.toFixed(1)}k miles`;
+          } else {
+            mileageStr = `${num} miles`;
+          }
+        } else {
+          mileageStr = String(directMileage);
+        }
+      } else {
+        const mileageMatch =
+          desc.match(/Mileage:\s*([^\n\r]+)/i) ||
+          desc.match(/(\d+[\d,.]*\s*k?\s*(?:miles?|mi)\b)/i) ||
+          title.match(/(\d+[\d,.]*\s*k?\s*(?:miles?|mi)\b)/i);
+
+        if (mileageMatch) {
+          const matchText = mileageMatch[1].trim();
+          const isK = /k/i.test(matchText);
+          const rawNum = matchText.replace(/[^\d.]/g, '');
+          if (rawNum) {
+            let num = parseFloat(rawNum);
+            if (isK && num < 1000) {
+              num = num * 1000;
+            }
+            if (num >= 1000) {
+              const inK = num / 1000;
+              mileageStr = `${inK % 1 === 0 ? inK : inK.toFixed(1)}k miles`;
+            } else {
+              mileageStr = `${num} miles`;
+            }
+          } else {
+            mileageStr = matchText;
+          }
+        }
+      }
+
+      const autoParts = [];
+      if (mileageStr) autoParts.push(mileageStr);
+      const transMatch = desc.match(/Transmission:\s*([^\n\r]+)/i);
+      if (transMatch) autoParts.push(transMatch[1].trim());
+
+      return autoParts.join(' · ');
+    }
+
+    return getConditionLabel(product.condition) || '';
+  })();
+
   return (
     <motion.div
       variants={{
@@ -120,15 +228,15 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
       }}
       whileHover={{ y: -4 }}
       transition={{ duration: 0.2 }}
-      className="group"
+      className="group h-full flex flex-col"
     >
       <Link
         to={`/product/${product.id}`}
         onClick={() => logView(product.category_id)}
-        className="block bg-surface border border-border rounded-2xl overflow-hidden hover:border-brand-500/40 hover:shadow-card-hover transition-all duration-300"
+        className="flex flex-col h-full bg-surface border border-border rounded-2xl overflow-hidden hover:border-brand-500/40 hover:shadow-card-hover transition-all duration-300"
       >
         {/* Image Container */}
-        <div className="relative aspect-square overflow-hidden bg-surface-hover">
+        <div className="relative aspect-square w-full overflow-hidden bg-surface-hover flex-shrink-0">
           {imageUrl ? (
             <img
               src={imageUrl}
@@ -137,7 +245,7 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
               loading="lazy"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-slate-500">
+            <div className="w-full h-full flex items-center justify-center text-slate-500 text-xs">
               No Image
             </div>
           )}
@@ -147,23 +255,24 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
             onClick={handleFavorite}
             disabled={isPending}
             className={cn(
-              'absolute top-3 right-3 w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 z-10',
+              'absolute top-2.5 right-2.5 sm:top-3 sm:right-3 w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all duration-200 z-20 flex-shrink-0',
               'backdrop-blur-md border',
               isFav
                 ? 'bg-red-500/20 border-red-500/30 text-red-400'
-                : 'bg-black/20 border-white/10 text-white/80 hover:bg-black/40',
+                : 'bg-black/25 border-white/15 text-white/90 hover:bg-black/50',
               isPending && 'opacity-50 cursor-not-allowed'
             )}
+            title={isFav ? 'Remove from favorites' : 'Add to favorites'}
           >
             <Heart
-              size={16}
+              size={15}
               fill={isFav ? 'currentColor' : 'none'}
               className="transition-transform duration-200 group-hover:scale-110"
             />
           </button>
 
           {/* Condition badge / Transaction Type badge */}
-          <div className="absolute top-3 left-3 z-10">
+          <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 max-w-[calc(100%-48px)] sm:max-w-[calc(100%-54px)] z-10">
             {(() => {
               if (isRealEstate) {
                 const attrs = parsePropertyDescription(product.description);
@@ -172,82 +281,47 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
                 const descLower = (product.description || '').toLowerCase();
                 const titleLower = (product.title || '').toLowerCase();
 
-                if (intentStr.includes('rent') || descLower.includes('for rent') || titleLower.includes('for rent') || descLower.includes('listing: for rent')) {
+                if (
+                  intentStr.includes('rent') ||
+                  descLower.includes('for rent') ||
+                  titleLower.includes('for rent') ||
+                  descLower.includes('listing: for rent')
+                ) {
                   badgeText = 'For Rent';
-                } else if (intentStr.includes('lease') || descLower.includes('for lease') || titleLower.includes('for lease') || descLower.includes('listing: for lease')) {
+                } else if (
+                  intentStr.includes('lease') ||
+                  descLower.includes('for lease') ||
+                  titleLower.includes('for lease') ||
+                  descLower.includes('listing: for lease')
+                ) {
                   badgeText = 'For Lease';
                 } else if (intentStr.includes('vacation')) {
                   badgeText = 'Vacation';
                 }
                 return (
-                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-[#6366F1] text-white shadow-md backdrop-blur-md">
-                    <Home size={12} className="stroke-[2.5]" />
-                    {badgeText}
+                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] sm:text-[11px] font-semibold bg-[#6366F1] text-white shadow-md backdrop-blur-md max-w-full">
+                    <Home size={11} className="stroke-[2.5] flex-shrink-0" />
+                    <span className="truncate">{badgeText}</span>
                   </span>
                 );
               }
 
               if (isAutomotive) {
-                const directMileage = product.mileage || product.attributes?.mileage;
-                let mileageStr = '';
-
-                if (directMileage) {
-                  const rawNum = String(directMileage).replace(/\D/g, '');
-                  if (rawNum) {
-                    const num = Number(rawNum);
-                    if (num >= 1000) {
-                      const inK = num / 1000;
-                      mileageStr = `${inK % 1 === 0 ? inK : inK.toFixed(1)}k miles`;
-                    } else {
-                      mileageStr = `${num} miles`;
-                    }
-                  } else {
-                    mileageStr = String(directMileage);
-                  }
-                } else {
-                  const mileageMatch =
-                    desc.match(/Mileage:\s*([^\n\r]+)/i) ||
-                    desc.match(/(\d+[\d,.]*\s*k?\s*(?:miles?|mi)\b)/i) ||
-                    title.match(/(\d+[\d,.]*\s*k?\s*(?:miles?|mi)\b)/i);
-
-                  if (mileageMatch) {
-                    const matchText = mileageMatch[1].trim();
-                    const isK = /k/i.test(matchText);
-                    const rawNum = matchText.replace(/[^\d.]/g, '');
-                    if (rawNum) {
-                      let num = parseFloat(rawNum);
-                      if (isK && num < 1000) {
-                        num = num * 1000;
-                      }
-                      if (num >= 1000) {
-                        const inK = num / 1000;
-                        mileageStr = `${inK % 1 === 0 ? inK : inK.toFixed(1)}k miles`;
-                      } else {
-                        mileageStr = `${num} miles`;
-                      }
-                    } else {
-                      mileageStr = matchText;
-                    }
-                  }
-                }
-
-                // Dynamic real condition from listing
-                const condLabel = getConditionLabel(product.condition) || 'Brand New';
-                const badgeText = mileageStr ? `${condLabel} • ${mileageStr}` : condLabel;
+                const condLabel = getConditionLabel(product.condition) || 'Automotive';
                 return (
-                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-black/75 text-white border border-white/20 shadow-md backdrop-blur-md">
-                    <CheckSquare size={12} className="stroke-[2.5] text-blue-400" />
-                    {badgeText}
+                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] sm:text-[11px] font-semibold bg-black/80 text-white border border-white/20 shadow-md backdrop-blur-md max-w-full">
+                    <CheckSquare size={11} className="stroke-[2.5] text-blue-400 flex-shrink-0" />
+                    <span className="truncate">{condLabel}</span>
                   </span>
                 );
               }
 
               // General Marketplace Item
-              const conditionLabel = getConditionLabel(product.condition) || 'Brand New';
+              const conditionLabel = getConditionLabel(product.condition) || 'Available';
               return (
-                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-[#10B981] text-white shadow-md backdrop-blur-md">
-                  <Check size={12} className="stroke-[3]" />
-                  {conditionLabel}
+                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] sm:text-[11px] font-semibold bg-[#10B981] text-white shadow-md backdrop-blur-md max-w-full">
+                  <Check size={11} className="stroke-[3] flex-shrink-0" />
+                  <span className="truncate">{conditionLabel}</span>
                 </span>
               );
             })()}
@@ -255,136 +329,121 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
 
           {/* Featured badge */}
           {product.is_featured && (
-            <div className="absolute bottom-3 left-3">
+            <div className="absolute bottom-2.5 left-2.5 sm:bottom-3 sm:left-3">
               <BadgeUI variant="brand" size="xs">⭐ Featured</BadgeUI>
             </div>
           )}
         </div>
 
-        {/* Content */}
-        <div className="p-3.5 space-y-2.5">
-          {/* Title */}
-          <h3
-            className="font-semibold text-sm line-clamp-2 leading-snug"
-            style={{ color: 'var(--color-text-primary)' }}
-          >
-            {product.title}
-          </h3>
-
-          {/* Price & Real estate subtitle info */}
-          <div>
-            <p className="text-lg font-bold text-gradient-brand">
-              {(() => {
-                if (isRealEstate) {
-                  const attrs = parsePropertyDescription(product.description);
-                  const priceStr = formatPrice(product.price, product.currency);
-                  const intentStr = (attrs.intent || '').toLowerCase();
-                  const descLower = (product.description || '').toLowerCase();
-                  const titleLower = (product.title || '').toLowerCase();
-
-                  if (intentStr.includes('rent') || descLower.includes('for rent') || titleLower.includes('for rent') || descLower.includes('listing: for rent')) {
-                    return `${priceStr} / mo`;
-                  }
-                  if (intentStr === 'vacation') return `${priceStr} / night`;
-                  if (intentStr === 'lease' || descLower.includes('for lease')) {
-                    const leaseTypeMatch = product.description?.match(/Pricing Type:\s*(\w+)/);
-                    const leaseType = leaseTypeMatch ? leaseTypeMatch[1] : '';
-                    if (leaseType === 'year') return `${priceStr} / yr`;
-                    if (leaseType === 'sqft_month') return `${priceStr} / SF / mo`;
-                    if (leaseType === 'sqft_year') return `${priceStr} / SF / yr`;
-                    return `${priceStr} / mo`;
-                  }
-                  return priceStr;
-                }
-                return formatPrice(product.price, product.currency);
-              })()}
-            </p>
-            {isRealEstate && (() => {
-              const attrs = parsePropertyDescription(product.description);
-              let subtitleParts = [];
-              if (attrs.propertyType === 'land') {
-                const acMatch = product.description?.match(/Acreage:\s*([^\n]+)/);
-                if (acMatch) subtitleParts.push(`${acMatch[1]} acres`);
-              } else if (['commercial', 'office', 'industrial'].includes(attrs.propertyType) || attrs.intent === 'lease') {
-                if (attrs.areaSize) subtitleParts.push(`${attrs.areaSize} sq ft`);
-              } else {
-                if (attrs.bedrooms) {
-                  subtitleParts.push(attrs.bedrooms === 'studio' ? 'Studio' : `${attrs.bedrooms} bd`);
-                }
-                if (attrs.bathrooms) subtitleParts.push(`${attrs.bathrooms} ba`);
-              }
-              if (subtitleParts.length > 0) {
-                return (
-                  <p className="text-[11px] font-medium mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
-                    {subtitleParts.join(' · ')}
-                  </p>
-                );
-              }
-              return null;
-            })()}
-          </div>
-
-          {/* Meta row */}
-          <div className="flex items-center justify-between">
-            <div
-              className="flex items-center gap-1 text-xs"
-              style={{ color: 'var(--color-text-muted)' }}
+        {/* Content Section - Uniform Flex Container */}
+        <div className="p-3 sm:p-3.5 flex flex-col flex-1 justify-between gap-2.5">
+          {/* Top Info Group */}
+          <div className="space-y-1.5">
+            {/* Title with exact multi-line height */}
+            <h3
+              className="font-semibold text-xs sm:text-sm line-clamp-2 leading-snug h-[2.35rem] sm:h-[2.65rem] overflow-hidden"
+              style={{ color: 'var(--color-text-primary)' }}
+              title={product.title}
             >
-              {product.location_city && (
-                <>
-                  <MapPin size={11} />
-                  <span className="truncate max-w-[80px]">{product.location_city}</span>
-                  <span>·</span>
-                </>
-              )}
-              <span>{formatRelativeTime(product.created_at)}</span>
-            </div>
+              {product.title}
+            </h3>
 
-            <div
-              className="flex items-center gap-2 text-xs"
-              style={{ color: 'var(--color-text-muted)' }}
-            >
-              <span className="flex items-center gap-0.5">
-                <Eye size={11} />
-                {formatCompactNumber(product.view_count)}
-              </span>
-              <span className="flex items-center gap-0.5">
-                <Heart size={11} />
-                {formatCompactNumber(product.favorite_count)}
-              </span>
-            </div>
-          </div>
-
-          {/* Seller info */}
-          {showSeller && store && (
-            <div
-              className="flex items-center gap-2 pt-2"
-              style={{ borderTop: '1px solid var(--color-border-subtle)' }}
-            >
-              {store.logo_url ? (
-                <img
-                  src={store.logo_url}
-                  alt={store.store_name}
-                  className="w-5 h-5 rounded-md object-cover"
-                />
-              ) : (
-                <div
-                  className="w-5 h-5 rounded-md flex items-center justify-center text-[8px] font-bold text-white bg-brand-500"
+            {/* Price & Subtitle with fixed min-height */}
+            <div className="min-h-[2.5rem] flex flex-col justify-center">
+              <p className="text-base sm:text-lg font-bold text-gradient-brand leading-none">
+                {formattedPrice}
+              </p>
+              {subtitleText ? (
+                <p
+                  className="text-[10px] sm:text-[11px] font-medium mt-1 truncate"
+                  style={{ color: 'var(--color-text-muted)' }}
+                  title={subtitleText}
                 >
-                  {store.store_name?.[0]}
-                </div>
-              )}
-              <span
-                className="text-xs truncate flex-1"
-                style={{ color: 'var(--color-text-secondary)' }}
-              >
-                {store.store_name}
-              </span>
-              {store.is_verified && (
-                <span className="text-[10px]" title="Verified">✅</span>
+                  {subtitleText}
+                </p>
+              ) : (
+                <div className="h-[14px] mt-1" aria-hidden="true" />
               )}
             </div>
-          )}
+          </div>
+
+          {/* Bottom Info Group */}
+          <div className="space-y-2 pt-1">
+            {/* Meta row */}
+            <div
+              className="flex items-center justify-between text-[11px] sm:text-xs"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              <div className="flex items-center gap-1 min-w-0 flex-1 mr-2">
+                {product.location_city && (
+                  <>
+                    <MapPin size={11} className="flex-shrink-0" />
+                    <span className="truncate max-w-[75px] sm:max-w-[95px]">{product.location_city}</span>
+                    <span className="flex-shrink-0">·</span>
+                  </>
+                )}
+                <span className="truncate flex-shrink-0">{formatRelativeTime(product.created_at)}</span>
+              </div>
+
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <span className="flex items-center gap-0.5">
+                  <Eye size={11} />
+                  {formatCompactNumber(product.view_count)}
+                </span>
+                <span className="flex items-center gap-0.5">
+                  <Heart size={11} />
+                  {formatCompactNumber(product.favorite_count)}
+                </span>
+              </div>
+            </div>
+
+            {/* Seller info */}
+            {showSeller && (
+              <div
+                className="flex items-center gap-2 pt-2 min-h-[28px]"
+                style={{ borderTop: '1px solid var(--color-border-subtle)' }}
+              >
+                {store ? (
+                  <>
+                    {store.logo_url ? (
+                      <img
+                        src={store.logo_url}
+                        alt={store.store_name}
+                        className="w-4 h-4 sm:w-5 sm:h-5 rounded-md object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-md flex items-center justify-center text-[8px] font-bold text-white bg-brand-500 flex-shrink-0">
+                        {store.store_name?.[0]?.toUpperCase()}
+                      </div>
+                    )}
+                    <span
+                      className="text-[11px] sm:text-xs truncate flex-1 font-medium"
+                      style={{ color: 'var(--color-text-secondary)' }}
+                    >
+                      {store.store_name}
+                    </span>
+                    {store.is_verified && (
+                      <span className="text-[10px] flex-shrink-0" title="Verified">✅</span>
+                    )}
+                  </>
+                ) : seller ? (
+                  <>
+                    <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-md flex items-center justify-center text-[8px] font-bold text-white bg-slate-600 flex-shrink-0">
+                      {seller.username?.[0]?.toUpperCase()}
+                    </div>
+                    <span
+                      className="text-[11px] sm:text-xs truncate flex-1 font-medium"
+                      style={{ color: 'var(--color-text-secondary)' }}
+                    >
+                      @{seller.username}
+                    </span>
+                  </>
+                ) : (
+                  <div className="h-4" aria-hidden="true" />
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </Link>
     </motion.div>
