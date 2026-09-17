@@ -168,6 +168,13 @@ function SocketManager() {
         addMessage(conversationId, message);
         queryClient.invalidateQueries({ queryKey: ['conversations'] });
         queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        NotificationService.getAll({ page: 1, limit: 10 })
+          .then((res) => {
+            if (res?.data) {
+              useNotificationStore.getState().setNotifications(res.data, res.unread_count);
+            }
+          })
+          .catch(() => {});
 
         // If message is from someone else
         if (message.sender_id !== user?.id) {
@@ -175,11 +182,6 @@ function SocketManager() {
             return;
           }
           processedMessageIdsRef.current.add(message.id);
-
-          // Increment notification bell active number
-          useNotificationStore.getState().setUnreadCount(
-            (useNotificationStore.getState().unreadCount || 0) + 1
-          );
 
           // Direct visible popup notification alert wherever the user is on the site
           if (!window.location.pathname.includes(`/inbox/${conversationId}`)) {
@@ -203,10 +205,14 @@ function SocketManager() {
     const handleNewNotification = (data) => {
       if (data?.type === 'chat_message') return;
 
-      useNotificationStore.getState().setUnreadCount(
-        (useNotificationStore.getState().unreadCount || 0) + 1
-      );
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      NotificationService.getAll({ page: 1, limit: 10 })
+        .then((res) => {
+          if (res?.data) {
+            useNotificationStore.getState().setNotifications(res.data, res.unread_count);
+          }
+        })
+        .catch(() => {});
     };
 
     const handleTyping = ({ conversationId, userId }) => {
