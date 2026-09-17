@@ -28,20 +28,16 @@ const StoreCard = memo(function StoreCard({ store, variant = 'default' }) {
             {store.location_city || 'Location not set'}
           </p>
         </div>
-        {store.average_rating > 0 && store.total_reviews > 0 ? (
+        {Number(store.average_rating) > 0 && Number(store.total_reviews) > 0 ? (
           <span className="flex items-center gap-0.5">
             <Star size={12} fill="var(--color-warning)" style={{ color: 'var(--color-warning)' }} />
             {formatRating(store.average_rating)}
           </span>
         ) : (
           <span
-            className="rounded-full px-1.5 py-0.5 text-[10px] font-semibold"
-            style={{
-              backgroundColor: 'rgba(91,110,245,0.1)',
-              color: 'var(--color-brand)',
-            }}
+            className="rounded-full px-2 py-0.5 text-[10px] font-semibold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20"
           >
-            New Seller
+            🌱 New Seller
           </span>
         )}
       </Link>
@@ -99,14 +95,20 @@ const StoreCard = memo(function StoreCard({ store, variant = 'default' }) {
             className="flex items-center gap-4 text-xs"
             style={{ color: 'var(--color-text-secondary)' }}
           >
-            <span className="flex items-center gap-1">
-              <Star
-                size={12}
-                style={{ color: 'var(--color-warning)' }}
-                fill="var(--color-warning)"
-              />
-              {formatRating(store.average_rating)}
-            </span>
+            {Number(store.average_rating) > 0 && Number(store.total_reviews) > 0 ? (
+              <span className="flex items-center gap-1">
+                <Star
+                  size={12}
+                  style={{ color: 'var(--color-warning)' }}
+                  fill="var(--color-warning)"
+                />
+                {formatRating(store.average_rating)}
+              </span>
+            ) : (
+              <span className="text-[10px] font-semibold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20">
+                🌱 New Seller
+              </span>
+            )}
             <span className="flex items-center gap-1">
               <ShoppingBag size={12} />
               {formatCompactNumber(store.total_sales)} sales

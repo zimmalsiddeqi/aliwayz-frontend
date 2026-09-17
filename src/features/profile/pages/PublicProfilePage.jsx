@@ -356,9 +356,9 @@ const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'http://localhost:5174';
               {
                 label: 'Rating',
                 value:
-                  stats.average_rating > 0 && stats.total_reviews > 0
+                  Number(stats.average_rating) > 0 && Number(stats.total_reviews) > 0
                     ? formatRating(stats.average_rating)
-                    : 'New',
+                    : '🌱 New Seller',
                 icon: Star,
               },
               {

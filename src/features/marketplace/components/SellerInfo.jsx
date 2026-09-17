@@ -21,10 +21,17 @@ export default function SellerInfo({ store, seller }) {
             {store.is_verified && <ShieldCheck size={14} style={{ color: 'var(--color-info)' }} />}
           </div>
           <div className="flex items-center gap-3 mt-1 text-xs" style={{ color: 'var(--color-text-muted)' }}>
-            <span className="flex items-center gap-0.5">
-              <Star size={11} fill="var(--color-warning)" style={{ color: 'var(--color-warning)' }} />
-              {formatRating(store.average_rating)}
-            </span>
+            {Number(store.average_rating) > 0 && Number(store.total_reviews) > 0 ? (
+              <span className="flex items-center gap-0.5">
+                <Star size={11} fill="var(--color-warning)" style={{ color: 'var(--color-warning)' }} />
+                {formatRating(store.average_rating)}
+                <span className="text-[10px] text-muted">({store.total_reviews})</span>
+              </span>
+            ) : (
+              <span className="rounded-full px-1.5 py-0.2 text-[10px] font-semibold text-emerald-500 bg-emerald-500/10">
+                🌱 New Seller
+              </span>
+            )}
             {seller?.location_city && (
               <span className="flex items-center gap-0.5"><MapPin size={11} />{seller.location_city}</span>
             )}

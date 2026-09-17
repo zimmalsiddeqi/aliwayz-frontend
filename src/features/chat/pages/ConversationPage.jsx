@@ -37,7 +37,7 @@ import Button from '@components/ui/Button';
 import Modal from '@components/ui/Modal';
 import { cn, formatChatTime, isSeller, getErrorMessage } from '@lib/utils';
 import { getOtherParticipant, getPrimaryImage } from '@utils/helpers';
-import { formatPrice } from '@utils/formatters';
+import { formatPrice, formatRating } from '@utils/formatters';
 import toast from '@lib/toast';
 
 export default function ConversationPage() {
@@ -104,6 +104,14 @@ export default function ConversationPage() {
   const isProductBuyer = user?.id === conversation?.buyer_id;
   const isCompleted = conversation?.status === 'completed' || saleCompleted;
   const isOtherOnline = other?.id ? onlineUsers.has(other.id) : false;
+
+  const isOtherSeller = Boolean(conversation && (conversation.seller_id === other?.id || conversation.buyer_id === user?.id));
+  const rawSellerStore = product?.stores || (conversation?.seller?.stores ? (Array.isArray(conversation.seller.stores) ? conversation.seller.stores[0] : conversation.seller.stores) : null);
+  const sellerStore = rawSellerStore || (conversation?.seller_store || null);
+
+  const displayProfileLink = isOtherSeller && sellerStore?.slug ? `/store/${sellerStore.slug}` : (isOtherSeller && sellerStore?.id ? `/store/${sellerStore.id}` : (other?.username ? `/user/${other.username}` : '#'));
+  const displayName = isOtherSeller && sellerStore?.store_name ? sellerStore.store_name : (other?.username || 'User');
+  const displayAvatar = isOtherSeller && sellerStore?.logo_url ? sellerStore.logo_url : other?.avatar_url;
 
   const handleOpenReviewModal = useCallback(() => {
     let currentTId = transactionId;
@@ -382,7 +390,7 @@ export default function ConversationPage() {
   return (
     <>
       <Helmet>
-        <title>{other?.username || 'Chat'} — Aliwayz</title>
+        <title>{displayName || 'Chat'} — Aliwayz</title>
       </Helmet>
 
       <div
@@ -409,26 +417,44 @@ export default function ConversationPage() {
             <ArrowLeft size={20} />
           </button>
 
-          {/* User info */}
+          {/* User / Store info */}
           <Link
-            to={`/user/${other?.username}`}
-            className="flex min-w-0 flex-1 items-center gap-2 sm:gap-2.5"
+            to={displayProfileLink}
+            className="flex min-w-0 flex-1 items-center gap-2 sm:gap-2.5 hover:opacity-90 transition-opacity"
           >
             <div className="relative flex-shrink-0">
               <Avatar
-                src={other?.avatar_url}
-                name={other?.username}
+                src={displayAvatar}
+                name={displayName}
                 size="sm"
                 online={isOtherOnline}
               />
             </div>
             <div className="min-w-0">
-              <h3
-                className="truncate text-sm font-semibold"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
-                {other?.username || 'User'}
-              </h3>
+              <div className="flex items-center gap-1.5 min-w-0">
+                <h3
+                  className="truncate text-sm font-semibold"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
+                  {displayName}
+                </h3>
+                {isOtherSeller && sellerStore?.is_verified && (
+                  <span className="text-xs flex-shrink-0" title="Verified Store">✅</span>
+                )}
+                {isOtherSeller && (
+                  Number(sellerStore?.average_rating) > 0 && Number(sellerStore?.total_reviews) > 0 ? (
+                    <span className="flex items-center gap-0.5 text-[10px] font-semibold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded flex-shrink-0">
+                      <Star size={10} fill="currentColor" />
+                      {formatRating(sellerStore.average_rating)}
+                      <span className="text-[9px] text-muted font-normal">({sellerStore.total_reviews})</span>
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex-shrink-0">
+                      🌱 New Seller
+                    </span>
+                  )
+                )}
+              </div>
 
               {/* Status line: strictly Online / Offline / typing... */}
               <div className="flex items-center gap-1.5">
@@ -465,6 +491,9 @@ export default function ConversationPage() {
                   >
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     Online
+                    {isOtherSeller && sellerStore?.location_city && (
+                      <span className="text-[10px] text-muted font-normal ml-1">· {sellerStore.location_city}</span>
+                    )}
                   </p>
                 ) : (
                   <p
@@ -473,6 +502,9 @@ export default function ConversationPage() {
                   >
                     <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
                     Offline
+                    {isOtherSeller && sellerStore?.location_city && (
+                      <span className="text-[10px] text-muted font-normal ml-1">· {sellerStore.location_city}</span>
+                    )}
                   </p>
                 )}
               </div>
@@ -692,7 +724,11 @@ export default function ConversationPage() {
                     message={msg}
                     isMine={isMine}
                     showAvatar={showAvatar}
-                    sender={msg.sender}
+                    sender={{
+                      ...msg.sender,
+                      avatar_url: isOtherSeller && sellerStore?.logo_url ? sellerStore.logo_url : msg.sender?.avatar_url,
+                      username: isOtherSeller && sellerStore?.store_name ? sellerStore.store_name : msg.sender?.username,
+                    }}
                     onScanClick={handleQRBubbleScan}
                   />
                 );
@@ -709,8 +745,8 @@ export default function ConversationPage() {
                 >
                   {!isMine && showAvatar && (
                     <Avatar
-                      src={msg.sender?.avatar_url}
-                      name={msg.sender?.username}
+                      src={isOtherSeller && sellerStore?.logo_url ? sellerStore.logo_url : msg.sender?.avatar_url}
+                      name={isOtherSeller && sellerStore?.store_name ? sellerStore.store_name : msg.sender?.username}
                       size="xs"
                       className="mt-1 flex-shrink-0"
                     />
@@ -1008,6 +1044,7 @@ export default function ConversationPage() {
           onClose={() => setShowReviewModal(false)}
           transactionId={transactionId}
           reviewerType={isProductBuyer ? 'buyer' : 'seller'}
+          sellerStore={sellerStore}
         />
       )}
     </>
@@ -1505,7 +1542,7 @@ function QRScannerModal({ isOpen, onClose, prefillToken, productId, onSuccess })
 // ──────────────────────────────────────────────────────────────
 // REVIEW MODAL
 // ──────────────────────────────────────────────────────────────
-function ReviewModal({ isOpen, onClose, transactionId, reviewerType }) {
+function ReviewModal({ isOpen, onClose, transactionId, reviewerType, sellerStore }) {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [tags, setTags] = useState({});
@@ -1563,8 +1600,20 @@ function ReviewModal({ isOpen, onClose, transactionId, reviewerType }) {
     onError: (err) => toast.error(getErrorMessage(err)),
   });
 
+  const modalTitle =
+    reviewerType === 'buyer' && sellerStore?.store_name
+      ? `Review ${sellerStore.store_name}`
+      : reviewerType === 'buyer'
+      ? 'Review Seller Store'
+      : 'Review Buyer';
+
+  const modalDescription =
+    reviewerType === 'buyer' && sellerStore?.store_name
+      ? `Your review will be added directly to ${sellerStore.store_name}'s store profile.`
+      : 'Rate your experience to build marketplace trust.';
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Leave a Review" size="sm">
+    <Modal isOpen={isOpen} onClose={onClose} title={modalTitle} description={modalDescription} size="sm">
       <div className="mt-4 space-y-5">
         {/* Stars */}
         <div className="space-y-2 text-center">

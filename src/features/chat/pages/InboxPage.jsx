@@ -91,8 +91,14 @@ export default function InboxPage() {
   const filteredConversations = searchQuery
     ? conversations.filter((conv) => {
         const other = getOtherParticipant(conv, user?.id);
+        const isOtherSeller = conv.seller_id === other?.id || conv.buyer_id === user?.id;
+        const rawSellerStore = conv.products?.stores || (conv.seller?.stores ? (Array.isArray(conv.seller.stores) ? conv.seller.stores[0] : conv.seller.stores) : null);
+        const sellerStore = rawSellerStore || conv.seller_store || null;
+        const storeName = (isOtherSeller && sellerStore?.store_name) ? sellerStore.store_name.toLowerCase() : '';
+
         return (
           other?.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          storeName.includes(searchQuery.toLowerCase()) ||
           conv.products?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           conv.last_message_preview?.toLowerCase().includes(searchQuery.toLowerCase())
         );
@@ -151,6 +157,13 @@ export default function InboxPage() {
               const isOnline = other?.id ? onlineUsers.has(other.id) : false;
               const isCompleted = conv.status === 'completed';
 
+              const isOtherSeller = Boolean(conv.seller_id === other?.id || conv.buyer_id === user?.id);
+              const rawSellerStore = product?.stores || (conv.seller?.stores ? (Array.isArray(conv.seller.stores) ? conv.seller.stores[0] : conv.seller.stores) : null);
+              const sellerStore = rawSellerStore || conv.seller_store || null;
+
+              const displayName = isOtherSeller && sellerStore?.store_name ? sellerStore.store_name : (other?.username || 'User');
+              const displayAvatar = isOtherSeller && sellerStore?.logo_url ? sellerStore.logo_url : other?.avatar_url;
+
               return (
                 <motion.div
                   key={conv.id}
@@ -164,15 +177,18 @@ export default function InboxPage() {
                     className={cn('flex items-center gap-3 p-3.5 rounded-2xl transition-all duration-200 hover:bg-[var(--glass-bg-strong)]', unread > 0 && 'bg-[var(--glass-bg)]')}
                   >
                     <div className="relative flex-shrink-0">
-                      <Avatar src={other?.avatar_url} name={other?.username} size="md" online={isOnline} />
+                      <Avatar src={displayAvatar} name={displayName} size="md" online={isOnline} />
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-1.5 min-w-0">
                           <h4 className={cn('text-sm truncate', unread > 0 ? 'font-bold' : 'font-medium')} style={{ color: 'var(--color-text-primary)' }}>
-                            {other?.username || 'User'}
+                            {displayName}
                           </h4>
+                          {isOtherSeller && sellerStore?.is_verified && (
+                            <span className="text-xs flex-shrink-0" title="Verified Store">✅</span>
+                          )}
                           {isOnline && (
                             <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ backgroundColor: 'rgba(16,185,129,0.15)', color: 'var(--color-success)' }}>
                               Online

@@ -4,7 +4,12 @@ import { formatRating, formatCompactNumber } from '@utils/formatters';
 
 export default function StoreStats({ store }) {
   const stats = [
-    { label: 'Rating',    value: formatRating(store.average_rating),              icon: Star,       color: 'var(--color-warning)' },
+    {
+      label: 'Rating',
+      value: Number(store.average_rating) > 0 && Number(store.total_reviews) > 0 ? formatRating(store.average_rating) : '🌱 New Seller',
+      icon: Star,
+      color: 'var(--color-warning)',
+    },
     { label: 'Sales',     value: formatCompactNumber(store.total_sales),           icon: ShoppingBag, color: 'var(--color-success)' },
     { label: 'Followers', value: formatCompactNumber(store.total_followers),       icon: Users,      color: 'var(--color-info)' },
     { label: 'Reviews',   value: formatCompactNumber(store.total_reviews),         icon: Star,       color: '#8B5CF6' },

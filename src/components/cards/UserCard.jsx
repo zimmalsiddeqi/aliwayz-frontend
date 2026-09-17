@@ -65,11 +65,17 @@ export default function UserCard({ user, variant = 'default' }) {
 
         {user.seller_stats && (
           <div className="flex justify-center gap-4 mt-3 text-xs" style={{ color: 'var(--color-text-muted)' }}>
-            <span className="flex items-center gap-0.5">
-              <Star size={11} style={{ color: 'var(--color-warning)' }} fill="var(--color-warning)" />
-              {formatRating(user.seller_stats.average_rating)}
-            </span>
-            <span>{user.seller_stats.total_sales} sales</span>
+            {Number(user.seller_stats.average_rating) > 0 && Number(user.seller_stats.total_reviews) > 0 ? (
+              <span className="flex items-center gap-0.5">
+                <Star size={11} style={{ color: 'var(--color-warning)' }} fill="var(--color-warning)" />
+                {formatRating(user.seller_stats.average_rating)}
+              </span>
+            ) : (
+              <span className="text-[10px] font-semibold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.2 rounded-full">
+                🌱 New Seller
+              </span>
+            )}
+            <span>{user.seller_stats.total_sales || 0} sales</span>
           </div>
         )}
       </Link>

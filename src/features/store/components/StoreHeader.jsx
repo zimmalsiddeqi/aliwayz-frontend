@@ -35,10 +35,16 @@ export default function StoreHeader({ store }) {
           {store.location_city && (
             <span className="flex items-center gap-1"><MapPin size={12} />{store.location_city}</span>
           )}
-          <span className="flex items-center gap-1">
-            <Star size={12} fill="var(--color-warning)" style={{ color: 'var(--color-warning)' }} />
-            {formatRating(store.average_rating)} ({store.total_reviews})
-          </span>
+          {Number(store.average_rating) > 0 && Number(store.total_reviews) > 0 ? (
+            <span className="flex items-center gap-1">
+              <Star size={12} fill="var(--color-warning)" style={{ color: 'var(--color-warning)' }} />
+              {formatRating(store.average_rating)} ({store.total_reviews})
+            </span>
+          ) : (
+            <span className="font-semibold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+              🌱 New Seller
+            </span>
+          )}
           <span className="flex items-center gap-1"><ShoppingBag size={12} />{formatCompactNumber(store.total_sales)} sales</span>
           <span className="flex items-center gap-1"><Users size={12} />{formatCompactNumber(store.total_followers)} followers</span>
         </div>
