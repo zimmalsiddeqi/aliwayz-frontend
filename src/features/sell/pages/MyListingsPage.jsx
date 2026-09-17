@@ -27,6 +27,7 @@ import PageHeader from '@components/common/PageHeader';
 import EmptyState from '@components/common/EmptyState';
 import ListingQRModal from '@components/modals/ListingQRModal';
 import { CATEGORY_IDS } from '@utils/constants';
+import { getProductUrl } from '@utils/categoryHelpers';
 import Spinner from '@components/ui/Spinner';
 import { cn, formatPrice, getStatusColor, getErrorMessage } from '@lib/utils';
 import { formatRelativeTime, formatCompactNumber } from '@utils/formatters';
@@ -244,7 +245,7 @@ export default function MyListingsPage() {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                       {/* Left: Product Thumbnail & Details */}
                       <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <Link to={`/product/${product.id}`} className="flex-shrink-0">
+                        <Link to={getProductUrl(product)} className="flex-shrink-0">
                           {image ? (
                             <img
                               src={image}
@@ -263,7 +264,7 @@ export default function MyListingsPage() {
 
                         <div className="min-w-0 flex-1">
                           <div className="flex items-start justify-between gap-2">
-                            <Link to={`/product/${product.id}`} className="min-w-0 flex-1">
+                            <Link to={getProductUrl(product)} className="min-w-0 flex-1">
                               <h4
                                 className="truncate text-sm font-semibold hover:text-[var(--color-brand)] transition-colors"
                                 style={{ color: 'var(--color-text-primary)' }}
@@ -312,7 +313,7 @@ export default function MyListingsPage() {
                           title="Click to view full flyer / print"
                         >
                           <QRCodeSVG
-                            value={`${window.location.origin}/product/${product.id}`}
+                            value={`${window.location.origin}${getProductUrl(product)}`}
                             size={68}
                             level="M"
                           />
@@ -335,7 +336,7 @@ export default function MyListingsPage() {
                             size="sm"
                             variant="outline"
                             leftIcon={<Eye size={13} />}
-                            onClick={() => navigate(`/product/${product.id}`)}
+                            onClick={() => navigate(getProductUrl(product))}
                             className="flex-1 sm:flex-initial justify-center text-xs h-9 sm:h-8"
                           >
                             View Listing
@@ -347,7 +348,7 @@ export default function MyListingsPage() {
                     /* Non-QR tabs */
                     <div className="flex items-center gap-3 sm:gap-4">
                       {/* Image */}
-                      <Link to={`/product/${product.id}`} className="flex-shrink-0">
+                      <Link to={getProductUrl(product)} className="flex-shrink-0">
                         {image ? (
                           <img
                             src={image}
@@ -367,7 +368,7 @@ export default function MyListingsPage() {
                       {/* Info */}
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-2">
-                          <Link to={`/product/${product.id}`} className="min-w-0 flex-1">
+                          <Link to={getProductUrl(product)} className="min-w-0 flex-1">
                             <h4
                               className="truncate text-sm font-semibold hover:text-[var(--color-brand)] transition-colors"
                               style={{ color: 'var(--color-text-primary)' }}
@@ -439,7 +440,7 @@ export default function MyListingsPage() {
                                   {
                                     icon: <Eye size={14} />,
                                     label: 'View',
-                                    onClick: () => navigate(`/product/${product.id}`),
+                                    onClick: () => navigate(getProductUrl(product)),
                                   },
                                   { divider: true },
                                   {
@@ -461,7 +462,7 @@ export default function MyListingsPage() {
                                   {
                                     icon: <Eye size={14} />,
                                     label: 'View',
-                                    onClick: () => navigate(`/product/${product.id}`),
+                                    onClick: () => navigate(getProductUrl(product)),
                                   },
                                   {
                                     icon: <QrCode size={14} />,

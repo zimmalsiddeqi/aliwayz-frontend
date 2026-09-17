@@ -5,9 +5,10 @@
  * Used with the SEOHead component's `structuredData` prop.
  */
 
+import { getProductUrl } from '@utils/categoryHelpers';
+
 const SITE_URL = 'https://aliwayz.com';
 const SITE_NAME = 'Aliwayz';
-const ORG_NAME = 'Aliwayz LLC';
 const LOGO_URL = `${SITE_URL}/logo.png`;
 
 /**
@@ -85,7 +86,7 @@ export function buildProductSchema(product) {
     sku: product.id,
     offers: {
       '@type': 'Offer',
-      url: `${SITE_URL}/product/${product.id}`,
+      url: `${SITE_URL}${getProductUrl(product)}`,
       priceCurrency: product.currency || 'USD',
       price: product.price || 0,
       itemCondition: CONDITION_MAP[product.condition] || 'https://schema.org/UsedCondition',
@@ -279,7 +280,7 @@ export function buildCollectionPageSchema(name, url, products) {
       itemListElement: products.slice(0, 10).map((product, index) => ({
         '@type': 'ListItem',
         position: index + 1,
-        url: `${SITE_URL}/product/${product.id}`,
+        url: `${SITE_URL}${getProductUrl(product)}`,
         name: product.title,
       })),
     };

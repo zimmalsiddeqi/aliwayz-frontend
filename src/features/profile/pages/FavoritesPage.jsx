@@ -32,6 +32,7 @@ import {
   getErrorMessage,
 } from '@lib/utils';
 import { getPrimaryImage } from '@utils/helpers';
+import { getProductUrl } from '@utils/categoryHelpers';
 import { formatRelativeTime } from '@utils/formatters';
 import toast from '@lib/toast';
 
@@ -234,7 +235,7 @@ export default function FavoritesPage() {
                       <Card className="p-3 sm:p-4">
                         <div className="flex gap-3 sm:gap-4">
                           <Link
-                            to={`/product/${product.id}`}
+                            to={getProductUrl(product)}
                             className="flex-shrink-0"
                           >
                             {image ? (
@@ -260,7 +261,7 @@ export default function FavoritesPage() {
 
                           <div className="flex-1 min-w-0">
                             <Link
-                              to={`/product/${product.id}`}
+                              to={getProductUrl(product)}
                             >
                               <h4
                                 className="font-semibold text-sm truncate hover:underline"

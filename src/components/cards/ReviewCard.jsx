@@ -5,6 +5,7 @@ import Avatar from '@components/ui/Avatar';
 import { cn } from '@lib/utils';
 import { formatRelativeTime } from '@utils/formatters';
 import { BUYER_REVIEW_TAGS, SELLER_REVIEW_TAGS } from '@utils/constants';
+import { getProductUrl } from '@utils/categoryHelpers';
 
 export default function ReviewCard({ review, showProduct = false }) {
   const reviewer   = review.reviewer;
@@ -78,7 +79,7 @@ export default function ReviewCard({ review, showProduct = false }) {
       {/* Product */}
       {showProduct && product && (
         <Link
-          to={`/product/${product.id}`}
+          to={getProductUrl(product)}
           className="flex items-center gap-2 pt-2"
           style={{ borderTop: '1px solid var(--color-border-subtle)' }}
         >

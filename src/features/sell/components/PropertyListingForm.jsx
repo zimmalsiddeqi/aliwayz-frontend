@@ -25,6 +25,7 @@ import {
 } from '@utils/constants';
 import toast from '@lib/toast';
 import ListingQRModal from '@components/modals/ListingQRModal';
+import { getProductUrl } from '@utils/categoryHelpers';
 
 export default function PropertyListingForm({ store, intent = 'sale', propertyType = 'single_family', onBack, wantedContext }) {
   const queryClient = useQueryClient();
@@ -738,10 +739,10 @@ export default function PropertyListingForm({ store, intent = 'sale', propertyTy
       <ListingQRModal
         isOpen={!!publishedProduct}
         onClose={() => {
-          const pId = publishedProduct?.id;
+          const prod = publishedProduct;
           setPublishedProduct(null);
-          if (pId) {
-            navigate(`/product/${pId}`);
+          if (prod) {
+            navigate(getProductUrl(prod));
           }
         }}
         product={publishedProduct}

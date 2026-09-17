@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import SEOHead from '@components/seo/SEOHead';
@@ -42,7 +42,15 @@ import {
 import { formatDate, formatCompactNumber, formatRating } from '@utils/formatters';
 import { getPrimaryImage, getAllImageUrls } from '@utils/helpers';
 import toast from '@lib/toast';
-import { parsePropertyDescription, stripPrivateTags, getCleanDescriptionText, parseDescriptionSpecs } from '@utils/categoryHelpers';
+import {
+  parsePropertyDescription,
+  stripPrivateTags,
+  getCleanDescriptionText,
+  parseDescriptionSpecs,
+  getProductUrl,
+  isAutomotiveProduct,
+  isRealEstateProduct,
+} from '@utils/categoryHelpers';
 import { CATEGORY_IDS } from '@utils/constants';
 import ListingStructuredOverview from '../components/ListingStructuredOverview';
 
@@ -77,9 +85,20 @@ export default function ProductDetailPage() {
 
   const product = productData?.data;
 
+  // ── Sync URL to clean canonical keyword slug ───────────
+  useEffect(() => {
+    if (product) {
+      const canonical = getProductUrl(product);
+      if (canonical && window.location.pathname !== canonical) {
+        window.history.replaceState(null, '', canonical);
+      }
+    }
+  }, [product]);
+
   // ── Favorite toggle ────────────────────────────────────
-  const isFav = useFavoritesStore((s) => s.ids.has(id));
-  const isPending = useFavoritesStore((s) => s.pendingIds.has(id));
+  const productId = product?.id || id;
+  const isFav = useFavoritesStore((s) => s.ids.has(productId));
+  const isPending = useFavoritesStore((s) => s.pendingIds.has(productId));
   const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
 
   const handleFavorite = async () => {
@@ -90,13 +109,16 @@ export default function ProductDetailPage() {
     if (isPending) return;
 
     try {
-      const res = await toggleFavorite(id);
+      const res = await toggleFavorite(productId);
       if (res?.action === 'added') {
         toast.success('❤️ Added to Favorites', { duration: 1000, hideProgress: true });
       } else if (res?.action === 'removed') {
         toast.success('💔 Removed from Favorites', { duration: 1000, hideProgress: true });
       }
       queryClient.invalidateQueries({ queryKey: queryKeys.products.byId(id) });
+      if (productId && productId !== id) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.products.byId(productId) });
+      }
       queryClient.invalidateQueries({ queryKey: ['favorites'] });
       queryClient.invalidateQueries({ queryKey: queryKeys.users.favorites() });
     } catch (err) {
@@ -155,16 +177,19 @@ export default function ProductDetailPage() {
   const isOwner = user?.id === seller?.id;
   const isAvailable = product.status === 'available';
 
+  const canonicalPath = getProductUrl(product);
+  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}${canonicalPath}` : canonicalPath;
+
   // ── Share handler ──────────────────────────────────────
   const handleShare = async () => {
     try {
       await navigator.share({
         title: product.title,
         text: `Check out ${product.title} on Aliwayz`,
-        url: window.location.href,
+        url: shareUrl,
       });
     } catch {
-      navigator.clipboard.writeText(window.location.href);
+      navigator.clipboard.writeText(shareUrl);
       toast.success('Link copied!');
     }
   };
@@ -175,13 +200,21 @@ export default function ProductDetailPage() {
   const primaryImageUrl = product.product_images?.find((img) => img.is_primary)?.cdn_url
     || product.product_images?.[0]?.cdn_url
     || images[0];
+
+  const isAuto = isAutomotiveProduct(product);
+  const isRE = isRealEstateProduct(product);
+
   const productBreadcrumbs = [
     { name: 'Home', url: '/' },
-    {
-      name: product.categories?.name || 'Marketplace',
-      url: product.categories?.slug ? `/category/${product.categories.slug}` : '/marketplace',
-    },
-    { name: product.title, url: `/product/${product.id}` },
+    isAuto
+      ? { name: 'Vehicles', url: '/vehicles' }
+      : isRE
+      ? { name: 'Real Estate', url: '/real-estate' }
+      : {
+          name: product.categories?.name || 'Marketplace',
+          url: product.categories?.slug ? `/category/${product.categories.slug}` : '/marketplace',
+        },
+    { name: product.title, url: canonicalPath },
   ];
 
   return (
@@ -189,7 +222,7 @@ export default function ProductDetailPage() {
       <SEOHead
         title={`${product.title}${product.price ? ` — $${Number(product.price).toLocaleString()}` : ''} — Aliwayz`}
         description={cleanDescription}
-        canonical={`/product/${product.id}`}
+        canonical={canonicalPath}
         ogType="product"
         ogImage={primaryImageUrl}
         ogImageAlt={product.title}
@@ -888,7 +921,7 @@ export default function ProductDetailPage() {
                     onClick={() => {
                       if (!selectedMessage.trim()) return;
                       startChatMutation.mutate({
-                        product_id: id,
+                        product_id: product?.id || id,
                         initial_message: selectedMessage.trim(),
                       });
                     }}

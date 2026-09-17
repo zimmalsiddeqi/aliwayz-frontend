@@ -176,6 +176,8 @@ const router = createBrowserRouter(
 
         // Public
         { path: '/marketplace', element: <MarketplacePage /> },
+        { path: '/vehicles/:id', element: <ProductDetailPage /> },
+        { path: '/real-estate/:id', element: <ProductDetailPage /> },
         { path: '/product/:id', element: <ProductDetailPage /> },
         { path: '/category/:slug', element: <CategoryPage /> },
         { path: '/search', element: <SearchPage /> },

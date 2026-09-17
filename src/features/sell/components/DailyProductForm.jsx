@@ -28,6 +28,7 @@ import {
   getProductListingLocation,
 } from '@utils/helpers';
 import { ITEM_CONDITIONS, MAX_PRODUCT_IMAGES, CATEGORY_IDS } from '@utils/constants';
+import { getProductUrl } from '@utils/categoryHelpers';
 import toast from '@lib/toast';
 
 export default function DailyProductForm({ store, wantedContext }) {
@@ -163,7 +164,7 @@ export default function DailyProductForm({ store, wantedContext }) {
         toast.success('Item listed! 🛒');
       }
 
-      navigate(`/product/${product.id}`);
+      navigate(getProductUrl(product));
     },
     onError: (err) => {
       toast.error(getErrorMessage(err));

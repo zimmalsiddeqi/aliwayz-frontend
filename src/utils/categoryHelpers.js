@@ -453,3 +453,102 @@ export function parseStructuredListingData(description = '', categoryId = null, 
 
   return result;
 }
+
+/**
+ * Check if a product is in the Real Estate category based on IDs, metadata, and description tags
+ */
+export function isRealEstateProduct(product) {
+  if (!product) return false;
+  const catId = product.category_id || product.category?.id || product.categories?.id;
+  const parentId = product.category?.parent_id || product.categories?.parent_id;
+  const catName = (product.category?.name || product.categories?.name || product.category_name || '').toLowerCase();
+  const catSlug = (product.category?.slug || product.categories?.slug || product.category_slug || '').toLowerCase();
+  const desc = product.description || '';
+  const title = (product.title || '').toLowerCase();
+
+  return (
+    catId === CATEGORY_IDS.PROPERTY ||
+    catId === CATEGORY_IDS.REAL_ESTATE ||
+    parentId === CATEGORY_IDS.PROPERTY ||
+    parentId === CATEGORY_IDS.REAL_ESTATE ||
+    catName.includes('real estate') ||
+    catName.includes('property') ||
+    catName.includes('housing') ||
+    catName.includes('rent') ||
+    catName.includes('apartment') ||
+    catSlug.includes('real-estate') ||
+    catSlug.includes('property') ||
+    catSlug.includes('housing') ||
+    catSlug.includes('rent') ||
+    catSlug.includes('apartment') ||
+    desc.includes('[Property_Type]') ||
+    desc.includes('[Intent]') ||
+    desc.includes('Listing: For Rent') ||
+    desc.includes('Listing: For Lease') ||
+    desc.includes('Listing: Vacation') ||
+    desc.includes('[Private_Address]') ||
+    /Beds?:\s*[^\n]+/i.test(desc) ||
+    /Bathrooms?:\s*[^\n]+/i.test(desc) ||
+    /Property Type:\s*[^\n]+/i.test(desc) ||
+    /(\b(apartment|condo|condominium|villa|house|townhouse|penthouse|studio|office space|commercial space|for rent|for sale|for lease)\b)/i.test(title)
+  );
+}
+
+/**
+ * Check if a product is in the Automotive/Vehicles category based on IDs, metadata, and description tags
+ */
+export function isAutomotiveProduct(product) {
+  if (!product) return false;
+  if (isRealEstateProduct(product)) return false;
+
+  const catId = product.category_id || product.category?.id || product.categories?.id;
+  const parentId = product.category?.parent_id || product.categories?.parent_id;
+  const catName = (product.category?.name || product.categories?.name || product.category_name || '').toLowerCase();
+  const catSlug = (product.category?.slug || product.categories?.slug || product.category_slug || '').toLowerCase();
+  const desc = product.description || '';
+  const title = (product.title || '').toLowerCase();
+
+  return (
+    catId === CATEGORY_IDS.VEHICLES ||
+    catId === CATEGORY_IDS.AUTOMOTIVE ||
+    parentId === CATEGORY_IDS.VEHICLES ||
+    parentId === CATEGORY_IDS.AUTOMOTIVE ||
+    catName.includes('vehicle') ||
+    catName.includes('car') ||
+    catName.includes('auto') ||
+    catName.includes('truck') ||
+    catName.includes('motorcycle') ||
+    catSlug.includes('vehicle') ||
+    catSlug.includes('car') ||
+    catSlug.includes('auto') ||
+    /Mileage:\s*[^\n]+/i.test(desc) ||
+    /Transmission:\s*[^\n]+/i.test(desc) ||
+    /Drivetrain:\s*[^\n]+/i.test(desc) ||
+    /VIN:\s*[^\n]+/i.test(desc) ||
+    /Make:\s*[^\n]+/i.test(desc) ||
+    /Model:\s*[^\n]+/i.test(desc) ||
+    /(\b(bmw|mercedes|toyota|honda|ford|nissan|audi|tesla|hyundai|kia|chevrolet|chevy|jeep|lexus|mazda|subaru|dodge|porsche|volkswagen|vw|volvo|land rover|gmc|ram|chrysler|cadillac|infiniti|acura|mitsubishi|sedan|suv|coupe|truck|convertible|hatchback|crossover|civic|corolla|camry|accord|mustang|f-150|silverado)\b)/i.test(title) ||
+    /(\b(bmw|mercedes|toyota|honda|ford|nissan|audi|tesla|hyundai|kia|chevrolet|chevy|jeep|lexus|mazda|subaru|dodge|porsche|volkswagen|vw|volvo|land rover|gmc|ram|chrysler|cadillac|infiniti|acura|mitsubishi|sedan|suv|coupe|truck|convertible|hatchback|crossover|civic|corolla|camry|accord|mustang|f-150|silverado)\b)/i.test(catSlug)
+  );
+}
+
+/**
+ * Generate clean SEO URL for a product with hub-prefix and keyword slug:
+ * - Automotive: /vehicles/:slug
+ * - Real Estate: /real-estate/:slug
+ * - Marketplace: /product/:slug
+ * Safely falls back to product.id when product.slug is not yet generated.
+ */
+export function getProductUrl(product) {
+  if (!product) return '/marketplace';
+  const identifier = product.slug || product.id;
+  if (!identifier) return '/marketplace';
+
+  if (isAutomotiveProduct(product)) {
+    return `/vehicles/${identifier}`;
+  }
+  if (isRealEstateProduct(product)) {
+    return `/real-estate/${identifier}`;
+  }
+  return `/product/${identifier}`;
+}

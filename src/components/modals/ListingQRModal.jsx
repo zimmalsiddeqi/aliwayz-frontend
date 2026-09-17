@@ -4,6 +4,7 @@ import { X, Download, Printer } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Button from '@components/ui/Button';
 import { CATEGORY_IDS } from '@utils/constants';
+import { getProductUrl } from '@utils/categoryHelpers';
 
 const ListingQRModal = ({ isOpen, onClose, product }) => {
   const qrRef = useRef(null);
@@ -18,7 +19,7 @@ const ListingQRModal = ({ isOpen, onClose, product }) => {
   const itemType = isAutomotive ? "VEHICLE" : isRealEstate ? "PROPERTY" : "ITEM";
 
   // URL pointing to the product
-  const listingUrl = `${window.location.origin}/product/${product.id}`;
+  const listingUrl = `${window.location.origin}${getProductUrl(product)}`;
 
   const formattedPrice = `${product.currency || '$'}${Number(product.price || 0).toLocaleString('en-US')}`;
 

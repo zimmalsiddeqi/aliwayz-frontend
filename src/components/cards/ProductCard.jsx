@@ -9,10 +9,9 @@ import useInterestStore from '@store/interest.store';
 import ProductService from '@api/services/product.service';
 import BadgeUI from '@components/ui/Badge';
 import { cn, formatPrice, formatRelativeTime, getConditionLabel, getConditionColor } from '@lib/utils';
-import { getPrimaryImage } from '@utils/helpers';
 import { formatCompactNumber } from '@utils/formatters';
 import toast from '@lib/toast';
-import { parsePropertyDescription } from '@utils/categoryHelpers';
+import { parsePropertyDescription, getProductUrl } from '@utils/categoryHelpers';
 import { CATEGORY_IDS } from '@utils/constants';
 import { useFavoritesStore } from '@store/favorites.store';
 
@@ -182,7 +181,7 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
       className="group h-full flex flex-col"
     >
       <Link
-        to={`/product/${product.id}`}
+        to={getProductUrl(product)}
         onClick={() => logView(product.category_id)}
         className="flex flex-col h-full bg-surface border border-border rounded-2xl overflow-hidden hover:border-brand-500/40 hover:shadow-card-hover transition-all duration-300"
       >

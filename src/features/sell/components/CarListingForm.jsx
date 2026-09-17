@@ -19,6 +19,7 @@ import { cn, getErrorMessage } from '@lib/utils';
 import useLocationStore from '@store/location.store';
 import useFormDraft from '@hooks/useFormDraft';
 import { validateImageFile, createFilePreview, revokeFilePreview, getProductListingLocation } from '@utils/helpers';
+import { getProductUrl } from '@utils/categoryHelpers';
 import {
   VEHICLE_MAKES,
   VEHICLE_MODELS,
@@ -626,10 +627,10 @@ export default function CarListingForm({ store, wantedContext }) {
       <ListingQRModal
         isOpen={!!publishedProduct}
         onClose={() => {
-          const pId = publishedProduct?.id;
+          const prod = publishedProduct;
           setPublishedProduct(null);
-          if (pId) {
-            navigate(`/product/${pId}`);
+          if (prod) {
+            navigate(getProductUrl(prod));
           }
         }}
         product={publishedProduct}
