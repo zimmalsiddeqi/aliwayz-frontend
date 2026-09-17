@@ -23,11 +23,11 @@ export default function CopyrightPage() {
       <LegalSection id="copyright-ownership" title="1. Copyright Ownership">
         <p className="mb-4">
           All contents, codebase layouts, design tokens, visual elements, graphics, icons, system databases, 
-          and assets on Aliwayz are the exclusive property of the developer, <strong>Shawkat Ali</strong>, 
+          and assets on Aliwayz are the exclusive property of <strong>Aliwayz LLC</strong>, 
           and are protected by United States and international copyright, trademark, and trade dress laws.
         </p>
         <p>
-          Copyright © 2026 Shawkat Ali. All rights reserved. Any unauthorized reproduction, redistribution, 
+          Copyright © 2026 Aliwayz LLC. All rights reserved. Any unauthorized reproduction, redistribution, 
           or commercial reuse of platform elements is strictly prohibited.
         </p>
       </LegalSection>

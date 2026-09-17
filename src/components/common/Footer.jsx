@@ -379,7 +379,7 @@ export default function Footer() {
               className="flex items-center gap-1 text-xs"
               style={{ color: 'var(--color-text-muted)' }}
             >
-              © {currentYear} Aliwayz. Made with
+              © {currentYear} Aliwayz LLC. All rights reserved. Made with
               <Heart size={10} fill="var(--color-error)" style={{ color: 'var(--color-error)' }} />
               for local communities.
             </p>

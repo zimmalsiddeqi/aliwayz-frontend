@@ -4,7 +4,8 @@
 
 export const SITE_NAME      = 'Aliwayz';
 export const SITE_URL       = 'https://aliwayz.com';
-export const DEVELOPER_NAME = 'Shawkat Ali';
+export const COMPANY_NAME   = 'Aliwayz LLC';
+export const DEVELOPER_NAME = 'Aliwayz LLC';
 export const LAST_UPDATED    = 'October 15, 2026';
 export const LAST_UPDATED_ISO = '2026-10-15';
 export const MIN_AGE        = 18;

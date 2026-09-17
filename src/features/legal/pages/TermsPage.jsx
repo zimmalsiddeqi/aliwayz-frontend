@@ -145,11 +145,11 @@ export default function TermsPage() {
       <LegalSection id="intellectual-property" title="8. Intellectual Property">
         <p className="mb-4">
           The Aliwayz brand name, logo, codebase, visual layouts, styling, icons, database architecture, 
-          and assets are the exclusive property of Shawkat Ali. You are granted a limited, non-exclusive, 
+          and assets are the exclusive property of Aliwayz LLC. All rights are reserved to Aliwayz LLC. You are granted a limited, non-exclusive, 
           revocable license to access the site for personal, non-commercial use.
         </p>
         <p className="mb-4">
-          By posting images or descriptions on the marketplace, you grant Aliwayz a non-exclusive, royalty-free, 
+          By posting images or descriptions on the marketplace, you grant Aliwayz LLC a non-exclusive, royalty-free, 
           worldwide, perpetual license to display, host, and crop your content to facilitate search visibility. 
           You retain full copyright ownership of your original uploaded images.
         </p>
@@ -161,7 +161,7 @@ export default function TermsPage() {
 
       <LegalSection id="limitation-of-liability" title="9. Limitation of Liability">
         <p className="mb-4 uppercase font-bold text-xs" style={{ color: 'var(--color-text-primary)' }}>
-          To the maximum extent permitted by applicable US law, the Aliwayz platform, its developer (Shawkat Ali), 
+          To the maximum extent permitted by applicable US law, the Aliwayz platform, Aliwayz LLC, 
           and related infrastructure operators are provided on an &quot;AS IS&quot; and &quot;AS AVAILABLE&quot; basis, 
           without warranties of any kind.
         </p>
@@ -178,7 +178,7 @@ export default function TermsPage() {
 
       <LegalSection id="indemnification" title="10. Indemnification">
         <p>
-          You agree to defend, indemnify, and hold harmless Aliwayz, its developer Shawkat Ali, and operational service providers 
+          You agree to defend, indemnify, and hold harmless Aliwayz LLC and operational service providers 
           from and against any claims, liabilities, damages, judgments, losses, costs, or expenses (including reasonable attorney fees) 
           arising out of your violation of these Terms & Conditions, your use of the marketplace, your uploaded content, 
           or your physical conduct during transactions.

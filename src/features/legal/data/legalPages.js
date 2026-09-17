@@ -39,6 +39,7 @@ import {
 import {
   SITE_NAME as APP_NAME,
   SITE_URL,
+  COMPANY_NAME,
   DEVELOPER_NAME as DEVELOPER,
   LAST_UPDATED,
   LAST_UPDATED_ISO,
@@ -46,7 +47,7 @@ import {
   SUPPORT_EMAILS,
 } from '../../../config/site.js';
 
-export { APP_NAME, SITE_URL, DEVELOPER, LAST_UPDATED, LAST_UPDATED_ISO, MIN_AGE, SUPPORT_EMAILS };
+export { APP_NAME, SITE_URL, COMPANY_NAME, DEVELOPER, LAST_UPDATED, LAST_UPDATED_ISO, MIN_AGE, SUPPORT_EMAILS };
 export const LEGAL_BASE_URL = `${SITE_URL}/legal`;
 
 // ── Categories ────────────────────────────────────────────────

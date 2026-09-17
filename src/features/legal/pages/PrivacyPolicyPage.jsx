@@ -18,13 +18,13 @@ export default function PrivacyPolicyPage() {
           Effective Date: October 15, 2026
         </p>
         <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-          This Privacy Policy describes our policies and procedures on the collection, use, and disclosure of your information.
+          This Privacy Policy describes how Aliwayz LLC (&quot;Aliwayz&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) collects, uses, and discloses your information across our marketplace services. All rights are reserved to Aliwayz LLC.
         </p>
       </div>
 
       <LegalSection id="information-we-collect" title="1. Information We Collect">
         <p className="mb-4">
-          Aliwayz collects user data to provide a local marketplace connecting buyers and sellers. 
+          Aliwayz LLC collects user data to provide a local marketplace connecting buyers and sellers. 
           Below is a detailed audit of the specific data points we collect, their collection purpose, 
           necessity status, and retention timelines.
         </p>

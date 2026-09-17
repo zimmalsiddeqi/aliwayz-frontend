@@ -36,13 +36,13 @@ export default function IntellectualPropertyPage() {
       <LegalSection id="aliwayz-ip" title="2. Aliwayz Intellectual Property">
         <p className="mb-4">
           The Aliwayz platform, its brand name, logo, custom code, styles, graphics, layouts, search mechanics, 
-          database configurations, and user interface elements are the exclusive intellectual property of the developer, 
-          <strong> Shawkat Ali</strong>.
+          database configurations, and user interface elements are the exclusive intellectual property of 
+          <strong> Aliwayz LLC</strong>. All rights are reserved to Aliwayz LLC.
         </p>
         <p>
           You are granted a limited, personal, non-transferable, and revocable license to access the marketplace 
           solely for buying and selling listings. You are strictly prohibited from copying, scraping, decompiling, 
-          or utilizing any brand elements or codebase components for external commercial purposes without express written consent.
+          or utilizing any brand elements or codebase components for external commercial purposes without express written consent from Aliwayz LLC.
         </p>
       </LegalSection>
 

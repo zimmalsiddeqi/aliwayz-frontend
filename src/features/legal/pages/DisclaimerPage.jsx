@@ -33,7 +33,7 @@ export default function DisclaimerPage() {
 
       <LegalSection id="no-warranty" title="2. No Warranty">
         <p className="mb-4 uppercase font-bold text-xs" style={{ color: 'var(--color-text-primary)' }}>
-          Aliwayz and its developer, Shawkat Ali, provide the platform on an &quot;AS IS&quot; and &quot;AS AVAILABLE&quot; basis. 
+          Aliwayz LLC provides the platform on an &quot;AS IS&quot; and &quot;AS AVAILABLE&quot; basis. 
           We disclaim all warranties of any kind, whether express or implied.
         </p>
         <p>
@@ -85,7 +85,7 @@ export default function DisclaimerPage() {
 
       <LegalSection id="limitation-of-liability" title="6. Limitation of Liability">
         <p className="mb-4 uppercase font-bold text-xs" style={{ color: 'var(--color-text-primary)' }}>
-          To the maximum extent permitted by applicable US law, in no event shall Aliwayz, its developer Shawkat Ali, 
+          To the maximum extent permitted by applicable US law, in no event shall Aliwayz LLC 
           or related infrastructure operators be liable for any direct, indirect, incidental, special, consequential, 
           or punitive damages.
         </p>
