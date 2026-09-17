@@ -28,6 +28,7 @@ import {
 } from '@utils/helpers';
 import toast from '@lib/toast';
 import ConfirmDeleteModal from '@components/modals/ConfirmDeleteModal';
+import ImageCropperModal from '@components/modals/ImageCropperModal';
 import { CATEGORY_IDS } from '@utils/constants';
 
 const STORE_CATEGORIES = [
@@ -48,6 +49,15 @@ export default function EditStorePage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [cropConfig, setCropConfig] = useState({
+    isOpen: false,
+    file: null,
+    type: 'logo',
+    title: 'Adjust Store Logo',
+    subtitle: 'Drag to position and zoom your store logo',
+    aspectRatio: 1,
+    shape: 'round',
+  });
 
   // Set initial previews from store data
   useEffect(() => {
@@ -77,6 +87,23 @@ export default function EditStorePage() {
       : undefined,
   });
 
+  // ── Crop Complete Handler ─────────────────────────────
+  const handleCropComplete = (croppedFile, previewUrl) => {
+    if (cropConfig.type === 'logo') {
+      if (logoPreview && typeof logoPreview === 'string' && logoPreview.startsWith('blob:')) {
+        revokeFilePreview(logoPreview);
+      }
+      setLogoFile(croppedFile);
+      setLogoPreview(previewUrl);
+    } else if (cropConfig.type === 'banner') {
+      if (bannerPreview && typeof bannerPreview === 'string' && bannerPreview.startsWith('blob:')) {
+        revokeFilePreview(bannerPreview);
+      }
+      setBannerFile(croppedFile);
+      setBannerPreview(previewUrl);
+    }
+  };
+
   // ── Logo upload ────────────────────────────────────────
   const onLogoDrop = useCallback((files) => {
     const file = files[0];
@@ -86,8 +113,15 @@ export default function EditStorePage() {
       toast.error(v.error);
       return;
     }
-    setLogoFile(file);
-    setLogoPreview(createFilePreview(file));
+    setCropConfig({
+      isOpen: true,
+      file,
+      type: 'logo',
+      title: 'Adjust Store Logo',
+      subtitle: 'Drag to position and zoom your store logo',
+      aspectRatio: 1,
+      shape: 'round',
+    });
   }, []);
 
   const logoDropzone = useDropzone({
@@ -123,8 +157,15 @@ export default function EditStorePage() {
       toast.error(v.error);
       return;
     }
-    setBannerFile(file);
-    setBannerPreview(createFilePreview(file));
+    setCropConfig({
+      isOpen: true,
+      file,
+      type: 'banner',
+      title: 'Adjust Store Banner',
+      subtitle: 'Drag to position and frame your store banner',
+      aspectRatio: 3,
+      shape: 'rect',
+    });
   }, []);
 
   const bannerDropzone = useDropzone({
@@ -400,6 +441,18 @@ export default function EditStorePage() {
           itemName={store?.store_name}
           itemType="Store"
           countdownSeconds={10}
+        />
+
+        {/* Image Cropper Modal */}
+        <ImageCropperModal
+          isOpen={cropConfig.isOpen}
+          file={cropConfig.file}
+          title={cropConfig.title}
+          subtitle={cropConfig.subtitle}
+          aspectRatio={cropConfig.aspectRatio}
+          shape={cropConfig.shape}
+          onCropComplete={handleCropComplete}
+          onClose={() => setCropConfig((prev) => ({ ...prev, isOpen: false, file: null }))}
         />
       </div>
     </>

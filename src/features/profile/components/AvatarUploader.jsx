@@ -6,7 +6,8 @@ import { queryKeys } from '@lib/queryClient';
 import UserService from '@api/services/user.service';
 import useAuthStore from '@store/auth.store';
 import Avatar from '@components/ui/Avatar';
-import { validateImageFile, createFilePreview, revokeFilePreview } from '@utils/helpers';
+import ImageCropperModal from '@components/modals/ImageCropperModal';
+import { validateImageFile, revokeFilePreview } from '@utils/helpers';
 import { getErrorMessage } from '@lib/utils';
 import toast from '@lib/toast';
 
@@ -14,6 +15,8 @@ export default function AvatarUploader({ size = '2xl' }) {
   const { user, setUser } = useAuthStore();
   const queryClient = useQueryClient();
   const [preview, setPreview] = useState(null);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [pendingFile, setPendingFile] = useState(null);
 
   const mutation = useMutation({
     mutationFn: (file) => {
@@ -54,10 +57,15 @@ export default function AvatarUploader({ size = '2xl' }) {
     if (!file) return;
     const v = validateImageFile(file);
     if (!v.valid) { toast.error(v.error); return; }
+    setPendingFile(file);
+    setCropModalOpen(true);
+  }, []);
+
+  const handleCropComplete = (croppedFile, previewUrl) => {
     if (preview) revokeFilePreview(preview);
-    setPreview(createFilePreview(file));
-    mutation.mutate(file);
-  }, [preview]);
+    setPreview(previewUrl);
+    mutation.mutate(croppedFile);
+  };
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
@@ -67,16 +75,32 @@ export default function AvatarUploader({ size = '2xl' }) {
   });
 
   return (
-    <div {...getRootProps()} className="relative cursor-pointer group inline-block">
-      <input {...getInputProps()} />
-      <Avatar src={preview || user?.avatar_url} name={user?.username} size={size} />
-      <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-        {mutation.isPending ? (
-          <Loader2 size={22} className="text-white animate-spin" />
-        ) : (
-          <Camera size={22} className="text-white" />
-        )}
+    <>
+      <div {...getRootProps()} className="relative cursor-pointer group inline-block">
+        <input {...getInputProps()} />
+        <Avatar src={preview || user?.avatar_url} name={user?.username} size={size} />
+        <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+          {mutation.isPending ? (
+            <Loader2 size={22} className="text-white animate-spin" />
+          ) : (
+            <Camera size={22} className="text-white" />
+          )}
+        </div>
       </div>
-    </div>
+
+      <ImageCropperModal
+        isOpen={cropModalOpen}
+        file={pendingFile}
+        title="Adjust Profile Picture"
+        subtitle="Drag to position and zoom your profile picture"
+        aspectRatio={1}
+        shape="round"
+        onCropComplete={handleCropComplete}
+        onClose={() => {
+          setCropModalOpen(false);
+          setPendingFile(null);
+        }}
+      />
+    </>
   );
 }

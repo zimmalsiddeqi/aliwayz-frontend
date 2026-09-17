@@ -21,6 +21,7 @@ import { Card } from '@components/ui/Card';
 import Separator from '@components/ui/Separator';
 import PageHeader from '@components/common/PageHeader';
 import { cn, getErrorMessage } from '@lib/utils';
+import ImageCropperModal from '@components/modals/ImageCropperModal';
 import {
   setFormErrors,
   validateImageFile,
@@ -37,6 +38,8 @@ export default function EditProfilePage() {
 
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [avatarFile, setAvatarFile]       = useState(null);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [pendingCropFile, setPendingCropFile] = useState(null);
   const [phoneStep, setPhoneStep]         = useState('idle');
   const [phoneOtp, setPhoneOtp]           = useState('');
   const [phoneNumber, setPhoneNumber]     = useState('');
@@ -106,13 +109,18 @@ export default function EditProfilePage() {
       if (!file) return;
       const v = validateImageFile(file);
       if (!v.valid) { toast.error(v.error); return; }
-      if (avatarPreview) revokeFilePreview(avatarPreview);
-      setAvatarPreview(createFilePreview(file));
-      setAvatarFile(file);
-      avatarMutation.mutate(file);
+      setPendingCropFile(file);
+      setCropModalOpen(true);
     },
-    [avatarPreview]
+    []
   );
+
+  const handleCropComplete = (croppedFile, previewUrl) => {
+    if (avatarPreview) revokeFilePreview(avatarPreview);
+    setAvatarPreview(previewUrl);
+    setAvatarFile(croppedFile);
+    avatarMutation.mutate(croppedFile);
+  };
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
@@ -565,6 +573,21 @@ export default function EditProfilePage() {
           </Card>
         </motion.div>
       </div>
+
+      {/* Image Cropper Modal */}
+      <ImageCropperModal
+        isOpen={cropModalOpen}
+        file={pendingCropFile}
+        title="Adjust Profile Picture"
+        subtitle="Drag to position and zoom your profile picture"
+        aspectRatio={1}
+        shape="round"
+        onCropComplete={handleCropComplete}
+        onClose={() => {
+          setCropModalOpen(false);
+          setPendingCropFile(null);
+        }}
+      />
     </>
   );
 }

@@ -27,6 +27,7 @@ import {
   revokeFilePreview,
 } from '@utils/helpers';
 import toast from '@lib/toast';
+import ImageCropperModal from '@components/modals/ImageCropperModal';
 import { CATEGORY_IDS } from '@utils/constants';
 
 const STORE_CATEGORIES = [
@@ -43,6 +44,15 @@ export default function CreateStorePage() {
   const [logoPreview, setLogoPreview] = useState(null);
   const [bannerFile, setBannerFile] = useState(null);
   const [bannerPreview, setBannerPreview] = useState(null);
+  const [cropConfig, setCropConfig] = useState({
+    isOpen: false,
+    file: null,
+    type: 'logo',
+    title: 'Adjust Store Logo',
+    subtitle: 'Drag to position and zoom your store logo',
+    aspectRatio: 1,
+    shape: 'round',
+  });
 
   // Check identity verification status
   const { data: verificationData, isLoading: isLoadingVerification } = useQuery({
@@ -96,22 +106,42 @@ export default function CreateStorePage() {
     return 'e.g. Metro Motors, Skyline Realty, or Urban Goods';
   };
 
-  // ── Logo dropzone ──────────────────────────────────────
-  const onLogoDrop = useCallback(
-    (files) => {
-      const file = files[0];
-      if (!file) return;
-      const v = validateImageFile(file);
-      if (!v.valid) {
-        toast.error(v.error);
-        return;
+  // ── Crop Complete Handler ─────────────────────────────
+  const handleCropComplete = (croppedFile, previewUrl) => {
+    if (cropConfig.type === 'logo') {
+      if (logoPreview && typeof logoPreview === 'string' && logoPreview.startsWith('blob:')) {
+        revokeFilePreview(logoPreview);
       }
-      if (logoPreview) revokeFilePreview(logoPreview);
-      setLogoFile(file);
-      setLogoPreview(createFilePreview(file));
-    },
-    [logoPreview]
-  );
+      setLogoFile(croppedFile);
+      setLogoPreview(previewUrl);
+    } else if (cropConfig.type === 'banner') {
+      if (bannerPreview && typeof bannerPreview === 'string' && bannerPreview.startsWith('blob:')) {
+        revokeFilePreview(bannerPreview);
+      }
+      setBannerFile(croppedFile);
+      setBannerPreview(previewUrl);
+    }
+  };
+
+  // ── Logo dropzone ──────────────────────────────────────
+  const onLogoDrop = useCallback((files) => {
+    const file = files[0];
+    if (!file) return;
+    const v = validateImageFile(file);
+    if (!v.valid) {
+      toast.error(v.error);
+      return;
+    }
+    setCropConfig({
+      isOpen: true,
+      file,
+      type: 'logo',
+      title: 'Adjust Store Logo',
+      subtitle: 'Drag to position and zoom your store logo',
+      aspectRatio: 1,
+      shape: 'round',
+    });
+  }, []);
 
   const logoDropzone = useDropzone({
     onDrop: onLogoDrop,
@@ -121,21 +151,24 @@ export default function CreateStorePage() {
   });
 
   // ── Banner dropzone ────────────────────────────────────
-  const onBannerDrop = useCallback(
-    (files) => {
-      const file = files[0];
-      if (!file) return;
-      const v = validateImageFile(file);
-      if (!v.valid) {
-        toast.error(v.error);
-        return;
-      }
-      if (bannerPreview) revokeFilePreview(bannerPreview);
-      setBannerFile(file);
-      setBannerPreview(createFilePreview(file));
-    },
-    [bannerPreview]
-  );
+  const onBannerDrop = useCallback((files) => {
+    const file = files[0];
+    if (!file) return;
+    const v = validateImageFile(file);
+    if (!v.valid) {
+      toast.error(v.error);
+      return;
+    }
+    setCropConfig({
+      isOpen: true,
+      file,
+      type: 'banner',
+      title: 'Adjust Store Banner',
+      subtitle: 'Drag to position and frame your store banner',
+      aspectRatio: 3,
+      shape: 'rect',
+    });
+  }, []);
 
   const bannerDropzone = useDropzone({
     onDrop: onBannerDrop,
@@ -374,6 +407,18 @@ export default function CreateStorePage() {
           </motion.div>
         </div>
       </div>
+
+      {/* Image Cropper Modal */}
+      <ImageCropperModal
+        isOpen={cropConfig.isOpen}
+        file={cropConfig.file}
+        title={cropConfig.title}
+        subtitle={cropConfig.subtitle}
+        aspectRatio={cropConfig.aspectRatio}
+        shape={cropConfig.shape}
+        onCropComplete={handleCropComplete}
+        onClose={() => setCropConfig((prev) => ({ ...prev, isOpen: false, file: null }))}
+      />
     </>
   );
 }
