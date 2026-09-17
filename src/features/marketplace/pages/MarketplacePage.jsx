@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import SEOHead from '@components/seo/SEOHead';
@@ -21,6 +21,7 @@ import useMediaQuery from '@hooks/useMediaQuery';
 import useOnClickOutside from '@hooks/useOnClickOutside';
 import { cn } from '@lib/utils';
 import { ITEM_CONDITIONS, SORT_OPTIONS, DEFAULT_PAGE_SIZE } from '@utils/constants';
+import { getMarketplaceCategories, isAutomotiveProduct, isRealEstateProduct } from '@utils/categoryHelpers';
 
 export default function MarketplacePage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -54,6 +55,11 @@ export default function MarketplacePage() {
     staleTime: 60 * 60 * 1000,
   });
 
+  const marketplaceCategories = useMemo(
+    () => getMarketplaceCategories(categories),
+    [categories]
+  );
+
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteQuery({
     queryKey: queryKeys.products.all({ ...filters, lat, lng, radiusMiles }),
     queryFn: ({ pageParam = 1 }) =>
@@ -69,7 +75,12 @@ export default function MarketplacePage() {
     },
   });
 
-  const products = data?.pages.flatMap((page) => page.data) || [];
+  // When browsing all categories on the Marketplace page, show only Marketplace items (exclude automotive and real estate)
+  const products = useMemo(() => {
+    const raw = data?.pages.flatMap((page) => page.data) || [];
+    if (filters.category_id) return raw;
+    return raw.filter((product) => !isAutomotiveProduct(product) && !isRealEstateProduct(product));
+  }, [data?.pages, filters.category_id]);
 
   const updateFilter = useCallback(
     (key, value) => {
@@ -218,7 +229,7 @@ export default function MarketplacePage() {
                     placeholder="All Categories"
                     value={filters.category_id || ''}
                     onChange={(e) => updateFilter('category_id', e.target.value)}
-                    options={categories.map((c) => ({ value: c.id, label: c.name }))}
+                    options={marketplaceCategories.map((c) => ({ value: c.id, label: c.name }))}
                   />
                   <div className="space-y-1.5">
                     <label className="floating-label">Price Range</label>

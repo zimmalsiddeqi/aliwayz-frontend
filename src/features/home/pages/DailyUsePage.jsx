@@ -27,6 +27,7 @@ import EmptyState from '@components/common/EmptyState';
 import LocationSelector from '@components/common/LocationSelector';
 import { isSeller, cn } from '@lib/utils';
 import { ITEM_CONDITIONS, CATEGORY_IDS } from '@utils/constants';
+import { getMarketplaceCategories } from '@utils/categoryHelpers';
 import useMediaQuery from '@hooks/useMediaQuery';
 import SearchCategoriesModal from '../components/SearchCategoriesModal';
 
@@ -77,8 +78,8 @@ export default function DailyUsePage() {
     staleTime: 60 * 60 * 1000,
   });
 
-  const dailyParentCategories = allCategories.filter(
-    (c) => !c.parent_id && c.id !== CATEGORY_IDS.AUTOMOTIVE && c.id !== CATEGORY_IDS.PROPERTY
+  const dailyParentCategories = getMarketplaceCategories(allCategories).filter(
+    (c) => !c.parent_id
   );
 
   const locationParams =

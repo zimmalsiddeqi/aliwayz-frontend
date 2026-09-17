@@ -1,6 +1,60 @@
 import { CATEGORY_IDS } from '@utils/constants';
 
 /**
+ * Filter all categories to return ONLY Marketplace categories.
+ * Completely excludes:
+ * - Automotive & Vehicles parent and all its subcategories
+ * - Auto Parts & Accessories parent and all its subcategories
+ * - Real Estate & Property parent and all its subcategories
+ */
+export function getMarketplaceCategories(allCategories = []) {
+  if (!Array.isArray(allCategories) || allCategories.length === 0) return [];
+
+  // Excluded root IDs
+  const excludedIds = new Set([
+    CATEGORY_IDS.AUTOMOTIVE,
+    CATEGORY_IDS.VEHICLES,
+    CATEGORY_IDS.AUTO_PARTS_ACCESSORIES,
+    CATEGORY_IDS.PROPERTY,
+    CATEGORY_IDS.REAL_ESTATE,
+  ]);
+
+  // Exclude by name / slug keywords
+  allCategories.forEach((c) => {
+    const name = (c.name || '').toLowerCase();
+    const slug = (c.slug || '').toLowerCase();
+    if (
+      name.includes('auto part') ||
+      name.includes('automotive') ||
+      name.includes('vehicle') ||
+      name.includes('real estate') ||
+      name.includes('property') ||
+      slug.includes('auto-part') ||
+      slug.includes('automotive') ||
+      slug.includes('vehicle') ||
+      slug.includes('real-estate') ||
+      slug.includes('property')
+    ) {
+      excludedIds.add(c.id);
+    }
+  });
+
+  // Transitively add all child categories of excluded categories
+  let addedNew = true;
+  while (addedNew) {
+    addedNew = false;
+    allCategories.forEach((c) => {
+      if (c.parent_id && excludedIds.has(c.parent_id) && !excludedIds.has(c.id)) {
+        excludedIds.add(c.id);
+        addedNew = true;
+      }
+    });
+  }
+
+  return allCategories.filter((c) => !excludedIds.has(c.id));
+}
+
+/**
  * Get all category IDs for a main category (parent + all children)
  * Used to fetch ALL products within a main category section
  */
@@ -15,19 +69,8 @@ export function getCategoryIdsForMain(mainCategory, allCategories = []) {
       parentId = CATEGORY_IDS.PROPERTY;
       break;
     case 'daily-use':
-      // Return all categories EXCEPT automotive and property
-      return allCategories
-        .filter((c) => {
-          const id = c.id;
-          // Exclude automotive parent + children
-          if (id === CATEGORY_IDS.AUTOMOTIVE) return false;
-          if (c.parent_id === CATEGORY_IDS.AUTOMOTIVE) return false;
-          // Exclude property parent + children
-          if (id === CATEGORY_IDS.PROPERTY) return false;
-          if (c.parent_id === CATEGORY_IDS.PROPERTY) return false;
-          return true;
-        })
-        .map((c) => c.id);
+      // Return all marketplace categories (EXCEPT automotive, auto parts & accessories, and property)
+      return getMarketplaceCategories(allCategories).map((c) => c.id);
     default:
       return [];
   }
@@ -63,16 +106,8 @@ export function getSubcategories(mainCategory, allCategories = []) {
   const parentId = getParentCategoryId(mainCategory);
 
   if (mainCategory === 'daily-use') {
-    return allCategories.filter((c) => {
-      if (!c.parent_id) {
-        // Top-level categories that are NOT automotive or property
-        return (
-          c.id !== CATEGORY_IDS.AUTOMOTIVE &&
-          c.id !== CATEGORY_IDS.PROPERTY
-        );
-      }
-      return false;
-    });
+    // Return top-level marketplace categories
+    return getMarketplaceCategories(allCategories).filter((c) => !c.parent_id);
   }
 
   if (!parentId) return [];
