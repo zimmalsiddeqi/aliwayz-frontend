@@ -30,13 +30,13 @@ import useAuthStore from '@store/auth.store';
 import useChatStore from '@store/chat.store';
 import useConversationSocket from '@hooks/useSocket';
 import { getSocket, SOCKET_EVENTS } from '@lib/socket';
-import { Html5Qrcode } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import Avatar from '@components/ui/Avatar';
 import Spinner from '@components/ui/Spinner';
 import Button from '@components/ui/Button';
 import Modal from '@components/ui/Modal';
 import { cn, formatChatTime, isSeller, getErrorMessage } from '@lib/utils';
-import { getOtherParticipant, getPrimaryImage } from '@utils/helpers';
+import { getOtherParticipant, getPrimaryImage, extractQRToken } from '@utils/helpers';
 import { formatPrice, formatRating } from '@utils/formatters';
 import toast from '@lib/toast';
 
@@ -1418,6 +1418,7 @@ function QRGeneratorModal({ isOpen, onClose, product, buyerId, conversationId, i
 function QRScannerModal({ isOpen, onClose, prefillToken, productId, onSuccess }) {
   const [token, setToken] = useState(prefillToken || '');
   const [useCamera, setUseCamera] = useState(false);
+  const scannedRef = useRef(false);
 
   useEffect(() => {
     if (prefillToken) {
@@ -1438,26 +1439,61 @@ function QRScannerModal({ isOpen, onClose, prefillToken, productId, onSuccess })
   useEffect(() => {
     if (!useCamera) return;
 
-    const html5QrCode = new Html5Qrcode('chat-qr-reader');
-    html5QrCode.start(
-      { facingMode: 'environment' },
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      (decodedText) => {
-        html5QrCode.stop().then(() => {
-          setUseCamera(false);
-          setToken(decodedText.trim());
-        }).catch(console.error);
+    scannedRef.current = false;
+    let isMounted = true;
+
+    const html5QrCode = new Html5Qrcode('chat-qr-reader', {
+      formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+      experimentalFeatures: {
+        useBarCodeDetectorIfSupported: true,
       },
-      (error) => {} // ignore stream errors
-    ).catch((err) => {
-      console.error(err);
-      toast.error('Failed to start camera. Please ensure permissions are granted.');
-      setUseCamera(false);
+      verbose: false,
     });
 
+    const cameraConfig = { facingMode: 'environment' };
+    const scanConfig = {
+      fps: 25,
+      aspectRatio: undefined,
+      videoConstraints: {
+        facingMode: 'environment',
+        focusMode: 'continuous',
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
+    };
+
+    html5QrCode
+      .start(
+        cameraConfig,
+        scanConfig,
+        (decodedText) => {
+          if (!isMounted || scannedRef.current) return;
+          scannedRef.current = true;
+
+          html5QrCode
+            .stop()
+            .catch(() => {})
+            .finally(() => {
+              if (isMounted) {
+                setUseCamera(false);
+                const cleanedToken = extractQRToken(decodedText);
+                setToken(cleanedToken);
+              }
+            });
+        },
+        () => {} // ignore frame parse failures
+      )
+      .catch((err) => {
+        if (!isMounted) return;
+        console.error('Camera start error:', err);
+        toast.error('Failed to start camera. Please ensure camera permissions are granted.');
+        setUseCamera(false);
+      });
+
     return () => {
+      isMounted = false;
       if (html5QrCode.isScanning) {
-        html5QrCode.stop().catch(console.error);
+        html5QrCode.stop().catch(() => {});
       }
     };
   }, [useCamera]);
@@ -1484,11 +1520,23 @@ function QRScannerModal({ isOpen, onClose, prefillToken, productId, onSuccess })
         </div>
 
         {useCamera ? (
-          <div className="overflow-hidden rounded-xl bg-black/5 relative min-h-[300px]">
-            <div id="chat-qr-reader" className="w-full [&>div]:border-none [&_video]:object-cover" />
+          <div className="space-y-2">
+            <div className="overflow-hidden rounded-2xl bg-black/90 relative min-h-[280px] flex items-center justify-center border border-white/10 shadow-inner">
+              <div id="chat-qr-reader" className="w-full h-full min-h-[280px] [&>div]:border-none [&_video]:w-full [&_video]:h-full [&_video]:object-cover" />
+              {/* Reticle Overlay */}
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <div className="relative w-48 h-48 border-2 border-brand-500/40 rounded-2xl">
+                  <div className="absolute -top-0.5 -left-0.5 w-5 h-5 border-t-2 border-l-2 border-brand-400 rounded-tl-md" />
+                  <div className="absolute -top-0.5 -right-0.5 w-5 h-5 border-t-2 border-r-2 border-brand-400 rounded-tr-md" />
+                  <div className="absolute -bottom-0.5 -left-0.5 w-5 h-5 border-b-2 border-l-2 border-brand-400 rounded-bl-md" />
+                  <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 border-b-2 border-r-2 border-brand-400 rounded-br-md" />
+                  <div className="absolute inset-x-2 h-0.5 bg-gradient-to-r from-transparent via-brand-400 to-transparent animate-pulse" style={{ top: '50%' }} />
+                </div>
+              </div>
+            </div>
             <button 
               onClick={() => setUseCamera(false)} 
-              className="mt-4 mb-2 text-xs text-center w-full hover:underline" 
+              className="py-1 text-xs text-center w-full hover:underline block" 
               style={{ color: 'var(--color-text-muted)' }}
             >
                Cancel Camera

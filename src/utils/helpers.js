@@ -241,3 +241,22 @@ export function getProductListingLocation({ store, userLat, userLng }) {
     isApproximate: false,
   };
 }
+
+/**
+ * Extract QR verification token from raw string or URL
+ */
+export function extractQRToken(raw = '') {
+  if (!raw) return '';
+  const text = String(raw).trim();
+  if (text.includes('token=')) {
+    try {
+      const url = new URL(text.startsWith('http') ? text : `https://${text}`);
+      const param = url.searchParams.get('token');
+      if (param) return param;
+    } catch {
+      const match = text.match(/[?&]token=([^&#]+)/);
+      if (match) return decodeURIComponent(match[1]);
+    }
+  }
+  return text;
+}
