@@ -154,13 +154,19 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
       ['commercial', 'office', 'industrial'].includes(attrs.propertyType) ||
       attrs.intent === 'lease'
     ) {
-      if (attrs.areaSize) subtitleParts.push(`${attrs.areaSize} sq ft`);
+      if (attrs.areaSize) {
+        const cleanArea = String(attrs.areaSize).replace(/\s*(sqft|sq\s*ft|sq\.?\s*ft\.?)/gi, '').trim();
+        subtitleParts.push(`${cleanArea} sq ft`);
+      }
     } else {
       if (attrs.bedrooms) {
         subtitleParts.push(attrs.bedrooms === 'studio' ? 'Studio' : `${attrs.bedrooms} bd`);
       }
       if (attrs.bathrooms) subtitleParts.push(`${attrs.bathrooms} ba`);
-      if (attrs.areaSize) subtitleParts.push(`${attrs.areaSize} sq ft`);
+      if (attrs.areaSize) {
+        const cleanArea = String(attrs.areaSize).replace(/\s*(sqft|sq\s*ft|sq\.?\s*ft\.?)/gi, '').trim();
+        subtitleParts.push(`${cleanArea} sq ft`);
+      }
     }
     return subtitleParts.join(' · ');
   })();
@@ -252,46 +258,45 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
               }
 
               if (isAutomotive) {
-                const directMileage = product.mileage || product.attributes?.mileage;
-                let mileageStr = '';
+                const directMileage = product.mileage ?? product.attributes?.mileage ?? product.specs?.mileage;
+                let rawMileage = '';
 
-                if (directMileage) {
-                  const rawNum = String(directMileage).replace(/\D/g, '');
-                  if (rawNum) {
-                    const num = Number(rawNum);
-                    if (num >= 1000) {
-                      const inK = num / 1000;
-                      mileageStr = `${inK % 1 === 0 ? inK : inK.toFixed(1)}k miles`;
-                    } else {
-                      mileageStr = `${num} miles`;
-                    }
-                  } else {
-                    mileageStr = String(directMileage);
-                  }
+                if (directMileage !== undefined && directMileage !== null && directMileage !== '') {
+                  rawMileage = String(directMileage).trim();
                 } else {
                   const mileageMatch =
-                    desc.match(/Mileage:\s*([^\n\r]+)/i) ||
-                    desc.match(/(\d+[\d,.]*\s*k?\s*(?:miles?|mi)\b)/i) ||
-                    title.match(/(\d+[\d,.]*\s*k?\s*(?:miles?|mi)\b)/i);
+                    desc.match(/Mileage:\s*([^\n\r,]+)/i) ||
+                    desc.match(/(\d+[\d,.]*\s*(?:k\s*miles?|k\s*mi|miles?|mi)\b)/i) ||
+                    title.match(/(\d+[\d,.]*\s*(?:k\s*miles?|k\s*mi|miles?|mi)\b)/i) ||
+                    desc.match(/(\d+[\d,.]*)\s*(?:miles?|mi)\b/i);
 
                   if (mileageMatch) {
-                    const matchText = mileageMatch[1].trim();
-                    const isK = /k/i.test(matchText);
-                    const rawNum = matchText.replace(/[^\d.]/g, '');
-                    if (rawNum) {
-                      let num = parseFloat(rawNum);
+                    rawMileage = mileageMatch[1].trim();
+                  }
+                }
+
+                let mileageStr = '';
+                if (rawMileage) {
+                  const isK = /\bk\b|k\s*mi/i.test(rawMileage);
+                  const numClean = rawMileage.replace(/[^\d.]/g, '');
+                  if (numClean) {
+                    let num = parseFloat(numClean);
+                    if (!isNaN(num)) {
                       if (isK && num < 1000) {
                         num = num * 1000;
                       }
                       if (num >= 1000) {
                         const inK = num / 1000;
-                        mileageStr = `${inK % 1 === 0 ? inK : inK.toFixed(1)}k miles`;
+                        const formatted = inK % 1 === 0 ? inK : inK.toFixed(1);
+                        mileageStr = `${formatted}k miles`;
                       } else {
                         mileageStr = `${num} miles`;
                       }
                     } else {
-                      mileageStr = matchText;
+                      mileageStr = rawMileage;
                     }
+                  } else {
+                    mileageStr = rawMileage;
                   }
                 }
 
@@ -330,7 +335,7 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
           <div className="space-y-1">
             {/* Title */}
             <h3
-              className="font-semibold text-xs sm:text-sm line-clamp-2 leading-snug min-h-[1.9rem] sm:min-h-[2.3rem]"
+              className="font-semibold text-xs sm:text-sm line-clamp-2 leading-snug h-[2.1rem] sm:h-[2.4rem] overflow-hidden flex items-start"
               style={{ color: 'var(--color-text-primary)' }}
               title={product.title}
             >
@@ -338,7 +343,7 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
             </h3>
 
             {/* Price & Real Estate Subtitle */}
-            <div className="flex items-baseline justify-between gap-1">
+            <div className="flex items-baseline justify-between gap-1 min-h-[1.5rem]">
               <p className="text-base sm:text-lg font-bold text-gradient-brand leading-tight">
                 {formattedPrice}
               </p>
