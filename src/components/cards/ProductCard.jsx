@@ -142,82 +142,27 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
     return basePrice;
   })();
 
-  // ── Subtitle Attributes (Real Estate / Automotive / Condition) ──
-  const subtitleText = (() => {
-    if (isRealEstate) {
-      const attrs = parsePropertyDescription(product.description);
-      const subtitleParts = [];
-      if (attrs.propertyType === 'land') {
-        const acMatch = product.description?.match(/Acreage:\s*([^\n]+)/i);
-        if (acMatch) subtitleParts.push(`${acMatch[1]} acres`);
-      } else if (
-        ['commercial', 'office', 'industrial'].includes(attrs.propertyType) ||
-        attrs.intent === 'lease'
-      ) {
-        if (attrs.areaSize) subtitleParts.push(`${attrs.areaSize} sq ft`);
-      } else {
-        if (attrs.bedrooms) {
-          subtitleParts.push(attrs.bedrooms === 'studio' ? 'Studio' : `${attrs.bedrooms} bd`);
-        }
-        if (attrs.bathrooms) subtitleParts.push(`${attrs.bathrooms} ba`);
-        if (attrs.areaSize) subtitleParts.push(`${attrs.areaSize} sq ft`);
+  // ── Real Estate Attributes (bd / ba / sq ft) ──────────────────
+  const realEstateSubtitle = (() => {
+    if (!isRealEstate) return '';
+    const attrs = parsePropertyDescription(product.description);
+    const subtitleParts = [];
+    if (attrs.propertyType === 'land') {
+      const acMatch = product.description?.match(/Acreage:\s*([^\n]+)/i);
+      if (acMatch) subtitleParts.push(`${acMatch[1]} acres`);
+    } else if (
+      ['commercial', 'office', 'industrial'].includes(attrs.propertyType) ||
+      attrs.intent === 'lease'
+    ) {
+      if (attrs.areaSize) subtitleParts.push(`${attrs.areaSize} sq ft`);
+    } else {
+      if (attrs.bedrooms) {
+        subtitleParts.push(attrs.bedrooms === 'studio' ? 'Studio' : `${attrs.bedrooms} bd`);
       }
-      return subtitleParts.join(' · ');
+      if (attrs.bathrooms) subtitleParts.push(`${attrs.bathrooms} ba`);
+      if (attrs.areaSize) subtitleParts.push(`${attrs.areaSize} sq ft`);
     }
-
-    if (isAutomotive) {
-      const directMileage = product.mileage || product.attributes?.mileage;
-      let mileageStr = '';
-
-      if (directMileage) {
-        const rawNum = String(directMileage).replace(/\D/g, '');
-        if (rawNum) {
-          const num = Number(rawNum);
-          if (num >= 1000) {
-            const inK = num / 1000;
-            mileageStr = `${inK % 1 === 0 ? inK : inK.toFixed(1)}k miles`;
-          } else {
-            mileageStr = `${num} miles`;
-          }
-        } else {
-          mileageStr = String(directMileage);
-        }
-      } else {
-        const mileageMatch =
-          desc.match(/Mileage:\s*([^\n\r]+)/i) ||
-          desc.match(/(\d+[\d,.]*\s*k?\s*(?:miles?|mi)\b)/i) ||
-          title.match(/(\d+[\d,.]*\s*k?\s*(?:miles?|mi)\b)/i);
-
-        if (mileageMatch) {
-          const matchText = mileageMatch[1].trim();
-          const isK = /k/i.test(matchText);
-          const rawNum = matchText.replace(/[^\d.]/g, '');
-          if (rawNum) {
-            let num = parseFloat(rawNum);
-            if (isK && num < 1000) {
-              num = num * 1000;
-            }
-            if (num >= 1000) {
-              const inK = num / 1000;
-              mileageStr = `${inK % 1 === 0 ? inK : inK.toFixed(1)}k miles`;
-            } else {
-              mileageStr = `${num} miles`;
-            }
-          } else {
-            mileageStr = matchText;
-          }
-        }
-      }
-
-      const autoParts = [];
-      if (mileageStr) autoParts.push(mileageStr);
-      const transMatch = desc.match(/Transmission:\s*([^\n\r]+)/i);
-      if (transMatch) autoParts.push(transMatch[1].trim());
-
-      return autoParts.join(' · ');
-    }
-
-    return getConditionLabel(product.condition) || '';
+    return subtitleParts.join(' · ');
   })();
 
   return (
@@ -255,24 +200,24 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
             onClick={handleFavorite}
             disabled={isPending}
             className={cn(
-              'absolute top-2.5 right-2.5 sm:top-3 sm:right-3 w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all duration-200 z-20 flex-shrink-0',
+              'absolute top-2 right-2 sm:top-2.5 sm:right-2.5 w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-200 z-20 flex-shrink-0',
               'backdrop-blur-md border',
               isFav
                 ? 'bg-red-500/20 border-red-500/30 text-red-400'
-                : 'bg-black/25 border-white/15 text-white/90 hover:bg-black/50',
+                : 'bg-black/30 border-white/20 text-white/90 hover:bg-black/50',
               isPending && 'opacity-50 cursor-not-allowed'
             )}
             title={isFav ? 'Remove from favorites' : 'Add to favorites'}
           >
             <Heart
-              size={15}
+              size={14}
               fill={isFav ? 'currentColor' : 'none'}
               className="transition-transform duration-200 group-hover:scale-110"
             />
           </button>
 
-          {/* Condition badge / Transaction Type badge */}
-          <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 max-w-[calc(100%-48px)] sm:max-w-[calc(100%-54px)] z-10">
+          {/* Condition / Mileage / Transaction Type badge */}
+          <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 max-w-[calc(100%-42px)] sm:max-w-[calc(100%-48px)] z-10 pointer-events-none">
             {(() => {
               if (isRealEstate) {
                 const attrs = parsePropertyDescription(product.description);
@@ -299,19 +244,63 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
                   badgeText = 'Vacation';
                 }
                 return (
-                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] sm:text-[11px] font-semibold bg-[#6366F1] text-white shadow-md backdrop-blur-md max-w-full">
-                    <Home size={11} className="stroke-[2.5] flex-shrink-0" />
+                  <span className="flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg sm:rounded-xl text-[10px] sm:text-[11px] font-semibold bg-[#6366F1] text-white shadow-md backdrop-blur-md max-w-full">
+                    <Home size={10} className="stroke-[2.5] flex-shrink-0" />
                     <span className="truncate">{badgeText}</span>
                   </span>
                 );
               }
 
               if (isAutomotive) {
+                const directMileage = product.mileage || product.attributes?.mileage;
+                let mileageStr = '';
+
+                if (directMileage) {
+                  const rawNum = String(directMileage).replace(/\D/g, '');
+                  if (rawNum) {
+                    const num = Number(rawNum);
+                    if (num >= 1000) {
+                      const inK = num / 1000;
+                      mileageStr = `${inK % 1 === 0 ? inK : inK.toFixed(1)}k miles`;
+                    } else {
+                      mileageStr = `${num} miles`;
+                    }
+                  } else {
+                    mileageStr = String(directMileage);
+                  }
+                } else {
+                  const mileageMatch =
+                    desc.match(/Mileage:\s*([^\n\r]+)/i) ||
+                    desc.match(/(\d+[\d,.]*\s*k?\s*(?:miles?|mi)\b)/i) ||
+                    title.match(/(\d+[\d,.]*\s*k?\s*(?:miles?|mi)\b)/i);
+
+                  if (mileageMatch) {
+                    const matchText = mileageMatch[1].trim();
+                    const isK = /k/i.test(matchText);
+                    const rawNum = matchText.replace(/[^\d.]/g, '');
+                    if (rawNum) {
+                      let num = parseFloat(rawNum);
+                      if (isK && num < 1000) {
+                        num = num * 1000;
+                      }
+                      if (num >= 1000) {
+                        const inK = num / 1000;
+                        mileageStr = `${inK % 1 === 0 ? inK : inK.toFixed(1)}k miles`;
+                      } else {
+                        mileageStr = `${num} miles`;
+                      }
+                    } else {
+                      mileageStr = matchText;
+                    }
+                  }
+                }
+
                 const condLabel = getConditionLabel(product.condition) || 'Automotive';
+                const badgeText = mileageStr ? `${condLabel} • ${mileageStr}` : condLabel;
                 return (
-                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] sm:text-[11px] font-semibold bg-black/80 text-white border border-white/20 shadow-md backdrop-blur-md max-w-full">
-                    <CheckSquare size={11} className="stroke-[2.5] text-blue-400 flex-shrink-0" />
-                    <span className="truncate">{condLabel}</span>
+                  <span className="flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg sm:rounded-xl text-[10px] sm:text-[11px] font-semibold bg-black/80 text-white border border-white/20 shadow-md backdrop-blur-md max-w-full">
+                    <CheckSquare size={10} className="stroke-[2.5] text-blue-400 flex-shrink-0" />
+                    <span className="truncate">{badgeText}</span>
                   </span>
                 );
               }
@@ -319,8 +308,8 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
               // General Marketplace Item
               const conditionLabel = getConditionLabel(product.condition) || 'Available';
               return (
-                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] sm:text-[11px] font-semibold bg-[#10B981] text-white shadow-md backdrop-blur-md max-w-full">
-                  <Check size={11} className="stroke-[3] flex-shrink-0" />
+                <span className="flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg sm:rounded-xl text-[10px] sm:text-[11px] font-semibold bg-[#10B981] text-white shadow-md backdrop-blur-md max-w-full">
+                  <Check size={10} className="stroke-[3] flex-shrink-0" />
                   <span className="truncate">{conditionLabel}</span>
                 </span>
               );
@@ -329,78 +318,76 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
 
           {/* Featured badge */}
           {product.is_featured && (
-            <div className="absolute bottom-2.5 left-2.5 sm:bottom-3 sm:left-3">
+            <div className="absolute bottom-2 left-2 sm:bottom-2.5 sm:left-2.5">
               <BadgeUI variant="brand" size="xs">⭐ Featured</BadgeUI>
             </div>
           )}
         </div>
 
-        {/* Content Section - Uniform Flex Container */}
-        <div className="p-3 sm:p-3.5 flex flex-col flex-1 justify-between gap-2.5">
-          {/* Top Info Group */}
-          <div className="space-y-1.5">
-            {/* Title with exact multi-line height */}
+        {/* Content Section */}
+        <div className="p-2.5 sm:p-3 flex flex-col flex-1 justify-between gap-1.5 sm:gap-2">
+          {/* Top Details */}
+          <div className="space-y-1">
+            {/* Title */}
             <h3
-              className="font-semibold text-xs sm:text-sm line-clamp-2 leading-snug h-[2.35rem] sm:h-[2.65rem] overflow-hidden"
+              className="font-semibold text-xs sm:text-sm line-clamp-2 leading-snug min-h-[1.9rem] sm:min-h-[2.3rem]"
               style={{ color: 'var(--color-text-primary)' }}
               title={product.title}
             >
               {product.title}
             </h3>
 
-            {/* Price & Subtitle with fixed min-height */}
-            <div className="min-h-[2.5rem] flex flex-col justify-center">
-              <p className="text-base sm:text-lg font-bold text-gradient-brand leading-none">
+            {/* Price & Real Estate Subtitle */}
+            <div className="flex items-baseline justify-between gap-1">
+              <p className="text-base sm:text-lg font-bold text-gradient-brand leading-tight">
                 {formattedPrice}
               </p>
-              {subtitleText ? (
-                <p
-                  className="text-[10px] sm:text-[11px] font-medium mt-1 truncate"
+              {realEstateSubtitle && (
+                <span
+                  className="text-[10px] sm:text-[11px] font-medium truncate max-w-[50%]"
                   style={{ color: 'var(--color-text-muted)' }}
-                  title={subtitleText}
+                  title={realEstateSubtitle}
                 >
-                  {subtitleText}
-                </p>
-              ) : (
-                <div className="h-[14px] mt-1" aria-hidden="true" />
+                  {realEstateSubtitle}
+                </span>
               )}
             </div>
           </div>
 
-          {/* Bottom Info Group */}
-          <div className="space-y-2 pt-1">
+          {/* Bottom Details */}
+          <div className="space-y-1.5">
             {/* Meta row */}
             <div
-              className="flex items-center justify-between text-[11px] sm:text-xs"
+              className="flex items-center justify-between text-[10px] sm:text-[11px]"
               style={{ color: 'var(--color-text-muted)' }}
             >
-              <div className="flex items-center gap-1 min-w-0 flex-1 mr-2">
+              <div className="flex items-center gap-1 min-w-0 flex-1 mr-1">
                 {product.location_city && (
                   <>
-                    <MapPin size={11} className="flex-shrink-0" />
-                    <span className="truncate max-w-[75px] sm:max-w-[95px]">{product.location_city}</span>
+                    <MapPin size={10} className="flex-shrink-0" />
+                    <span className="truncate max-w-[65px] sm:max-w-[85px]">{product.location_city}</span>
                     <span className="flex-shrink-0">·</span>
                   </>
                 )}
                 <span className="truncate flex-shrink-0">{formatRelativeTime(product.created_at)}</span>
               </div>
 
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex items-center gap-1.5 flex-shrink-0">
                 <span className="flex items-center gap-0.5">
-                  <Eye size={11} />
+                  <Eye size={10} />
                   {formatCompactNumber(product.view_count)}
                 </span>
                 <span className="flex items-center gap-0.5">
-                  <Heart size={11} />
+                  <Heart size={10} />
                   {formatCompactNumber(product.favorite_count)}
                 </span>
               </div>
             </div>
 
-            {/* Seller info */}
-            {showSeller && (
+            {/* Seller / Store info */}
+            {showSeller && (store || seller) && (
               <div
-                className="flex items-center gap-2 pt-2 min-h-[28px]"
+                className="flex items-center gap-1.5 pt-1.5"
                 style={{ borderTop: '1px solid var(--color-border-subtle)' }}
               >
                 {store ? (
@@ -409,37 +396,35 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
                       <img
                         src={store.logo_url}
                         alt={store.store_name}
-                        className="w-4 h-4 sm:w-5 sm:h-5 rounded-md object-cover flex-shrink-0"
+                        className="w-4 h-4 rounded-md object-cover flex-shrink-0"
                       />
                     ) : (
-                      <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-md flex items-center justify-center text-[8px] font-bold text-white bg-brand-500 flex-shrink-0">
+                      <div className="w-4 h-4 rounded-md flex items-center justify-center text-[7px] font-bold text-white bg-brand-500 flex-shrink-0">
                         {store.store_name?.[0]?.toUpperCase()}
                       </div>
                     )}
                     <span
-                      className="text-[11px] sm:text-xs truncate flex-1 font-medium"
+                      className="text-[10px] sm:text-[11px] truncate flex-1 font-medium"
                       style={{ color: 'var(--color-text-secondary)' }}
                     >
                       {store.store_name}
                     </span>
                     {store.is_verified && (
-                      <span className="text-[10px] flex-shrink-0" title="Verified">✅</span>
+                      <span className="text-[9px] flex-shrink-0" title="Verified">✅</span>
                     )}
                   </>
-                ) : seller ? (
+                ) : (
                   <>
-                    <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-md flex items-center justify-center text-[8px] font-bold text-white bg-slate-600 flex-shrink-0">
-                      {seller.username?.[0]?.toUpperCase()}
+                    <div className="w-4 h-4 rounded-md flex items-center justify-center text-[7px] font-bold text-white bg-slate-600 flex-shrink-0">
+                      {seller?.username?.[0]?.toUpperCase()}
                     </div>
                     <span
-                      className="text-[11px] sm:text-xs truncate flex-1 font-medium"
+                      className="text-[10px] sm:text-[11px] truncate flex-1 font-medium"
                       style={{ color: 'var(--color-text-secondary)' }}
                     >
-                      @{seller.username}
+                      @{seller?.username}
                     </span>
                   </>
-                ) : (
-                  <div className="h-4" aria-hidden="true" />
                 )}
               </div>
             )}
