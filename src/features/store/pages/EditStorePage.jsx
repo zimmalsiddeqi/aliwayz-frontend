@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { Camera, Trash2, Save, X, Loader2 } from 'lucide-react';
+import { Camera, Trash2, Save, X, Loader2, QrCode } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { updateStoreSchema } from '@lib/validators';
 import StoreService from '@api/services/store.service';
@@ -19,6 +19,7 @@ import Button from '@components/ui/Button';
 import Modal from '@components/ui/Modal';
 import Spinner from '@components/ui/Spinner';
 import PageHeader from '@components/common/PageHeader';
+import StoreQRModal from '@components/modals/StoreQRModal';
 import { cn, getErrorMessage } from '@lib/utils';
 import {
   setFormErrors,
@@ -47,6 +48,7 @@ export default function EditStorePage() {
   const [bannerPreview, setBannerPreview] = useState(null);
   const [bannerFile, setBannerFile] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showStoreQr, setShowStoreQr] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [cropConfig, setCropConfig] = useState({
@@ -259,14 +261,27 @@ export default function EditStorePage() {
           showBack
           title="Edit Store"
           rightAction={
-            <Button
-              variant="danger"
-              size="sm"
-              leftIcon={<Trash2 size={14} />}
-              onClick={() => setShowDeleteModal(true)}
-            >
-              Delete
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                leftIcon={<QrCode size={14} />}
+                onClick={() => setShowStoreQr(true)}
+                title="Generate Store QR Code"
+              >
+                Store QR
+              </Button>
+              <Button
+                type="button"
+                variant="danger"
+                size="sm"
+                leftIcon={<Trash2 size={14} />}
+                onClick={() => setShowDeleteModal(true)}
+              >
+                Delete
+              </Button>
+            </div>
           }
         />
 
@@ -454,6 +469,13 @@ export default function EditStorePage() {
           shape={cropConfig.shape}
           onCropComplete={handleCropComplete}
           onClose={() => setCropConfig((prev) => ({ ...prev, isOpen: false, file: null }))}
+        />
+
+        {/* Store QR Code Modal */}
+        <StoreQRModal
+          isOpen={showStoreQr}
+          onClose={() => setShowStoreQr(false)}
+          store={store}
         />
       </div>
     </>

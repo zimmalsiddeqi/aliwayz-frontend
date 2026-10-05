@@ -26,6 +26,7 @@ import Dropdown from '@components/ui/Dropdown';
 import PageHeader from '@components/common/PageHeader';
 import EmptyState from '@components/common/EmptyState';
 import ListingQRModal from '@components/modals/ListingQRModal';
+import StoreQRModal from '@components/modals/StoreQRModal';
 import { CATEGORY_IDS } from '@utils/constants';
 import { getProductUrl } from '@utils/categoryHelpers';
 import Spinner from '@components/ui/Spinner';
@@ -45,6 +46,7 @@ export default function MyListingsPage() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [qrTarget, setQrTarget] = useState(null);
+  const [showStoreQr, setShowStoreQr] = useState(false);
 
   // Fetch all store products once so tab counts and client filtering are accurate and instantaneous
   const { data, isLoading } = useQuery({
@@ -164,11 +166,24 @@ export default function MyListingsPage() {
         title="My Listings"
         subtitle={`${allProducts.length} total`}
         rightAction={
-          <Link to="/sell/create">
-            <Button size="sm" leftIcon={<Plus size={14} />}>
-              New Listing
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            {hasStore && store && (
+              <Button
+                size="sm"
+                variant="outline"
+                leftIcon={<QrCode size={14} />}
+                onClick={() => setShowStoreQr(true)}
+                title="Generate Store QR Code"
+              >
+                Store QR
+              </Button>
+            )}
+            <Link to="/sell/create">
+              <Button size="sm" leftIcon={<Plus size={14} />}>
+                New Listing
+              </Button>
+            </Link>
+          </div>
         }
       />
 
@@ -208,6 +223,76 @@ export default function MyListingsPage() {
       </div>
 
       {/* ── Products List ─────────────────────────────────── */}
+      {statusFilter === 'qr' && hasStore && store && (
+        <div
+          className="card p-4 sm:p-5 mb-4 border-2 transition-all hover:shadow-sm"
+          style={{
+            borderColor: 'rgba(91,110,245,0.3)',
+            background: 'linear-gradient(135deg, rgba(91,110,245,0.06) 0%, var(--color-surface) 60%, var(--color-surface) 100%)',
+          }}
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-3.5 min-w-0 flex-1">
+              <div
+                onClick={() => setShowStoreQr(true)}
+                className="cursor-pointer group flex flex-col items-center justify-center p-2 rounded-xl bg-white border border-[var(--color-border)] shadow-sm hover:border-[var(--color-brand)] transition-all flex-shrink-0"
+                title="Click to view full store flyer / print"
+              >
+                <QRCodeSVG
+                  value={`${window.location.origin}/store/${store.slug}`}
+                  size={68}
+                  level="M"
+                />
+                <span className="mt-1 text-[8px] font-black text-slate-800 tracking-wider group-hover:text-[var(--color-brand)]">
+                  STORE QR
+                </span>
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-[var(--color-brand)]/15 text-[var(--color-brand)]">
+                    Official Store QR
+                  </span>
+                  {store.is_verified && <span className="text-xs" title="Verified Seller">✅ Verified</span>}
+                </div>
+
+                <h4
+                  className="truncate text-base font-bold mt-0.5"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
+                  {store.store_name}
+                </h4>
+
+                <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                  Direct buyers to all your listings at <span className="font-mono text-[11px] font-semibold text-[var(--color-brand)]">aliwayz.com/store/{store.slug}</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-row sm:flex-col gap-2 flex-shrink-0">
+              <Button
+                size="sm"
+                variant="brand"
+                leftIcon={<Printer size={13} />}
+                onClick={() => setShowStoreQr(true)}
+                className="flex-1 sm:flex-initial justify-center text-xs font-semibold h-9 sm:h-8"
+              >
+                Store QR Sign
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                leftIcon={<Eye size={13} />}
+                onClick={() => navigate(`/store/${store.slug}`)}
+                className="flex-1 sm:flex-initial justify-center text-xs h-9 sm:h-8"
+              >
+                View Store
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {products.length === 0 ? (
         <EmptyState
           icon={statusFilter === 'all' ? '📦' : statusFilter === 'qr' ? '▣' : '🔍'}
@@ -545,6 +630,13 @@ export default function MyListingsPage() {
         isOpen={!!qrTarget}
         onClose={() => setQrTarget(null)}
         product={qrTarget}
+      />
+
+      {/* ── Store QR Code Modal ─────────────────────────── */}
+      <StoreQRModal
+        isOpen={showStoreQr}
+        onClose={() => setShowStoreQr(false)}
+        store={store}
       />
     </>
   );

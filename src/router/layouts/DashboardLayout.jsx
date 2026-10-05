@@ -12,11 +12,13 @@ import {
   ChevronRight,
   AlertCircle,
   ShieldCheck,
+  QrCode,
 } from 'lucide-react';
 import Navbar from '@components/common/Navbar';
 import LoadingScreen from '@components/common/LoadingScreen';
 import Button from '@components/ui/Button';
 import useMyStore from '@hooks/useMyStore';
+import StoreQRModal from '@components/modals/StoreQRModal';
 import { cn } from '@lib/utils';
 
 const sellerLinks = [
@@ -30,6 +32,7 @@ const sellerLinks = [
 export default function DashboardLayout() {
   const { store, hasStore, isLoading } = useMyStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [storeQrOpen, setStoreQrOpen] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -103,6 +106,10 @@ export default function DashboardLayout() {
                   store={store}
                   hasStore={hasStore}
                   onNavigate={() => setSidebarOpen(false)}
+                  onOpenStoreQr={() => {
+                    setSidebarOpen(false);
+                    setStoreQrOpen(true);
+                  }}
                 />
               </motion.aside>
             </>
@@ -118,7 +125,11 @@ export default function DashboardLayout() {
           }}
         >
           <div className="sticky top-20">
-            <SellerSidebar store={store} hasStore={hasStore} />
+            <SellerSidebar
+              store={store}
+              hasStore={hasStore}
+              onOpenStoreQr={() => setStoreQrOpen(true)}
+            />
           </div>
         </aside>
 
@@ -133,46 +144,66 @@ export default function DashboardLayout() {
           )}
         </main>
       </div>
+
+      <StoreQRModal
+        isOpen={storeQrOpen}
+        onClose={() => setStoreQrOpen(false)}
+        store={store}
+      />
     </div>
   );
 }
 
 // ── Seller Sidebar ────────────────────────────────────────────
-function SellerSidebar({ store, hasStore, onNavigate }) {
+function SellerSidebar({ store, hasStore, onNavigate, onOpenStoreQr }) {
   return (
     <nav className="space-y-6">
       {/* Store info */}
       {hasStore && store && (
-        <Link
-          to={`/store/${store.slug}`}
-          onClick={onNavigate}
-          className="flex items-center gap-3 rounded-xl p-3 transition-all hover:bg-[var(--glass-bg-strong)]"
-          style={{ border: '1px solid var(--color-border)' }}
-        >
-          {store.logo_url ? (
-            <img
-              src={store.logo_url}
-              alt={store.store_name}
-              className="h-10 w-10 rounded-xl object-cover"
-            />
-          ) : (
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500 font-bold text-white">
-              {store.store_name?.[0]}
+        <div className="flex items-center gap-1.5">
+          <Link
+            to={`/store/${store.slug}`}
+            onClick={onNavigate}
+            className="flex flex-1 min-w-0 items-center gap-3 rounded-xl p-3 transition-all hover:bg-[var(--glass-bg-strong)]"
+            style={{ border: '1px solid var(--color-border)' }}
+          >
+            {store.logo_url ? (
+              <img
+                src={store.logo_url}
+                alt={store.store_name}
+                className="h-10 w-10 rounded-xl object-cover"
+              />
+            ) : (
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500 font-bold text-white flex-shrink-0">
+                {store.store_name?.[0]}
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p
+                className="truncate text-sm font-semibold"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
+                {store.store_name}
+              </p>
+              <p className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+                View public store
+              </p>
             </div>
-          )}
-          <div className="min-w-0 flex-1">
-            <p
-              className="truncate text-sm font-semibold"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              {store.store_name}
-            </p>
-            <p className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
-              View public store
-            </p>
-          </div>
-          <ChevronRight size={14} style={{ color: 'var(--color-text-muted)' }} />
-        </Link>
+            <ChevronRight size={14} style={{ color: 'var(--color-text-muted)' }} />
+          </Link>
+          <button
+            type="button"
+            onClick={() => onOpenStoreQr?.()}
+            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition-all hover:bg-[var(--glass-bg-strong)] hover:text-[var(--color-brand)]"
+            style={{
+              border: '1px solid var(--color-border)',
+              color: 'var(--color-text-secondary)',
+            }}
+            title="Generate Store QR Code"
+          >
+            <QrCode size={18} />
+          </button>
+        </div>
       )}
 
       {!hasStore && (

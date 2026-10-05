@@ -18,6 +18,7 @@ import {
   ShieldCheck,
   MessageCircle,
   Trash2,
+  QrCode,
 } from 'lucide-react';
 import StoreService from '@api/services/store.service';
 import AdminService from '@api/services/admin.service';
@@ -43,6 +44,8 @@ import { formatCompactNumber, formatRating, formatMemberSince } from '@utils/for
 import { DEFAULT_PAGE_SIZE, CATEGORY_IDS } from '@utils/constants';
 import toast from '@lib/toast';
 import ListingQRModal from '@components/modals/ListingQRModal';
+import StoreQRModal from '@components/modals/StoreQRModal';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function StoreProfilePage() {
   const { slug } = useParams();
@@ -56,6 +59,7 @@ export default function StoreProfilePage() {
   const [showReport, setShowReport] = useState(false);
   const [showAdminDelete, setShowAdminDelete] = useState(false);
   const [qrTarget, setQrTarget] = useState(null);
+  const [showStoreQr, setShowStoreQr] = useState(false);
 
   // ── Fetch store ────────────────────────────────────────
   const { data: storeData, isLoading } = useQuery({
@@ -334,6 +338,19 @@ const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'http://localhost:5174';
                   {isFollowing ? 'Unfollow' : 'Follow'}
                 </Button>
               )}
+
+              {/* Store QR Code */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowStoreQr(true)}
+                title="Generate Store QR Code"
+                leftIcon={<QrCode size={15} />}
+                className="gap-1.5"
+              >
+                <span className="hidden sm:inline">Store QR</span>
+                <span className="sm:hidden">QR</span>
+              </Button>
 
               {/* Share */}
               <Button variant="outline" size="icon" onClick={handleShare} title="Share">
@@ -714,46 +731,104 @@ const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'http://localhost:5174';
 
           {/* ── QR Codes ──────────────────────────────────── */}
           {activeTab === 'qr_codes' && isOwner && (
-            <div className="space-y-4">
-              {(() => {
-                const qrProducts = products.filter(p => [CATEGORY_IDS.VEHICLES, CATEGORY_IDS.AUTOMOTIVE, CATEGORY_IDS.REAL_ESTATE, CATEGORY_IDS.PROPERTY, CATEGORY_IDS.AUTO_PARTS_ACCESSORIES].includes(p.category_id));
-                const displayProducts = qrProducts.length > 0 ? qrProducts : products;
-                
-                if (productsLoading) return (
-                  <div className="flex justify-center py-8">
-                    <Spinner size="md" />
+            <div className="space-y-6">
+              {/* Official Store QR Code Feature Card */}
+              <Card
+                className="p-5 overflow-hidden relative"
+                style={{
+                  border: '2px solid rgba(91,110,245,0.25)',
+                  background: 'linear-gradient(135deg, rgba(91,110,245,0.06) 0%, var(--color-surface) 60%, var(--color-surface) 100%)',
+                }}
+              >
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-5">
+                  <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+                    <div
+                      onClick={() => setShowStoreQr(true)}
+                      className="cursor-pointer group p-2.5 bg-white rounded-2xl shadow-sm border border-[var(--color-border)] hover:border-[var(--color-brand)] transition-all flex-shrink-0"
+                      title="Click to view full Store QR sign"
+                    >
+                      <QRCodeSVG
+                        value={`${window.location.origin}/store/${store.slug}`}
+                        size={84}
+                        level="H"
+                      />
+                      <p className="mt-1 text-[9px] font-black text-slate-800 text-center tracking-wider group-hover:text-[var(--color-brand)]">
+                        SCAN ME
+                      </p>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 justify-center sm:justify-start">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[var(--color-brand)]/15 text-[var(--color-brand)] border border-[var(--color-brand)]/20">
+                          Official Store QR Code
+                        </span>
+                        {store.is_verified && <span className="text-xs" title="Verified Seller">✅ Verified</span>}
+                      </div>
+                      <h3 className="text-lg font-bold mt-1" style={{ color: 'var(--color-text-primary)' }}>
+                        {store.store_name}
+                      </h3>
+                      <p className="text-xs text-[var(--color-text-secondary)] max-w-md mt-0.5">
+                        Direct buyers to all your store listings! Scanning this code redirects buyers to <span className="font-mono text-[11px] font-semibold text-[var(--color-brand)]">aliwayz.com/store/{store.slug}</span>
+                      </p>
+                    </div>
                   </div>
-                );
-                
-                if (displayProducts.length === 0) {
-                  return (
-                    <EmptyState
-                      icon="▣"
-                      title="No Listings Yet"
-                      description="Create a listing to view and download your printable QR codes."
-                    />
+                  <div className="flex sm:flex-col gap-2 w-full sm:w-auto flex-shrink-0">
+                    <Button
+                      size="sm"
+                      variant="brand"
+                      leftIcon={<QrCode size={15} />}
+                      onClick={() => setShowStoreQr(true)}
+                      className="flex-1 sm:flex-initial justify-center font-semibold"
+                    >
+                      View Store QR
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+
+              <div>
+                <h4 className="text-sm font-bold mb-3 uppercase tracking-wider text-[var(--color-text-muted)]">
+                  Individual Listing QR Codes
+                </h4>
+                {(() => {
+                  const qrProducts = products.filter(p => [CATEGORY_IDS.VEHICLES, CATEGORY_IDS.AUTOMOTIVE, CATEGORY_IDS.REAL_ESTATE, CATEGORY_IDS.PROPERTY, CATEGORY_IDS.AUTO_PARTS_ACCESSORIES].includes(p.category_id));
+                  const displayProducts = qrProducts.length > 0 ? qrProducts : products;
+                  
+                  if (productsLoading) return (
+                    <div className="flex justify-center py-8">
+                      <Spinner size="md" />
+                    </div>
                   );
-                }
-                
-                return (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-                    {displayProducts.map(p => (
-                      <Card key={p.id} className="p-4 flex flex-col items-center text-center justify-between h-full hover-lift">
-                        <div className="w-full flex flex-col items-center">
-                          <div className="w-16 h-16 bg-[var(--color-surface-elevated)] rounded-xl flex items-center justify-center mb-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--color-text-secondary)]"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+                  
+                  if (displayProducts.length === 0) {
+                    return (
+                      <EmptyState
+                        icon="▣"
+                        title="No Listings Yet"
+                        description="Create a listing to view and download your printable QR codes."
+                      />
+                    );
+                  }
+                  
+                  return (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                      {displayProducts.map(p => (
+                        <Card key={p.id} className="p-4 flex flex-col items-center text-center justify-between h-full hover-lift">
+                          <div className="w-full flex flex-col items-center">
+                            <div className="w-16 h-16 bg-[var(--color-surface-elevated)] rounded-xl flex items-center justify-center mb-3">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--color-text-secondary)]"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+                            </div>
+                            <p className="font-medium text-sm mb-1 truncate w-full" style={{ color: 'var(--color-text-primary)' }}>{p.title}</p>
+                            <p className="font-bold text-lg mb-4" style={{ color: 'var(--color-brand)' }}>{p.currency || '$'}{p.price}</p>
                           </div>
-                          <p className="font-medium text-sm mb-1 truncate w-full" style={{ color: 'var(--color-text-primary)' }}>{p.title}</p>
-                          <p className="font-bold text-lg mb-4" style={{ color: 'var(--color-brand)' }}>{p.currency || '$'}{p.price}</p>
-                        </div>
-                        <Button variant="outline" size="sm" onClick={() => setQrTarget(p)} className="w-full">
-                          View QR Code
-                        </Button>
-                      </Card>
-                    ))}
-                  </div>
-                );
-              })()}
+                          <Button variant="outline" size="sm" onClick={() => setQrTarget(p)} className="w-full">
+                            View QR Code
+                          </Button>
+                        </Card>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
             </div>
           )}
         </div>
@@ -787,6 +862,12 @@ const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'http://localhost:5174';
         isOpen={!!qrTarget}
         onClose={() => setQrTarget(null)}
         product={qrTarget}
+      />
+
+      <StoreQRModal
+        isOpen={showStoreQr}
+        onClose={() => setShowStoreQr(false)}
+        store={store}
       />
     </>
   );
