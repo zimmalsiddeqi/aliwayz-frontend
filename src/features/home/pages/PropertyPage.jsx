@@ -182,15 +182,15 @@ export default function PropertyPage() {
               >
                 <ArrowLeft size={14} /> Home
               </Link>
-                <Link to="/sell/create?category=real-estate">
-                  <Button
-                    size="xs"
-                    leftIcon={<PlusCircle size={14} />}
-                    className="!border-white/35 !bg-white/20 !text-white backdrop-blur-md hover:!bg-white/30"
-                  >
-                    List Real Estate
-                  </Button>
-                </Link>
+              <Link to={isAuthenticated ? '/sell/create?category=real-estate' : '/login'}>
+                <Button
+                  size="xs"
+                  leftIcon={<PlusCircle size={14} />}
+                  className="!border-white/35 !bg-white/20 !text-white backdrop-blur-md hover:!bg-white/30"
+                >
+                  List Real Estate
+                </Button>
+              </Link>
             </div>
 
             <div className="mt-2.5">

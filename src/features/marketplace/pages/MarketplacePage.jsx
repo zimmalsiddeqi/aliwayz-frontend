@@ -123,7 +123,7 @@ export default function MarketplacePage() {
                   leftIcon={<PlusCircle size={14} />}
                   className="font-medium shadow-sm whitespace-nowrap"
                 >
-                  Sell an Item
+                  List an Item
                 </Button>
               </Link>
               <div

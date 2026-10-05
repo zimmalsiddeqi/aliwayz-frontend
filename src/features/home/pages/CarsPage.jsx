@@ -162,7 +162,7 @@ export default function CarsPage() {
               >
                 <ArrowLeft size={14} /> Home
               </Link>
-              <Link to="/sell/create?category=vehicles">
+              <Link to={isAuthenticated ? '/sell/create?category=vehicles' : '/login'}>
                 <Button
                   size="xs"
                   leftIcon={<PlusCircle size={14} />}

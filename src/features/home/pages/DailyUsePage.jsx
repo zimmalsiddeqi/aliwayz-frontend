@@ -179,33 +179,35 @@ export default function DailyUsePage() {
               </span>
             ))}
           </div>
-          <div className="container-app relative py-8 sm:py-12">
-            <Link
-              to="/"
-              className="mb-4 inline-flex items-center gap-1.5 text-sm text-white/70 transition-colors hover:text-white"
-            >
-              <ArrowLeft size={16} /> Home
-            </Link>
-            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-              <div>
-                <h1 className="mb-1 text-3xl font-bold text-white sm:text-4xl">
-                  🛒 Marketplace
-                </h1>
-                <p className="text-sm text-white/70">
-                  {total} item{total !== 1 ? 's' : ''} available
-                </p>
-              </div>
+          <div className="container-app relative py-5 sm:py-6">
+            <div className="flex items-center justify-between">
+              <Link
+                to="/"
+                className="inline-flex items-center gap-1 text-xs text-white/80 hover:text-white"
+              >
+                <ArrowLeft size={14} /> Home
+              </Link>
               <Link to={isAuthenticated ? '/sell/create?category=essentials' : '/login'}>
                 <Button
-                  size="md"
-                  leftIcon={<PlusCircle size={16} />}
-                  className="!border-white/30 !bg-white/20 !text-white backdrop-blur-md hover:!bg-white/30"
+                  size="xs"
+                  leftIcon={<PlusCircle size={14} />}
+                  className="!border-white/35 !bg-white/20 !text-white backdrop-blur-md hover:!bg-white/30"
                 >
-                  Sell an Item
+                  List an Item
                 </Button>
               </Link>
             </div>
-            <div className="mt-5 max-w-xl">
+
+            <div className="mt-2.5">
+              <h1 className="text-xl font-bold text-white flex items-center gap-1.5 sm:text-2xl">
+                🛒 Marketplace
+              </h1>
+              <p className="text-xs text-white/70">
+                {total} item{total !== 1 ? 's' : ''} available near you
+              </p>
+            </div>
+
+            <div className="mt-4 max-w-xl">
               <div className="relative">
                 <Search
                   size={16}
@@ -216,7 +218,7 @@ export default function DailyUsePage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search items..."
-                  className="w-full rounded-xl py-3 pl-10 pr-10 text-sm text-white placeholder-white/50 outline-none"
+                  className="w-full rounded-xl py-2.5 pl-10 pr-10 text-xs text-white placeholder-white/50 outline-none"
                   style={{
                     backgroundColor: 'rgba(255,255,255,0.15)',
                     border: '1px solid rgba(255,255,255,0.25)',
@@ -371,7 +373,7 @@ export default function DailyUsePage() {
                     : 'No items listed yet'
               }
               description="Be the first to list an item or try adjusting your search!"
-              actionLabel="Sell an Item"
+              actionLabel="List an Item"
               actionTo={isAuthenticated ? '/sell/create?category=essentials' : '/login'}
             />
           ) : (
