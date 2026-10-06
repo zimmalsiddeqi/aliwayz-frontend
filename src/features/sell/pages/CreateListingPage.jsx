@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -521,6 +521,39 @@ function CategorySelector({ onSelect }) {
             />
           </motion.button>
         ))}
+
+        {/* Bulk Upload Option */}
+        <Link
+          to="/sell/bulk"
+          className="group flex items-center justify-between rounded-2xl p-4 transition-all duration-200 hover:-translate-y-0.5 mt-2"
+          style={{
+            backgroundColor: 'var(--color-surface)',
+            border: '1px dashed var(--color-border)',
+            boxShadow: 'var(--shadow-card)',
+          }}
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg"
+              style={{
+                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.15))',
+              }}
+            >
+              📊
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                Have multiple items to list?
+              </p>
+              <p className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+                Upload multiple products at once using an Excel or CSV file
+              </p>
+            </div>
+          </div>
+          <span className="flex items-center gap-1 text-xs font-semibold shrink-0" style={{ color: 'var(--color-brand)' }}>
+            Bulk Upload <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+          </span>
+        </Link>
       </div>
     </motion.div>
   );

@@ -15,6 +15,7 @@ import {
   Filter,
   QrCode,
   Printer,
+  Upload,
 } from 'lucide-react';
 import StoreService from '@api/services/store.service';
 import ProductService from '@api/services/product.service';
@@ -167,6 +168,16 @@ export default function MyListingsPage() {
         subtitle={`${allProducts.length} total`}
         rightAction={
           <div className="flex items-center gap-2">
+            <Link to="/sell/bulk">
+              <Button
+                size="sm"
+                variant="outline"
+                leftIcon={<Upload size={14} />}
+                title="Bulk Product Upload (CSV / Excel)"
+              >
+                Bulk Upload
+              </Button>
+            </Link>
             {hasStore && store && (
               <Button
                 size="sm"

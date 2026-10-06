@@ -52,6 +52,7 @@ const StoreAnalyticsPage = lazyWithRetry(() => import('@features/store/pages/Sto
 
 // Sell
 const CreateListingPage = lazyWithRetry(() => import('@features/sell/pages/CreateListingPage'));
+const BulkUploadPage    = lazyWithRetry(() => import('@features/sell/pages/BulkUploadPage'));
 const EditListingPage   = lazyWithRetry(() => import('@features/sell/pages/EditListingPage'));
 const MyListingsPage    = lazyWithRetry(() => import('@features/sell/pages/MyListingsPage'));
 
@@ -107,7 +108,7 @@ export {
   MarketplacePage, ProductDetailPage, CategoryPage,
   SearchPage,
   StoreProfilePage, CreateStorePage, EditStorePage, StoreAnalyticsPage,
-  CreateListingPage, EditListingPage, MyListingsPage,
+  CreateListingPage, BulkUploadPage, EditListingPage, MyListingsPage,
   InboxPage, ConversationPage,
   QRVerificationPage,
   MyProfilePage, PublicProfilePage, EditProfilePage,

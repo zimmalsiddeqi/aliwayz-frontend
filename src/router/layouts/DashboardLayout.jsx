@@ -13,6 +13,7 @@ import {
   AlertCircle,
   ShieldCheck,
   QrCode,
+  FileSpreadsheet,
 } from 'lucide-react';
 import Navbar from '@components/common/Navbar';
 import LoadingScreen from '@components/common/LoadingScreen';
@@ -24,6 +25,7 @@ import { cn } from '@lib/utils';
 const sellerLinks = [
   { to: '/sell/my-listings', icon: Package, label: 'My Listings' },
   { to: '/sell/create', icon: PlusCircle, label: 'New Listing' },
+  { to: '/sell/bulk', icon: FileSpreadsheet, label: 'Bulk Upload' },
   { to: '/my-store/analytics', icon: BarChart3, label: 'Analytics' },
   { to: '/my-store/verification', icon: ShieldCheck, label: 'Verification' },
   { to: '/my-store/edit', icon: Settings, label: 'Seller Settings' },
