@@ -181,7 +181,26 @@ export default function BulkUploadPage() {
     for (let i = 0; i < selected.length; i++) {
       const item = selected[i];
       try {
-        await ProductService.create(item.payload);
+        const res = await ProductService.create(item.payload);
+        const createdProduct = res?.data;
+
+        // Image strategy: upload the spreadsheet image or auto category cover photo
+        const targetImgUrl = item.imageUrls?.[0] || item.placeholderImage;
+        if (targetImgUrl && createdProduct?.id) {
+          try {
+            const imgRes = await fetch(targetImgUrl, { mode: 'cors' });
+            if (imgRes.ok) {
+              const blob = await imgRes.blob();
+              const imgFile = new File([blob], 'photo.jpg', { type: blob.type || 'image/jpeg' });
+              const fd = new FormData();
+              fd.append('file', imgFile, imgFile.name);
+              await ProductService.uploadImages(createdProduct.id, fd).catch(() => {});
+            }
+          } catch (_) {
+            // Handled gracefully; frontend auto-fallback guarantees photo display
+          }
+        }
+
         successes++;
       } catch (err) {
         failures.push({
@@ -680,9 +699,26 @@ function ListingRow({ item, isExpanded, onToggleExpand, onToggleSelect, onRemove
         />
 
         {/* Row number */}
-        <span className="text-[10px] font-mono w-5 text-center" style={{ color: 'var(--color-text-muted)' }}>
+        <span className="text-[10px] font-mono w-5 text-center shrink-0" style={{ color: 'var(--color-text-muted)' }}>
           {item.rowIndex}
         </span>
+
+        {/* Photo Thumbnail */}
+        {item.display.imageUrl && (
+          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-[var(--color-surface-elevated)] border border-[var(--color-border)]">
+            <img
+              src={item.display.imageUrl}
+              alt=""
+              className="h-full w-full object-cover"
+              loading="lazy"
+              onError={(e) => {
+                if (item.placeholderImage && e.target.src !== item.placeholderImage) {
+                  e.target.src = item.placeholderImage;
+                }
+              }}
+            />
+          </div>
+        )}
 
         {/* Content */}
         <div className="flex-1 min-w-0">
@@ -702,6 +738,15 @@ function ListingRow({ item, isExpanded, onToggleExpand, onToggleSelect, onRemove
             )}
             {item.display.subtitle && (
               <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>{item.display.subtitle}</span>
+            )}
+            {item.display.hasUserImage ? (
+              <span className="inline-flex items-center gap-0.5 text-[10px] text-green-600 dark:text-green-400 font-medium">
+                📷 Photo
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-0.5 text-[10px]" style={{ color: 'var(--color-text-muted)' }} title="Cover photo assigned automatically">
+                ✨ Auto Photo
+              </span>
             )}
             {item.category?.autoMapped && (
               <span className="inline-flex items-center gap-0.5 text-[10px]" style={{ color: 'var(--color-brand)' }}>

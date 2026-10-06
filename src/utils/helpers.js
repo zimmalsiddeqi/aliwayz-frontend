@@ -18,19 +18,115 @@ export function generateAvatarColor(str = '') {
 }
 
 /**
- * Get primary image from product_images array
+ * Get category-appropriate placeholder image URL when listing photos are loading or missing
  */
-export function getPrimaryImage(images = []) {
-  if (!images || images.length === 0) return null;
-  const primary = images.find((img) => img.is_primary);
-  return primary?.cdn_url || primary?.storage_url || images[0]?.cdn_url || images[0]?.storage_url || null;
+export function getProductPlaceholderImage(product = {}) {
+  const catName = String(product?.category?.name || product?.categories?.name || product?.category_name || '').toLowerCase();
+  const catSlug = String(product?.category?.slug || product?.categories?.slug || product?.category_slug || '').toLowerCase();
+  const title = String(product?.title || '').toLowerCase();
+  const desc = String(product?.description || '').toLowerCase();
+
+  // 1. Automotive & Parts
+  if (
+    catName.includes('vehicle') || catName.includes('car') || catName.includes('auto') ||
+    catSlug.includes('vehicle') || catSlug.includes('car') || catSlug.includes('auto') ||
+    /(\b(toyota|honda|ford|bmw|mercedes|audi|tesla|chevrolet|nissan|jeep|sedan|suv|truck|motorcycle|mileage)\b)/i.test(title + ' ' + desc)
+  ) {
+    if (/(\b(tire|wheel|part|accessory|rack|battery|mat)\b)/i.test(title + ' ' + desc)) {
+      return 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?w=800&auto=format&fit=crop&q=80';
+    }
+    if (/(\b(truck|f-150|silverado|ram)\b)/i.test(title + ' ' + desc)) {
+      return 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&auto=format&fit=crop&q=80';
+    }
+    return 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&auto=format&fit=crop&q=80';
+  }
+
+  // 2. Real Estate
+  if (
+    catName.includes('real estate') || catName.includes('property') || catSlug.includes('real-estate') ||
+    desc.includes('[property_type]') || desc.includes('[intent]') ||
+    /(\b(house|home|apartment|condo|townhome|land|rent|bedroom|sqft|acreage)\b)/i.test(title + ' ' + desc)
+  ) {
+    if (/(\b(apartment|condo|flat|studio)\b)/i.test(title + ' ' + desc)) {
+      return 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&auto=format&fit=crop&q=80';
+    }
+    if (/(\b(commercial|office|retail|warehouse)\b)/i.test(title + ' ' + desc)) {
+      return 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&auto=format&fit=crop&q=80';
+    }
+    return 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=800&auto=format&fit=crop&q=80';
+  }
+
+  // 3. Phones & Tablets
+  if (/(\b(iphone|phone|smartphone|galaxy|pixel|ipad|tablet|smartwatch|airpod)\b)/i.test(title + ' ' + desc)) {
+    return 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&auto=format&fit=crop&q=80';
+  }
+
+  // 4. Computers & Laptops
+  if (/(\b(macbook|laptop|computer|desktop|pc|monitor|keyboard)\b)/i.test(title + ' ' + desc)) {
+    return 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&auto=format&fit=crop&q=80';
+  }
+
+  // 5. Fashion & Shoes
+  if (/(\b(shoe|sneaker|nike|adidas|boot|heel|sandal)\b)/i.test(title + ' ' + desc)) {
+    return 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&auto=format&fit=crop&q=80';
+  }
+  if (/(\b(shirt|jacket|dress|coat|pants|hoodie|clothing|apparel|watch|bag)\b)/i.test(title + ' ' + desc)) {
+    return 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800&auto=format&fit=crop&q=80';
+  }
+
+  // 6. Furniture & Home
+  if (/(\b(sofa|couch|table|chair|desk|bed|furniture|lamp|decor)\b)/i.test(title + ' ' + desc)) {
+    return 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&auto=format&fit=crop&q=80';
+  }
+
+  // 7. Appliances
+  if (/(\b(fridge|refrigerator|washer|dryer|oven|stove|blender|microwave|coffee|vacuum)\b)/i.test(title + ' ' + desc)) {
+    return 'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?w=800&auto=format&fit=crop&q=80';
+  }
+
+  // 8. Tools
+  if (/(\b(drill|tool|wrench|saw|generator|compressor|hammer)\b)/i.test(title + ' ' + desc)) {
+    return 'https://images.unsplash.com/photo-1581147036324-c17ac41dfa6c?w=800&auto=format&fit=crop&q=80';
+  }
+
+  // Default clean marketplace product photo
+  return 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=800&auto=format&fit=crop&q=80';
+}
+
+/**
+ * Get primary image from product_images array or product object with fallback
+ */
+export function getPrimaryImage(images = [], fallbackProduct = null) {
+  let url = null;
+  if (Array.isArray(images) && images.length > 0) {
+    const primary = images.find((img) => img.is_primary);
+    url = primary?.cdn_url || primary?.storage_url || images[0]?.cdn_url || images[0]?.storage_url || null;
+  } else if (images && typeof images === 'object' && !Array.isArray(images)) {
+    if (Array.isArray(images.product_images) && images.product_images.length > 0) {
+      const primary = images.product_images.find((img) => img.is_primary);
+      url = primary?.cdn_url || primary?.storage_url || images.product_images[0]?.cdn_url || images.product_images[0]?.storage_url || null;
+    }
+    fallbackProduct = fallbackProduct || images;
+  }
+
+  if (url) return url;
+  if (fallbackProduct) return getProductPlaceholderImage(fallbackProduct);
+  return null;
 }
 
 /**
  * Get all image URLs from product_images array
  */
-export function getAllImageUrls(images = []) {
-  return images.map((img) => img.cdn_url || img.storage_url).filter(Boolean);
+export function getAllImageUrls(images = [], fallbackProduct = null) {
+  if (Array.isArray(images) && images.length > 0) {
+    const urls = images.map((img) => img.cdn_url || img.storage_url).filter(Boolean);
+    if (urls.length > 0) return urls;
+  }
+  if (fallbackProduct) {
+    const ph = getProductPlaceholderImage(fallbackProduct);
+    if (ph) return [ph];
+  }
+  return [];
 }
 
 /**
@@ -256,7 +352,9 @@ export function extractQRToken(raw = '') {
     try {
       const parsed = JSON.parse(text);
       if (parsed.token) return String(parsed.token).trim();
-    } catch {}
+    } catch (_e) {
+      // not JSON
+    }
   }
 
   // Check if it's a URL or contains token= parameter
@@ -265,7 +363,7 @@ export function extractQRToken(raw = '') {
       const url = new URL(text.startsWith('http') ? text : `https://${text}`);
       const param = url.searchParams.get('token');
       if (param) return decodeURIComponent(param).trim();
-    } catch {
+    } catch (_e) {
       const match = text.match(/[?&]token=([^&#]+)/);
       if (match) return decodeURIComponent(match[1]).trim();
     }
@@ -274,7 +372,9 @@ export function extractQRToken(raw = '') {
   if (text.includes('%')) {
     try {
       text = decodeURIComponent(text);
-    } catch {}
+    } catch (_e) {
+      // invalid encoded sequence
+    }
   }
 
   return text.trim();

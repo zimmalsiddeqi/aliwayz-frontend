@@ -9,7 +9,7 @@ import useInterestStore from '@store/interest.store';
 import ProductService from '@api/services/product.service';
 import BadgeUI from '@components/ui/Badge';
 import { cn, formatPrice, formatRelativeTime, getConditionLabel, getConditionColor } from '@lib/utils';
-import { getPrimaryImage } from '@utils/helpers';
+import { getPrimaryImage, getProductPlaceholderImage } from '@utils/helpers';
 import { formatCompactNumber } from '@utils/formatters';
 import toast from '@lib/toast';
 import { parsePropertyDescription, getProductUrl } from '@utils/categoryHelpers';
@@ -188,18 +188,18 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
       >
         {/* Image Container */}
         <div className="relative aspect-square w-full overflow-hidden bg-surface-hover flex-shrink-0">
-          {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt={product.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              loading="lazy"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-slate-500 text-xs">
-              No Image
-            </div>
-          )}
+          <img
+            src={imageUrl || getProductPlaceholderImage(product)}
+            alt={product.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
+            onError={(e) => {
+              const fallback = getProductPlaceholderImage(product);
+              if (e.target.src !== fallback) {
+                e.target.src = fallback;
+              }
+            }}
+          />
 
           {/* Favorite button */}
           <button

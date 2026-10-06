@@ -19,6 +19,7 @@ import {
   VEHICLE_SELLER_TYPE,
   REAL_ESTATE_TYPES,
 } from '../../../utils/constants.js';
+import { getProductPlaceholderImage } from '../../../utils/helpers.js';
 
 export const BULK_TYPES = {
   ESSENTIALS: MAIN_CATEGORIES.ESSENTIALS,
@@ -165,6 +166,15 @@ const COMMON_CATEGORY_COLS = [
   },
 ];
 
+export const IMAGE_URL_COLUMN = {
+  key: 'image_url',
+  label: 'Image URL',
+  aliases: ['images', 'image_urls', 'image', 'photo_url', 'photos', 'photo', 'img'],
+  hint: 'Optional. Direct image link (https://...). Multiple links separated with commas. If omitted, category photo is auto-assigned.',
+  example: ['https://images.unsplash.com/photo-1511707171634-5f897ff02aa9', ''],
+  recommended: true,
+};
+
 const ESSENTIALS_COLUMNS = [
   {
     key: 'title',
@@ -198,6 +208,7 @@ const ESSENTIALS_COLUMNS = [
     hint: 'New, Like New, Good, Fair or Poor',
     example: ['Like New', 'Good'],
   },
+  IMAGE_URL_COLUMN,
   ...COMMON_CATEGORY_COLS,
   { key: 'brand', label: 'Brand', aliases: ['manufacturer', 'make'], hint: 'Up to 100 characters', example: ['Apple', 'Nike'] },
   { key: 'color', label: 'Color', aliases: ['colour'], hint: 'Up to 50 characters', example: ['Deep Purple', 'White'] },
@@ -232,6 +243,7 @@ const VEHICLE_COLUMNS = [
     hint: 'Vehicles: New, Certified Pre-Owned, Excellent, Good, Fair. Parts: New, Like New, Good, Fair, Poor',
     example: ['Good', 'New'],
   },
+  IMAGE_URL_COLUMN,
   { key: 'mileage', label: 'Mileage', recommended: true, aliases: ['miles', 'odometer'], hint: 'Number of miles', example: ['42000', ''] },
   { key: 'fuel_type', label: 'Fuel Type', recommended: true, aliases: ['fuel'], hint: 'Gasoline, Diesel, Electric, Hybrid, Plug-in Hybrid, Hydrogen', example: ['Gasoline', ''] },
   { key: 'transmission', label: 'Transmission', recommended: true, aliases: ['gearbox'], hint: 'Automatic, Manual or CVT', example: ['Automatic', ''] },
@@ -279,6 +291,7 @@ const REAL_ESTATE_COLUMNS = [
     example: ['485000', '2200'],
     group: 'Core',
   },
+  { ...IMAGE_URL_COLUMN, group: 'Core' },
   { key: 'city', label: 'City', required: true, aliases: ['town', 'location_city'], hint: 'Example: Austin', example: ['Austin', 'Dallas'], group: 'Core' },
   { key: 'state', label: 'State', aliases: ['province', 'st'], hint: 'Example: TX', example: ['TX', 'TX'], group: 'Core' },
   { key: 'address', label: 'Street Address', aliases: ['street', 'street_address', 'full_address'], hint: 'Kept private unless you choose exact', example: ['123 Oak Street', '45 Elm Ave Apt 3B'], group: 'Core' },
@@ -539,6 +552,16 @@ function basePayload({ title, description, price, condition, brand, color, quant
   return p;
 }
 
+export function parseImageUrls(raw) {
+  if (!raw) return [];
+  const text = String(raw).trim();
+  if (!text) return [];
+  return text
+    .split(/[,;\n\r]+/)
+    .map((u) => u.trim())
+    .filter((u) => /^https?:\/\//i.test(u));
+}
+
 // ── Marketplace ──────────────────────────────────────────────
 function buildEssentials(row, ctx) {
   const errors = [];
@@ -570,9 +593,16 @@ function buildEssentials(row, ctx) {
   const condition = ITEM_CONDITION_MAP[token] || 'good';
   const location = resolveLocation(row, ctx);
 
+  // Image strategy: extract spreadsheet image URLs or assign high-res category stock photo
+  const imageUrls = parseImageUrls(row.image_url);
+  const placeholderImage = getProductPlaceholderImage({ title, brand, description, category_name: row.category });
+  const primaryImageUrl = imageUrls[0] || placeholderImage;
+
   return {
     errors,
     warnings,
+    imageUrls,
+    placeholderImage,
     payload: basePayload({
       title,
       description,
@@ -589,6 +619,8 @@ function buildEssentials(row, ctx) {
       price,
       conditionLabel: CONDITION_LABELS[condition],
       subtitle: [brand, color, quantity && quantity > 1 ? `Qty ${quantity}` : ''].filter(Boolean).join(' · '),
+      imageUrl: primaryImageUrl,
+      hasUserImage: imageUrls.length > 0,
     },
     categoryText: { primary: [title, brand].filter(Boolean).join(' '), secondary: description },
   };
@@ -692,9 +724,16 @@ function buildVehicles(row, ctx) {
 
   const location = resolveLocation(row, ctx);
 
+  // Image strategy: extract spreadsheet image URLs or assign high-res vehicle stock photo
+  const imageUrls = parseImageUrls(row.image_url);
+  const placeholderImage = getProductPlaceholderImage({ title, brand, description, category_name: 'Vehicles' });
+  const primaryImageUrl = imageUrls[0] || placeholderImage;
+
   return {
     errors,
     warnings,
+    imageUrls,
+    placeholderImage,
     payload: basePayload({
       title,
       description,
@@ -715,6 +754,8 @@ function buildVehicles(row, ctx) {
         : [mileage !== undefined && `${Number(mileage).toLocaleString('en-US')} mi`, fuel.label, trans.label, body.label]
             .filter(Boolean)
             .join(' · '),
+      imageUrl: primaryImageUrl,
+      hasUserImage: imageUrls.length > 0,
     },
     categoryText: {
       primary: [title, isAccessory ? brand : '', body.label, s(row.body_type)].filter(Boolean).join(' '),
@@ -901,9 +942,16 @@ function buildRealEstate(row, ctx) {
   checkLen(description, 5000, 'Description', errors);
   if (!userDescription) warnings.push('No description. Listings with a description get more views');
 
+  // Image strategy: extract spreadsheet image URLs or assign high-res real estate stock photo
+  const imageUrls = parseImageUrls(row.image_url);
+  const placeholderImage = getProductPlaceholderImage({ title, description, category_name: 'Real Estate' });
+  const primaryImageUrl = imageUrls[0] || placeholderImage;
+
   return {
     errors,
     warnings,
+    imageUrls,
+    placeholderImage,
     payload: basePayload({
       title,
       description,
@@ -925,6 +973,8 @@ function buildRealEstate(row, ctx) {
       ]
         .filter(Boolean)
         .join(' · '),
+      imageUrl: primaryImageUrl,
+      hasUserImage: imageUrls.length > 0,
     },
     categoryText: { primary: title, secondary: '' },
     realEstateHints: { intent, propertyType },

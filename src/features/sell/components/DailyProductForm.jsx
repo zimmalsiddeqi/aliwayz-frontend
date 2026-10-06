@@ -17,7 +17,7 @@ import Textarea from '@components/ui/Textarea';
 import Select from '@components/ui/Select';
 import Button from '@components/ui/Button';
 import PageHeader from '@components/common/PageHeader';
-import { getErrorMessage } from '@lib/utils';
+import { cn, getErrorMessage } from '@lib/utils';
 import useLocationStore from '@store/location.store';
 import useFormDraft from '@hooks/useFormDraft';
 import {
@@ -36,6 +36,7 @@ export default function DailyProductForm({ store, wantedContext }) {
   const { lat: userLat, lng: userLng, city: userCity, state: userState } = useLocationStore();
   const navigate = useNavigate();
   const [images, setImages] = useState([]);
+  const [imageError, setImageError] = useState(false);
 
   const defaultValues = useMemo(() => ({
     title: wantedContext?.wantedTitle ? wantedContext.wantedTitle : '',
@@ -69,6 +70,7 @@ export default function DailyProductForm({ store, wantedContext }) {
   const onDrop = useCallback(
     (files) => {
       const remaining = MAX_PRODUCT_IMAGES - images.length;
+      let added = false;
       for (const file of files.slice(0, remaining)) {
         const v = validateImageFile(file);
         if (!v.valid) {
@@ -76,7 +78,9 @@ export default function DailyProductForm({ store, wantedContext }) {
           continue;
         }
         setImages((prev) => [...prev, { file, preview: createFilePreview(file) }]);
+        added = true;
       }
+      if (added) setImageError(false);
     },
     [images.length]
   );
@@ -172,16 +176,36 @@ export default function DailyProductForm({ store, wantedContext }) {
     },
   });
 
+  const handleFormSubmit = (data) => {
+    if (images.length === 0) {
+      setImageError(true);
+      toast.error('Please upload at least 1 photo for your listing before publishing.');
+      const el = document.getElementById('photos-section');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    setImageError(false);
+    createMutation.mutate(data);
+  };
+
   return (
     <div>
       <PageHeader title="List Product" subtitle="Electronics, fashion, home goods & more" />
 
-      <form onSubmit={handleSubmit((d) => createMutation.mutate(d))} className="space-y-6">
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
         {/* Photos */}
-        <div className="space-y-2">
-          <label className="floating-label">
-            Photos ({images.length}/{MAX_PRODUCT_IMAGES})
-          </label>
+        <div id="photos-section" className="space-y-2">
+          <div className="flex items-center justify-between">
+            <label className="floating-label flex items-center gap-1">
+              Photos <span className="text-red-500 font-bold">*</span>
+              <span className="text-[11px] font-normal" style={{ color: 'var(--color-text-muted)' }}>
+                (at least 1 required · {images.length}/{MAX_PRODUCT_IMAGES})
+              </span>
+            </label>
+            {images.length === 0 && (
+              <span className="text-[11px] font-semibold text-red-500">1+ Photo Required</span>
+            )}
+          </div>
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
             {images.map((img, i) => (
               <div
@@ -207,20 +231,28 @@ export default function DailyProductForm({ store, wantedContext }) {
             {images.length < MAX_PRODUCT_IMAGES && (
               <div
                 {...getRootProps()}
-                className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-xl transition-all hover:border-purple-500"
+                className={cn(
+                  'flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-xl transition-all hover:border-purple-500',
+                  imageError && images.length === 0 && '!border-red-500 !bg-red-500/5'
+                )}
                 style={{
-                  border: `2px dashed ${isDragActive ? '#8B5CF6' : 'var(--color-border)'}`,
-                  backgroundColor: isDragActive ? 'rgba(139,92,246,0.05)' : 'var(--color-surface)',
+                  border: `2px dashed ${imageError && images.length === 0 ? '#EF4444' : isDragActive ? '#8B5CF6' : 'var(--color-border)'}`,
+                  backgroundColor: imageError && images.length === 0 ? 'rgba(239,68,68,0.05)' : isDragActive ? 'rgba(139,92,246,0.05)' : 'var(--color-surface)',
                 }}
               >
                 <input {...getInputProps()} />
-                <ImagePlus size={20} style={{ color: 'var(--color-text-muted)' }} />
-                <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
-                  Add
+                <ImagePlus size={20} style={{ color: imageError && images.length === 0 ? '#EF4444' : 'var(--color-text-muted)' }} />
+                <span className="text-[10px]" style={{ color: imageError && images.length === 0 ? '#EF4444' : 'var(--color-text-muted)' }}>
+                  Add Photo
                 </span>
               </div>
             )}
           </div>
+          {imageError && images.length === 0 && (
+            <p className="text-xs font-medium text-red-500">
+              Please upload at least 1 photo of your item to publish this listing.
+            </p>
+          )}
         </div>
 
         <Input

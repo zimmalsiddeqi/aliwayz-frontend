@@ -206,6 +206,14 @@ export default function EditListingPage() {
     { value: 'draft', label: 'Draft', icon: Archive, color: 'var(--color-text-muted)', desc: 'Not published yet' },
   ];
 
+  const handleFormSubmit = (data) => {
+    if (totalImages === 0) {
+      toast.error('Listing must have at least 1 photo.');
+      return;
+    }
+    updateMutation.mutate(data);
+  };
+
   return (
     <>
       <Helmet>
@@ -236,11 +244,14 @@ export default function EditListingPage() {
           }
         />
 
-        <form onSubmit={handleSubmit((data) => updateMutation.mutate(data))} className="space-y-6 mt-4">
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6 mt-4">
           {/* ── Photos Section ────────────────────────────── */}
           <div className="space-y-2">
-            <label className="floating-label">
-              Photos ({totalImages}/{MAX_PRODUCT_IMAGES})
+            <label className="floating-label flex items-center gap-1">
+              Photos <span className="text-red-500 font-bold">*</span>
+              <span className="text-[11px] font-normal" style={{ color: 'var(--color-text-muted)' }}>
+                (at least 1 required · {totalImages}/{MAX_PRODUCT_IMAGES})
+              </span>
             </label>
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
               {/* Existing Images */}

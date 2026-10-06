@@ -40,7 +40,7 @@ import {
   getErrorMessage,
 } from '@lib/utils';
 import { formatDate, formatCompactNumber, formatRating } from '@utils/formatters';
-import { getPrimaryImage, getAllImageUrls } from '@utils/helpers';
+import { getPrimaryImage, getAllImageUrls, getProductPlaceholderImage } from '@utils/helpers';
 import toast from '@lib/toast';
 import {
   parsePropertyDescription,
@@ -171,7 +171,7 @@ export default function ProductDetailPage() {
     );
   }
 
-  const images = getAllImageUrls(product.product_images);
+  const images = getAllImageUrls(product.product_images, product);
   const store = product.stores;
   const seller = product.users;
   const isOwner = user?.id === seller?.id;
@@ -264,11 +264,19 @@ export default function ProductDetailPage() {
                   src={images[activeImage]}
                   alt={product.title}
                   className="h-full w-full object-contain"
+                  onError={(e) => {
+                    const fallback = getProductPlaceholderImage(product);
+                    if (e.target.src !== fallback) {
+                      e.target.src = fallback;
+                    }
+                  }}
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center">
-                  <span className="text-6xl opacity-20">📦</span>
-                </div>
+                <img
+                  src={getProductPlaceholderImage(product)}
+                  alt={product.title}
+                  className="h-full w-full object-contain"
+                />
               )}
 
               {/* Navigation arrows */}
