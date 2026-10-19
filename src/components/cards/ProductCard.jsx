@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Eye, MapPin, Home, CheckSquare } from 'lucide-react';
+import { Heart, Eye, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@lib/queryClient';
@@ -62,27 +62,7 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
     /Property Type:\s*[^\n]+/i.test(desc) ||
     /(\b(apartment|condo|condominium|villa|house|townhouse|penthouse|studio|office space|commercial space|for rent|for sale|for lease)\b)/i.test(title);
 
-  const isAutomotive =
-    catId === CATEGORY_IDS.VEHICLES ||
-    catId === CATEGORY_IDS.AUTOMOTIVE ||
-    parentId === CATEGORY_IDS.VEHICLES ||
-    parentId === CATEGORY_IDS.AUTOMOTIVE ||
-    catName.includes('vehicle') ||
-    catName.includes('car') ||
-    catName.includes('auto') ||
-    catName.includes('truck') ||
-    catName.includes('motorcycle') ||
-    catSlug.includes('vehicle') ||
-    catSlug.includes('car') ||
-    catSlug.includes('auto') ||
-    /Mileage:\s*[^\n]+/i.test(desc) ||
-    /Transmission:\s*[^\n]+/i.test(desc) ||
-    /Drivetrain:\s*[^\n]+/i.test(desc) ||
-    /VIN:\s*[^\n]+/i.test(desc) ||
-    /Make:\s*[^\n]+/i.test(desc) ||
-    /Model:\s*[^\n]+/i.test(desc) ||
-    /(\b(bmw|mercedes|toyota|honda|ford|nissan|audi|tesla|hyundai|kia|chevrolet|chevy|jeep|lexus|mazda|subaru|dodge|porsche|volkswagen|vw|volvo|land rover|gmc|ram|chrysler|cadillac|infiniti|acura|mitsubishi|sedan|suv|coupe|truck|convertible|hatchback|crossover|civic|corolla|camry|accord|mustang|f-150|silverado)\b)/i.test(title) ||
-    /(\b(bmw|mercedes|toyota|honda|ford|nissan|audi|tesla|hyundai|kia|chevrolet|chevy|jeep|lexus|mazda|subaru|dodge|porsche|volkswagen|vw|volvo|land rover|gmc|ram|chrysler|cadillac|infiniti|acura|mitsubishi|sedan|suv|coupe|truck|convertible|hatchback|crossover|civic|corolla|camry|accord|mustang|f-150|silverado)\b)/i.test(catSlug);
+
 
   const handleFavorite = async (e) => {
     e.preventDefault();
@@ -221,100 +201,7 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
             />
           </button>
 
-          {/* Condition / Mileage / Transaction Type badge */}
-          {(() => {
-            let badgeContent = null;
-            if (isRealEstate) {
-              const attrs = parsePropertyDescription(product.description);
-              let badgeText = 'For Sale';
-              const intentStr = (attrs.intent || '').toLowerCase();
-              const descLower = (product.description || '').toLowerCase();
-              const titleLower = (product.title || '').toLowerCase();
 
-              if (
-                intentStr.includes('rent') ||
-                descLower.includes('for rent') ||
-                titleLower.includes('for rent') ||
-                descLower.includes('listing: for rent')
-              ) {
-                badgeText = 'For Rent';
-              } else if (
-                intentStr.includes('lease') ||
-                descLower.includes('for lease') ||
-                titleLower.includes('for lease') ||
-                descLower.includes('listing: for lease')
-              ) {
-                badgeText = 'For Lease';
-              } else if (intentStr.includes('vacation')) {
-                badgeText = 'Vacation';
-              }
-              badgeContent = (
-                <span className="flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg sm:rounded-xl text-[10px] sm:text-[11px] font-semibold bg-[#6366F1] text-white shadow-md backdrop-blur-md max-w-full">
-                  <Home size={10} className="stroke-[2.5] flex-shrink-0" />
-                  <span className="truncate">{badgeText}</span>
-                </span>
-              );
-            } else if (isAutomotive) {
-              const directMileage = product.mileage ?? product.attributes?.mileage ?? product.specs?.mileage;
-              let rawMileage = '';
-
-              if (directMileage !== undefined && directMileage !== null && directMileage !== '') {
-                rawMileage = String(directMileage).trim();
-              } else {
-                const mileageMatch =
-                  desc.match(/Mileage:\s*([^\n\r,]+)/i) ||
-                  desc.match(/(\d+[\d,.]*\s*(?:k\s*miles?|k\s*mi|miles?|mi)\b)/i) ||
-                  title.match(/(\d+[\d,.]*\s*(?:k\s*miles?|k\s*mi|miles?|mi)\b)/i) ||
-                  desc.match(/(\d+[\d,.]*)\s*(?:miles?|mi)\b/i);
-
-                if (mileageMatch) {
-                  rawMileage = mileageMatch[1].trim();
-                }
-              }
-
-              let mileageStr = '';
-              if (rawMileage) {
-                const isK = /\bk\b|k\s*mi/i.test(rawMileage);
-                const numClean = rawMileage.replace(/[^\d.]/g, '');
-                if (numClean) {
-                  let num = parseFloat(numClean);
-                  if (!isNaN(num)) {
-                    if (isK && num < 1000) {
-                      num = num * 1000;
-                    }
-                    if (num >= 1000) {
-                      const inK = num / 1000;
-                      const formatted = inK % 1 === 0 ? inK : inK.toFixed(1);
-                      mileageStr = `${formatted}k miles`;
-                    } else {
-                      mileageStr = `${num} miles`;
-                    }
-                  } else {
-                    mileageStr = rawMileage;
-                  }
-                } else {
-                  mileageStr = rawMileage;
-                }
-              }
-
-              if (mileageStr) {
-                badgeContent = (
-                  <span className="flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg sm:rounded-xl text-[10px] sm:text-[11px] font-semibold bg-black/80 text-white border border-white/20 shadow-md backdrop-blur-md max-w-full">
-                    <CheckSquare size={10} className="stroke-[2.5] text-blue-400 flex-shrink-0" />
-                    <span className="truncate">{mileageStr}</span>
-                  </span>
-                );
-              }
-            }
-
-            if (!badgeContent) return null;
-
-            return (
-              <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 max-w-[calc(100%-42px)] sm:max-w-[calc(100%-48px)] z-10 pointer-events-none">
-                {badgeContent}
-              </div>
-            );
-          })()}
 
           {/* Featured badge */}
           {product.is_featured && (
