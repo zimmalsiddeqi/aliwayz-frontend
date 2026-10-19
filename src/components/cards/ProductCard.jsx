@@ -1,14 +1,13 @@
 import { memo } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Eye, MapPin, Home, Check, CheckSquare } from 'lucide-react';
+import { Heart, Eye, MapPin, Home, CheckSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@lib/queryClient';
 import useAuthStore from '@store/auth.store';
 import useInterestStore from '@store/interest.store';
-import ProductService from '@api/services/product.service';
 import BadgeUI from '@components/ui/Badge';
-import { cn, formatPrice, formatRelativeTime, getConditionLabel, getConditionColor } from '@lib/utils';
+import { cn, formatPrice, formatRelativeTime } from '@lib/utils';
 import { getPrimaryImage, getProductPlaceholderImage } from '@utils/helpers';
 import { formatCompactNumber } from '@utils/formatters';
 import toast from '@lib/toast';
@@ -16,7 +15,7 @@ import { parsePropertyDescription, getProductUrl } from '@utils/categoryHelpers'
 import { CATEGORY_IDS } from '@utils/constants';
 import { useFavoritesStore } from '@store/favorites.store';
 
-const ProductCard = memo(function ProductCard({ product, showSeller = true, showCondition = true }) {
+const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
   const { isAuthenticated, user } = useAuthStore();
   const queryClient = useQueryClient();
   const isFav = useFavoritesStore((s) => s.ids.has(product.id));
@@ -298,31 +297,14 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true, show
                 }
               }
 
-              let badgeText = '';
-              if (showCondition) {
-                const condLabel = getConditionLabel(product.condition) || 'Automotive';
-                badgeText = mileageStr ? `${condLabel} • ${mileageStr}` : condLabel;
-              } else if (mileageStr) {
-                badgeText = mileageStr;
-              }
-
-              if (badgeText) {
+              if (mileageStr) {
                 badgeContent = (
                   <span className="flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg sm:rounded-xl text-[10px] sm:text-[11px] font-semibold bg-black/80 text-white border border-white/20 shadow-md backdrop-blur-md max-w-full">
                     <CheckSquare size={10} className="stroke-[2.5] text-blue-400 flex-shrink-0" />
-                    <span className="truncate">{badgeText}</span>
+                    <span className="truncate">{mileageStr}</span>
                   </span>
                 );
               }
-            } else if (showCondition) {
-              // General Marketplace Item
-              const conditionLabel = getConditionLabel(product.condition) || 'Available';
-              badgeContent = (
-                <span className="flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg sm:rounded-xl text-[10px] sm:text-[11px] font-semibold bg-[#10B981] text-white shadow-md backdrop-blur-md max-w-full">
-                  <Check size={10} className="stroke-[3] flex-shrink-0" />
-                  <span className="truncate">{conditionLabel}</span>
-                </span>
-              );
             }
 
             if (!badgeContent) return null;
