@@ -16,7 +16,7 @@ import { parsePropertyDescription, getProductUrl } from '@utils/categoryHelpers'
 import { CATEGORY_IDS } from '@utils/constants';
 import { useFavoritesStore } from '@store/favorites.store';
 
-const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
+const ProductCard = memo(function ProductCard({ product, showSeller = true, showCondition = true }) {
   const { isAuthenticated, user } = useAuthStore();
   const queryClient = useQueryClient();
   const isFav = useFavoritesStore((s) => s.ids.has(product.id));
@@ -223,103 +223,116 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
           </button>
 
           {/* Condition / Mileage / Transaction Type badge */}
-          <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 max-w-[calc(100%-42px)] sm:max-w-[calc(100%-48px)] z-10 pointer-events-none">
-            {(() => {
-              if (isRealEstate) {
-                const attrs = parsePropertyDescription(product.description);
-                let badgeText = 'For Sale';
-                const intentStr = (attrs.intent || '').toLowerCase();
-                const descLower = (product.description || '').toLowerCase();
-                const titleLower = (product.title || '').toLowerCase();
+          {(() => {
+            let badgeContent = null;
+            if (isRealEstate) {
+              const attrs = parsePropertyDescription(product.description);
+              let badgeText = 'For Sale';
+              const intentStr = (attrs.intent || '').toLowerCase();
+              const descLower = (product.description || '').toLowerCase();
+              const titleLower = (product.title || '').toLowerCase();
 
-                if (
-                  intentStr.includes('rent') ||
-                  descLower.includes('for rent') ||
-                  titleLower.includes('for rent') ||
-                  descLower.includes('listing: for rent')
-                ) {
-                  badgeText = 'For Rent';
-                } else if (
-                  intentStr.includes('lease') ||
-                  descLower.includes('for lease') ||
-                  titleLower.includes('for lease') ||
-                  descLower.includes('listing: for lease')
-                ) {
-                  badgeText = 'For Lease';
-                } else if (intentStr.includes('vacation')) {
-                  badgeText = 'Vacation';
+              if (
+                intentStr.includes('rent') ||
+                descLower.includes('for rent') ||
+                titleLower.includes('for rent') ||
+                descLower.includes('listing: for rent')
+              ) {
+                badgeText = 'For Rent';
+              } else if (
+                intentStr.includes('lease') ||
+                descLower.includes('for lease') ||
+                titleLower.includes('for lease') ||
+                descLower.includes('listing: for lease')
+              ) {
+                badgeText = 'For Lease';
+              } else if (intentStr.includes('vacation')) {
+                badgeText = 'Vacation';
+              }
+              badgeContent = (
+                <span className="flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg sm:rounded-xl text-[10px] sm:text-[11px] font-semibold bg-[#6366F1] text-white shadow-md backdrop-blur-md max-w-full">
+                  <Home size={10} className="stroke-[2.5] flex-shrink-0" />
+                  <span className="truncate">{badgeText}</span>
+                </span>
+              );
+            } else if (isAutomotive) {
+              const directMileage = product.mileage ?? product.attributes?.mileage ?? product.specs?.mileage;
+              let rawMileage = '';
+
+              if (directMileage !== undefined && directMileage !== null && directMileage !== '') {
+                rawMileage = String(directMileage).trim();
+              } else {
+                const mileageMatch =
+                  desc.match(/Mileage:\s*([^\n\r,]+)/i) ||
+                  desc.match(/(\d+[\d,.]*\s*(?:k\s*miles?|k\s*mi|miles?|mi)\b)/i) ||
+                  title.match(/(\d+[\d,.]*\s*(?:k\s*miles?|k\s*mi|miles?|mi)\b)/i) ||
+                  desc.match(/(\d+[\d,.]*)\s*(?:miles?|mi)\b/i);
+
+                if (mileageMatch) {
+                  rawMileage = mileageMatch[1].trim();
                 }
-                return (
-                  <span className="flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg sm:rounded-xl text-[10px] sm:text-[11px] font-semibold bg-[#6366F1] text-white shadow-md backdrop-blur-md max-w-full">
-                    <Home size={10} className="stroke-[2.5] flex-shrink-0" />
-                    <span className="truncate">{badgeText}</span>
-                  </span>
-                );
               }
 
-              if (isAutomotive) {
-                const directMileage = product.mileage ?? product.attributes?.mileage ?? product.specs?.mileage;
-                let rawMileage = '';
-
-                if (directMileage !== undefined && directMileage !== null && directMileage !== '') {
-                  rawMileage = String(directMileage).trim();
-                } else {
-                  const mileageMatch =
-                    desc.match(/Mileage:\s*([^\n\r,]+)/i) ||
-                    desc.match(/(\d+[\d,.]*\s*(?:k\s*miles?|k\s*mi|miles?|mi)\b)/i) ||
-                    title.match(/(\d+[\d,.]*\s*(?:k\s*miles?|k\s*mi|miles?|mi)\b)/i) ||
-                    desc.match(/(\d+[\d,.]*)\s*(?:miles?|mi)\b/i);
-
-                  if (mileageMatch) {
-                    rawMileage = mileageMatch[1].trim();
-                  }
-                }
-
-                let mileageStr = '';
-                if (rawMileage) {
-                  const isK = /\bk\b|k\s*mi/i.test(rawMileage);
-                  const numClean = rawMileage.replace(/[^\d.]/g, '');
-                  if (numClean) {
-                    let num = parseFloat(numClean);
-                    if (!isNaN(num)) {
-                      if (isK && num < 1000) {
-                        num = num * 1000;
-                      }
-                      if (num >= 1000) {
-                        const inK = num / 1000;
-                        const formatted = inK % 1 === 0 ? inK : inK.toFixed(1);
-                        mileageStr = `${formatted}k miles`;
-                      } else {
-                        mileageStr = `${num} miles`;
-                      }
+              let mileageStr = '';
+              if (rawMileage) {
+                const isK = /\bk\b|k\s*mi/i.test(rawMileage);
+                const numClean = rawMileage.replace(/[^\d.]/g, '');
+                if (numClean) {
+                  let num = parseFloat(numClean);
+                  if (!isNaN(num)) {
+                    if (isK && num < 1000) {
+                      num = num * 1000;
+                    }
+                    if (num >= 1000) {
+                      const inK = num / 1000;
+                      const formatted = inK % 1 === 0 ? inK : inK.toFixed(1);
+                      mileageStr = `${formatted}k miles`;
                     } else {
-                      mileageStr = rawMileage;
+                      mileageStr = `${num} miles`;
                     }
                   } else {
                     mileageStr = rawMileage;
                   }
+                } else {
+                  mileageStr = rawMileage;
                 }
+              }
 
+              let badgeText = '';
+              if (showCondition) {
                 const condLabel = getConditionLabel(product.condition) || 'Automotive';
-                const badgeText = mileageStr ? `${condLabel} • ${mileageStr}` : condLabel;
-                return (
+                badgeText = mileageStr ? `${condLabel} • ${mileageStr}` : condLabel;
+              } else if (mileageStr) {
+                badgeText = mileageStr;
+              }
+
+              if (badgeText) {
+                badgeContent = (
                   <span className="flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg sm:rounded-xl text-[10px] sm:text-[11px] font-semibold bg-black/80 text-white border border-white/20 shadow-md backdrop-blur-md max-w-full">
                     <CheckSquare size={10} className="stroke-[2.5] text-blue-400 flex-shrink-0" />
                     <span className="truncate">{badgeText}</span>
                   </span>
                 );
               }
-
+            } else if (showCondition) {
               // General Marketplace Item
               const conditionLabel = getConditionLabel(product.condition) || 'Available';
-              return (
+              badgeContent = (
                 <span className="flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg sm:rounded-xl text-[10px] sm:text-[11px] font-semibold bg-[#10B981] text-white shadow-md backdrop-blur-md max-w-full">
                   <Check size={10} className="stroke-[3] flex-shrink-0" />
                   <span className="truncate">{conditionLabel}</span>
                 </span>
               );
-            })()}
-          </div>
+            }
+
+            if (!badgeContent) return null;
+
+            return (
+              <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 max-w-[calc(100%-42px)] sm:max-w-[calc(100%-48px)] z-10 pointer-events-none">
+                {badgeContent}
+              </div>
+            );
+          })()}
 
           {/* Featured badge */}
           {product.is_featured && (

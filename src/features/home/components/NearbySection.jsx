@@ -76,7 +76,7 @@ export default function NearbySection() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           {products.slice(0, 8).map((p) => (
-            <ProductCard key={p.id} product={p} />
+            <ProductCard key={p.id} product={p} showCondition={false} />
           ))}
         </div>
       )}

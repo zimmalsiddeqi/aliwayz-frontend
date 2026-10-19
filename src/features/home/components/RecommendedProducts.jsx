@@ -95,7 +95,7 @@ export default function RecommendedProducts() {
                 ))
               : recommendedProducts.map((product) => (
                   <div key={product.id} className="w-[180px] sm:w-[240px] flex-shrink-0">
-                    <ProductCard product={product} />
+                    <ProductCard product={product} showCondition={false} />
                   </div>
                 ))}
           </div>
