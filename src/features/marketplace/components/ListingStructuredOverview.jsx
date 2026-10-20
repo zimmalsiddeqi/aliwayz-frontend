@@ -31,6 +31,7 @@ import {
   Moon,
 } from 'lucide-react';
 import { parseStructuredListingData, getCleanDescriptionText } from '@utils/categoryHelpers';
+import { cn } from '@lib/utils';
 
 const getIcon = (iconName, size = 16, className = '') => {
   switch (iconName) {
@@ -121,30 +122,44 @@ export default function ListingStructuredOverview({ product }) {
     <div className="space-y-4">
       {/* ── 1. Top Highlights Grid (Quick Stat Cards) ──── */}
       {data.highlights.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        <div
+          className={cn(
+            'grid gap-2 sm:gap-2.5',
+            data.highlights.length === 1 && 'grid-cols-1',
+            data.highlights.length === 2 && 'grid-cols-2',
+            data.highlights.length === 3 && 'grid-cols-3',
+            data.highlights.length >= 4 && 'grid-cols-2 sm:grid-cols-4'
+          )}
+        >
           {data.highlights.map((h, i) => (
             <div
               key={i}
-              className="p-3 sm:p-3.5 rounded-2xl border flex items-center gap-3 transition-all"
+              className="p-2 sm:p-2.5 md:p-3 rounded-2xl border flex flex-col sm:flex-row items-center sm:items-center text-center sm:text-left gap-1 sm:gap-2.5 transition-all min-w-0 overflow-hidden"
               style={{
                 backgroundColor: 'var(--color-surface)',
                 borderColor: 'var(--color-border)',
               }}
             >
               <div
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+                className="flex h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9 shrink-0 items-center justify-center rounded-xl"
                 style={{
                   backgroundColor: 'var(--color-surface-elevated)',
                   color: 'var(--color-brand)',
                 }}
               >
-                {getIcon(h.icon, 18)}
+                {getIcon(h.icon, 16)}
               </div>
-              <div className="min-w-0">
-                <p className="text-[11px] font-medium text-[var(--color-text-muted)] truncate">
+              <div className="min-w-0 flex-1 w-full">
+                <p
+                  className="text-[10px] sm:text-[11px] font-medium text-[var(--color-text-muted)] leading-tight whitespace-nowrap sm:whitespace-normal"
+                  title={h.label}
+                >
                   {h.label}
                 </p>
-                <p className="text-sm sm:text-base font-bold text-[var(--color-text-primary)] truncate">
+                <p
+                  className="text-xs sm:text-sm font-bold text-[var(--color-text-primary)] leading-tight break-words mt-0.5"
+                  title={h.value}
+                >
                   {h.value}
                 </p>
               </div>
