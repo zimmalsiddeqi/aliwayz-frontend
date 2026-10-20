@@ -357,9 +357,7 @@ export const VEHICLE_SELLER_TYPE = [
 export const VEHICLE_CONDITIONS = [
   { value: 'new',                label: 'Brand New' },
   { value: 'certified_preowned', label: 'Certified Pre-Owned (CPO)' },
-  { value: 'used_excellent',     label: 'Excellent' },
-  { value: 'used_good',          label: 'Good' },
-  { value: 'used_fair',          label: 'Fair' },
+  { value: 'used',               label: 'Used' },
 ];
 
 export const VEHICLE_FEATURES = [

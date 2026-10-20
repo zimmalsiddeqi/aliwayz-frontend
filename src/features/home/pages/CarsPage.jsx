@@ -104,7 +104,17 @@ export default function CarsPage() {
     if (maxPrice && price > Number(maxPrice)) return false;
 
     // Condition Filter
-    if (selectedCondition && p.condition !== selectedCondition) return false;
+    if (selectedCondition) {
+      if (selectedCondition === 'used') {
+        if (!['used', 'good', 'fair', 'poor', 'used_excellent', 'used_good', 'used_fair'].includes(p.condition)) return false;
+      } else if (selectedCondition === 'new') {
+        if (p.condition !== 'new') return false;
+      } else if (selectedCondition === 'certified_preowned') {
+        if (p.condition !== 'certified_preowned' && p.condition !== 'like_new') return false;
+      } else if (p.condition !== selectedCondition) {
+        return false;
+      }
+    }
 
     // Body Type, Fuel, and Transmission filters (parsed from description attributes if saved)
     if (selectedBodyType || selectedFuel || selectedTransmission) {
