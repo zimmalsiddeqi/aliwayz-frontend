@@ -350,7 +350,7 @@ export const VEHICLE_TITLE_STATUS = [
 ];
 
 export const VEHICLE_SELLER_TYPE = [
-  { value: 'private',    label: 'Private Party' },
+  { value: 'private',    label: 'Private Seller' },
   { value: 'dealership', label: 'Licensed Dealership' },
 ];
 
