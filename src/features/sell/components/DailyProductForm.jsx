@@ -29,14 +29,24 @@ import {
 } from '@utils/helpers';
 import { ITEM_CONDITIONS, MAX_PRODUCT_IMAGES, CATEGORY_IDS } from '@utils/constants';
 import { getProductUrl } from '@utils/categoryHelpers';
+import { encodeProductSellerIdentity } from '@utils/sellerMeta';
+import ListingReviewModal from './ListingReviewModal';
 import toast from '@lib/toast';
 
-export default function DailyProductForm({ store, wantedContext }) {
+export default function DailyProductForm({
+  store,
+  wantedContext,
+  sellerIdentity = 'quick',
+  onChangeIdentity,
+  requireReview = false,
+  user = null,
+}) {
   const queryClient = useQueryClient();
   const { lat: userLat, lng: userLng, city: userCity, state: userState } = useLocationStore();
   const navigate = useNavigate();
   const [images, setImages] = useState([]);
   const [imageError, setImageError] = useState(false);
+  const [reviewData, setReviewData] = useState(null);
 
   const defaultValues = useMemo(() => ({
     title: wantedContext?.wantedTitle ? wantedContext.wantedTitle : '',
@@ -121,7 +131,7 @@ export default function DailyProductForm({ store, wantedContext }) {
 
       const productData = {
         title: data.title,
-        description: data.description,
+        description: encodeProductSellerIdentity(data.description, sellerIdentity),
         price: Number(data.price),
         condition: data.condition,
         category_id: finalCategoryId,
@@ -185,6 +195,10 @@ export default function DailyProductForm({ store, wantedContext }) {
       return;
     }
     setImageError(false);
+    if (requireReview) {
+      setReviewData(data);
+      return;
+    }
     createMutation.mutate(data);
   };
 
@@ -346,9 +360,36 @@ export default function DailyProductForm({ store, wantedContext }) {
           isLoading={createMutation.isPending}
           loadingText="Listing item..."
         >
-          Publish Listing
+          {requireReview ? 'Review & Publish Listing' : 'Publish Listing'}
         </Button>
       </form>
+      {requireReview && (
+        <ListingReviewModal
+          isOpen={!!reviewData}
+          pendingPayload={
+            reviewData
+              ? {
+                  title: reviewData.title,
+                  price: reviewData.price,
+                  condition: reviewData.condition,
+                  location_city:
+                    reviewData.location_city || store?.location_city || userCity || '',
+                  description: reviewData.description,
+                  images: images.map((img) => img.preview || img.file),
+                }
+              : null
+          }
+          sellerIdentity={sellerIdentity}
+          onChangeIdentity={onChangeIdentity}
+          user={user}
+          store={store}
+          isSubmitting={createMutation.isPending}
+          onEdit={() => setReviewData(null)}
+          onConfirmPublish={() => {
+            if (reviewData) createMutation.mutate(reviewData);
+          }}
+        />
+      )}
     </div>
   );
 }

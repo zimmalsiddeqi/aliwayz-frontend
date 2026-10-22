@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
@@ -8,7 +8,7 @@ import {
   Heart, Users, Package, Settings, Shield,
   ChevronRight, Store, LayoutDashboard,
   PlusCircle, Compass, Bell, MessageCircle,
-  TrendingUp, Eye, LogOut,
+  TrendingUp, Eye, LogOut, Building2, Clock, ExternalLink,
 } from 'lucide-react';
 import UserService from '@api/services/user.service';
 import ReviewService from '@api/services/review.service';
@@ -18,6 +18,8 @@ import useAuthStore from '@store/auth.store';
 import useChatStore from '@store/chat.store';
 import useNotificationStore from '@store/notification.store';
 import useAuth from '@hooks/useAuth';
+import useMyStore from '@hooks/useMyStore';
+import { parseStoreMeta, getTodayHoursStatus } from '@utils/sellerMeta';
 import Avatar from '@components/ui/Avatar';
 import Button from '@components/ui/Button';
 import { Card } from '@components/ui/Card';
@@ -39,12 +41,13 @@ import { getBadgeDisplay } from '@utils/helpers';
 
 export default function MyProfilePage() {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user, setUser } = useAuthStore();
+  const { store, hasStore } = useMyStore();
   const { totalUnread } = useChatStore();
   const { unreadCount } = useNotificationStore();
   const { logout } = useAuth();
 
-  const role = user?.role || 'buyer';
+  const baseRole = user?.role || 'buyer';
 
   const { data: profileData, isLoading } = useQuery({
     queryKey: queryKeys.auth.me(),
@@ -63,6 +66,21 @@ export default function MyProfilePage() {
     (b) => b.is_active
   );
   const reviewSummary = reviewData?.data;
+  const role = profile?.role || (hasStore && baseRole === 'buyer' ? 'both' : baseRole);
+  const hasSellerAccess = (isSeller(role) || hasStore) && !isAdmin(role);
+  const storeMeta = parseStoreMeta(store);
+  const todayHours =
+    storeMeta.isBusinessProfile && storeMeta.hasStorefront
+      ? getTodayHoursStatus(storeMeta.businessHours)
+      : null;
+
+  useEffect(() => {
+    if (profile?.role && profile.role !== user?.role) {
+      setUser({ role: profile.role });
+    } else if (hasStore && user?.role === 'buyer') {
+      setUser({ role: 'both' });
+    }
+  }, [profile?.role, hasStore, user?.role, setUser]);
 
   if (isLoading) {
     return (
@@ -290,6 +308,161 @@ const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'http://localhost:5174';
           </motion.div>
         )}
 
+        {/* ═══ SELLER / BUSINESS PROFILE & DASHBOARD CARD ═ */}
+        {!isAdmin(role) && hasSellerAccess && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.08 }}
+          >
+            <Card className="p-4 sm:p-5 border" style={{ borderColor: 'rgba(91,110,245,0.35)' }}>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+                  <Avatar
+                    src={store?.logo_url || profile?.avatar_url}
+                    name={store?.store_name || profile?.full_name || profile?.username}
+                    size="lg"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3
+                        className="font-bold text-base sm:text-lg truncate"
+                        style={{ color: 'var(--color-text-primary)' }}
+                      >
+                        {store?.store_name || profile?.full_name || 'My Seller Profile'}
+                      </h3>
+                      <span
+                        className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full"
+                        style={{
+                          backgroundColor: 'var(--color-brand-light)',
+                          color: 'var(--color-brand)',
+                        }}
+                      >
+                        {storeMeta.isBusinessProfile ? (
+                          <>
+                            <Building2 size={11} />
+                            {storeMeta.businessTypeLabel || 'Business Seller'}
+                          </>
+                        ) : (
+                          <>
+                            <Store size={11} />
+                            Personal Seller
+                          </>
+                        )}
+                      </span>
+                    </div>
+                    <div
+                      className="flex flex-wrap items-center gap-2.5 mt-1 text-xs"
+                      style={{ color: 'var(--color-text-secondary)' }}
+                    >
+                      {(store?.location_city || profile?.location_city) && (
+                        <span className="inline-flex items-center gap-1">
+                          <MapPin size={12} />
+                          {storeMeta.isBusinessProfile &&
+                          storeMeta.hasStorefront &&
+                          storeMeta.addressVisibility === 'exact' &&
+                          storeMeta.streetAddress
+                            ? `${storeMeta.streetAddress}, ${store?.location_city || profile?.location_city}`
+                            : store?.location_city || profile?.location_city}
+                        </span>
+                      )}
+                      {todayHours && (
+                        <span
+                          className={cn(
+                            'inline-flex items-center gap-1',
+                            todayHours.isOpen && 'text-emerald-500 font-semibold'
+                          )}
+                        >
+                          <Clock size={12} />
+                          {todayHours.fullLabel}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link to="/dashboard" className="flex-1 sm:flex-initial">
+                    <Button
+                      size="sm"
+                      fullWidth
+                      leftIcon={<LayoutDashboard size={15} />}
+                    >
+                      Seller Dashboard
+                    </Button>
+                  </Link>
+                  {store?.slug && (
+                    <Link to={`/store/${store.slug}`} className="flex-1 sm:flex-initial">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        fullWidth
+                        leftIcon={<ExternalLink size={15} />}
+                      >
+                        {storeMeta.isBusinessProfile ? 'Business Profile' : 'Seller Profile'}
+                      </Button>
+                    </Link>
+                  )}
+                </div>
+              </div>
+
+              <div
+                className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4 pt-3.5 border-t"
+                style={{ borderColor: 'var(--color-border)' }}
+              >
+                <Link
+                  to="/sell/my-listings"
+                  className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold transition-colors hover:bg-[var(--glass-bg-strong)]"
+                  style={{
+                    backgroundColor: 'var(--color-bg)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
+                  <Package size={14} style={{ color: 'var(--color-brand)' }} />
+                  My Listings
+                </Link>
+                <Link
+                  to="/sell/create"
+                  className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold transition-colors hover:bg-[var(--glass-bg-strong)]"
+                  style={{
+                    backgroundColor: 'var(--color-bg)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
+                  <PlusCircle size={14} style={{ color: 'var(--color-success)' }} />
+                  New Listing
+                </Link>
+                <Link
+                  to="/my-store/analytics"
+                  className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold transition-colors hover:bg-[var(--glass-bg-strong)]"
+                  style={{
+                    backgroundColor: 'var(--color-bg)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
+                  <TrendingUp size={14} style={{ color: 'var(--color-info)' }} />
+                  Analytics
+                </Link>
+                <Link
+                  to={
+                    storeMeta.isBusinessProfile
+                      ? '/sell/create?mode=business&onboarding=business-edit'
+                      : '/my-store/edit'
+                  }
+                  className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold transition-colors hover:bg-[var(--glass-bg-strong)]"
+                  style={{
+                    backgroundColor: 'var(--color-bg)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
+                  <Settings size={14} style={{ color: 'var(--color-warning)' }} />
+                  {storeMeta.isBusinessProfile ? 'Business Info' : 'Seller Settings'}
+                </Link>
+              </div>
+            </Card>
+          </motion.div>
+        )}
+
         {/* ═══ BUYER DASHBOARD ════════════════════════════ */}
         {isBuyer(role) && !isAdmin(role) && (
           <BuyerDashboard
@@ -442,7 +615,7 @@ function SellerStats({ stats }) {
               ? formatRating(
                   stats.average_rating
                 )
-              : 'New',
+              : 'New Seller',
           icon: Star,
           color:
             stats.average_rating > 0
@@ -641,7 +814,8 @@ function ReviewSummaryCard({ summary }) {
 // ── Quick Links ──────────────────────────────────────────
 function QuickLinks({ role, unreadCount }) {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user, setUser } = useAuthStore();
+  const { store, hasStore } = useMyStore();
 
   const links = [
     // Buyer — NOT admin
@@ -687,7 +861,70 @@ function QuickLinks({ role, unreadCount }) {
       : []),
 
     // Seller — NOT admin
-    ...(isSeller(role) && !isAdmin(role)
+    // Seller — NOT admin
+    ...((isSeller(role) || hasStore) && !isAdmin(role)
+      ? [
+          {
+            to: '/dashboard',
+            icon: LayoutDashboard,
+            label: 'Seller Dashboard',
+            color: 'var(--color-brand)',
+            desc: 'Manage your listings & sales',
+          },
+          ...(store?.slug
+            ? [
+                {
+                  to: `/store/${store.slug}`,
+                  icon: Store,
+                  label: 'My Seller / Business Profile',
+                  color: '#10B981',
+                  desc: 'View your public storefront & listings',
+                },
+              ]
+            : []),
+          {
+            to: '/sell/my-listings',
+            icon: Package,
+            label: 'My Listings',
+            color: '#8B5CF6',
+            desc: 'Your active listings',
+          },
+          {
+            to: '/sell/create',
+            icon: PlusCircle,
+            label: 'New Listing',
+            color: 'var(--color-success)',
+            desc: 'List something for sale',
+          },
+          {
+            to: '/my-store/analytics',
+            icon: TrendingUp,
+            label: 'Performance',
+            color: 'var(--color-info)',
+            desc: 'Sales & analytics',
+          },
+          {
+            to: '/my-store/edit',
+            icon: Settings,
+            label: 'Seller & Store Settings',
+            color: 'var(--color-warning)',
+            desc: 'Edit your storefront, address & hours',
+          },
+        ]
+      : !isAdmin(role)
+        ? [
+            {
+              to: '/sell/create',
+              icon: Store,
+              label: 'Sell on Aliwayz',
+              color: 'var(--color-brand)',
+              desc: 'Quick listing, personal seller, or business storefront',
+            },
+          ]
+        : []),
+
+    // Legacy Seller block replaced above
+    ...(false && isSeller(role) && !isAdmin(role)
       ? [
           {
             to: '/dashboard',

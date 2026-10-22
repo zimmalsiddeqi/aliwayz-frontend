@@ -148,8 +148,8 @@ export function checkIsFavorited(productId, favorites = []) {
  */
 export function getUnreadCount(conversation, userId) {
   if (!conversation || !userId) return 0;
-  if (conversation.buyer_id === userId)  return conversation.buyer_unread_count  || 0;
-  if (conversation.seller_id === userId) return conversation.seller_unread_count || 0;
+  if (conversation.buyer_id === userId || conversation.buyer?.id === userId)  return conversation.buyer_unread_count  || 0;
+  if (conversation.seller_id === userId || conversation.seller?.id === userId) return conversation.seller_unread_count || 0;
   return 0;
 }
 

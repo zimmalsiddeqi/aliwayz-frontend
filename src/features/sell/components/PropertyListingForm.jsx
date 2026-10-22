@@ -26,8 +26,20 @@ import {
 import toast from '@lib/toast';
 import ListingQRModal from '@components/modals/ListingQRModal';
 import { getProductUrl } from '@utils/categoryHelpers';
+import { encodeProductSellerIdentity } from '@utils/sellerMeta';
+import ListingReviewModal from './ListingReviewModal';
 
-export default function PropertyListingForm({ store, intent = 'sale', propertyType = 'single_family', onBack, wantedContext }) {
+export default function PropertyListingForm({
+  store,
+  intent = 'sale',
+  propertyType = 'single_family',
+  onBack,
+  wantedContext,
+  sellerIdentity = 'quick',
+  onChangeIdentity,
+  requireReview = false,
+  user = null,
+}) {
   const queryClient = useQueryClient();
   const { lat: userLat, lng: userLng, city: userCity, state: userState } = useLocationStore();
   const navigate = useNavigate();
@@ -35,6 +47,7 @@ export default function PropertyListingForm({ store, intent = 'sale', propertyTy
   const [imageError, setImageError] = useState(false);
   const [selectedFeatures, setSelectedFeatures] = useState([]);
   const [publishedProduct, setPublishedProduct] = useState(null);
+  const [reviewData, setReviewData] = useState(null);
 
   const isLand = propertyType === 'land';
 
@@ -289,7 +302,7 @@ export default function PropertyListingForm({ store, intent = 'sale', propertyTy
 
       const productData = {
         title,
-        description: details.join('\n'),
+        description: encodeProductSellerIdentity(details.join('\n'), sellerIdentity),
         price: Number(formData.price),
         condition: 'good',
         category_id: CATEGORY_IDS.PROPERTY,
@@ -335,6 +348,7 @@ export default function PropertyListingForm({ store, intent = 'sale', propertyTy
         toast.success('Property listed successfully! 🏠');
       }
 
+      setReviewData(null);
       setPublishedProduct(product);
     },
     onError: (err) => toast.error(getErrorMessage(err)),
@@ -398,6 +412,10 @@ export default function PropertyListingForm({ store, intent = 'sale', propertyTy
       return;
     }
     setImageError(false);
+    if (requireReview) {
+      setReviewData(data);
+      return;
+    }
     createMutation.mutate(data);
   };
 
@@ -763,10 +781,41 @@ export default function PropertyListingForm({ store, intent = 'sale', propertyTy
         ────────────────────────────────────────────────────────── */}
         <div className="pt-4 flex gap-3">
           <Button type="submit" className="w-full" isLoading={createMutation.isPending}>
-            Publish Listing
+            {requireReview ? 'Review & Publish Listing' : 'Publish Listing'}
           </Button>
         </div>
       </form>
+
+      {requireReview && (
+        <ListingReviewModal
+          isOpen={!!reviewData}
+          pendingPayload={
+            reviewData
+              ? {
+                  title: getPropertyTitle(),
+                  price: reviewData.price,
+                  condition: 'good',
+                  location_city:
+                    [reviewData.city, reviewData.state].filter(Boolean).join(', ') ||
+                    store?.location_city ||
+                    userCity ||
+                    '',
+                  description: reviewData.description,
+                  images: images.map((img) => img.preview || img.file),
+                }
+              : null
+          }
+          sellerIdentity={sellerIdentity}
+          onChangeIdentity={onChangeIdentity}
+          user={user}
+          store={store}
+          isSubmitting={createMutation.isPending}
+          onEdit={() => setReviewData(null)}
+          onConfirmPublish={() => {
+            if (reviewData) createMutation.mutate(reviewData);
+          }}
+        />
+      )}
 
       <ListingQRModal
         isOpen={!!publishedProduct}

@@ -40,10 +40,6 @@ const Select = forwardRef(({
           <option
             value=""
             disabled
-            style={{
-              backgroundColor: 'var(--color-surface)',
-              color: 'var(--color-text-secondary)',
-            }}
           >
             {placeholder}
           </option>
@@ -51,10 +47,6 @@ const Select = forwardRef(({
             <option
               key={opt.value}
               value={opt.value}
-              style={{
-                backgroundColor: 'var(--color-surface)',
-                color: 'var(--color-text-primary)',
-              }}
             >
               {opt.label}
             </option>

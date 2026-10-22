@@ -176,6 +176,8 @@ export function stripPrivateTags(description) {
     .replace(/\[Private_Lat\]:[^\n]*/gi, '')
     .replace(/\[Private_Lng\]:[^\n]*/gi, '')
     .replace(/\[Address_Visibility\]:[^\n]*/gi, '')
+    .replace(/\[Seller_Meta\]:[^\n]*/gi, '')
+    .replace(/\[Seller_Identity\]:[^\n]*/gi, '')
     .trim();
 }
 
@@ -240,7 +242,7 @@ export function getCleanDescriptionText(description) {
 
   let cleaned = description
     // Strip system metadata bracket tags (e.g. [Private_Address]: 123, [Intent]: rent, etc.)
-    .replace(/\[(Private_Address|Private_Lat|Private_Lng|Address_Visibility|Intent|Property_Type|Condition)\]:[^\n]*/gi, '')
+    .replace(/\[(Private_Address|Private_Lat|Private_Lng|Address_Visibility|Intent|Property_Type|Condition|Seller_Meta|Seller_Identity)\]:[^\n]*/gi, '')
     // Remove standalone metadata brackets [ ... ]
     .replace(/\[.*?\]/g, '')
     // Replace raw system underscores between words (e.g. 12_months -> 12 months, brand_new -> brand new, single_family -> single family)

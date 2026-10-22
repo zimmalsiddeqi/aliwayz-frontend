@@ -21,6 +21,7 @@
 
 /* ── DARK THEME (default) ──────────────────────────────────── */
 :root {
+  color-scheme: dark;
   --color-brand:            #5B6EF5;
   --color-brand-dark:       #4654e0;
   --color-brand-light:      #7b91ff;
@@ -94,6 +95,7 @@
 
 /* ── LIGHT THEME ───────────────────────────────────────────── */
 .light {
+  color-scheme: light;
   --color-brand:            #4F5BD5;
   --color-brand-dark:       #3D49B8;
   --color-brand-light:      #6B7AFF;
@@ -200,6 +202,72 @@ body {
   outline: 2px solid var(--color-brand);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DROPDOWNS / SELECT & OPTION STYLING (Dark & Light Theme)
+═══════════════════════════════════════════════════════════════ */
+select {
+  color-scheme: dark;
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+select option,
+select optgroup,
+option,
+optgroup {
+  color-scheme: dark;
+  background-color: #141820 !important;
+  color: #f1f5f9 !important;
+}
+
+select option:disabled,
+option:disabled {
+  background-color: #0f1219 !important;
+  color: #64748b !important;
+}
+
+select option:checked,
+select option:hover,
+select option:focus,
+option:checked,
+option:hover,
+option:focus {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+/* Light Theme Overrides */
+.light select {
+  color-scheme: light;
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+.light select option,
+.light select optgroup,
+.light option,
+.light optgroup {
+  color-scheme: light;
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.light select option:disabled,
+.light option:disabled {
+  background-color: #f8f9fc !important;
+  color: #94a3b8 !important;
+}
+
+.light select option:checked,
+.light select option:hover,
+.light select option:focus,
+.light option:checked,
+.light option:hover,
+.light option:focus {
+  background-color: #3b82f6 !important;
+  color: #ffffff !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════

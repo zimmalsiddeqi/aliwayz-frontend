@@ -36,6 +36,7 @@ const useAuthStore = create(
       }
     },
 
+    updateUser: (userData) => set((state) => ({ user: state.user ? { ...state.user, ...userData } : userData })),
     setUser: (userData) => {
       set((state) => ({
         user: { ...state.user, ...userData },

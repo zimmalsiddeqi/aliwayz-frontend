@@ -1,6 +1,6 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { X, Download, Printer, Copy, Check, Store as StoreIcon } from 'lucide-react';
+import { X, Download, Printer, Store as StoreIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Button from '@components/ui/Button';
 import Avatar from '@components/ui/Avatar';
@@ -8,19 +8,10 @@ import toast from '@lib/toast';
 
 const StoreQRModal = ({ isOpen, onClose, store }) => {
   const qrRef = useRef(null);
-  const [copied, setCopied] = useState(false);
 
   if (!isOpen || !store) return null;
 
   const storeUrl = `${window.location.origin}/store/${store.slug}`;
-  const displayUrl = `${window.location.host}/store/${store.slug}`;
-
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(storeUrl);
-    setCopied(true);
-    toast.success('Store link copied to clipboard!');
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   const downloadQR = () => {
     try {
@@ -60,12 +51,12 @@ const StoreQRModal = ({ isOpen, onClose, store }) => {
         // Tagline
         ctx.font = 'bold 30px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
         ctx.fillStyle = '#5B6EF5';
-        ctx.fillText('OFFICIAL STORE QR CODE', width / 2, 135);
+        ctx.fillText('OFFICIAL BUSINESS QR CODE', width / 2, 135);
 
         // Store Name
         ctx.font = 'bold 54px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
         ctx.fillStyle = '#0F172A';
-        const storeName = store.store_name || 'My Store';
+        const storeName = store.store_name || 'My Business';
         ctx.fillText(storeName, width / 2, 210);
 
         // Location / Subtitle
@@ -98,28 +89,23 @@ const StoreQRModal = ({ isOpen, onClose, store }) => {
         // Bottom Call to action
         ctx.font = '800 38px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
         ctx.fillStyle = '#0F172A';
-        ctx.fillText('SCAN TO VIEW ALL STORE LISTINGS', width / 2, 1080);
+        ctx.fillText('SCAN TO VIEW ALL BUSINESS LISTINGS', width / 2, 1080);
 
         ctx.font = '500 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
         ctx.fillStyle = '#64748B';
         ctx.fillText('Browse full inventory, photos, pricing & contact seller on Aliwayz', width / 2, 1135);
 
-        // Store URL Pill
-        ctx.font = 'bold 28px monospace';
-        ctx.fillStyle = '#475569';
-        ctx.fillText(displayUrl, width / 2, 1220);
-
         // Footer brand
         ctx.font = '600 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
         ctx.fillStyle = '#94A3B8';
-        ctx.fillText('Powered by Aliwayz — The Local Marketplace', width / 2, 1420);
+        ctx.fillText('Powered by Aliwayz — The Local Marketplace', width / 2, 1320);
 
         const pngFile = canvas.toDataURL('image/png');
         const downloadLink = document.createElement('a');
-        downloadLink.download = `Store_QR_${store.store_name.replace(/\s+/g, '_')}.png`;
+        downloadLink.download = `Business_QR_${store.store_name.replace(/\s+/g, '_')}.png`;
         downloadLink.href = pngFile;
         downloadLink.click();
-        toast.success('Store QR Code downloaded!');
+        toast.success('Business QR Code downloaded!');
       };
 
       const base64Data = btoa(unescape(encodeURIComponent(svgData)));
@@ -143,7 +129,7 @@ const StoreQRModal = ({ isOpen, onClose, store }) => {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Print Store QR Sign — ${store.store_name}</title>
+          <title>Print Business QR Sign — ${store.store_name}</title>
           <style>
             @page {
               size: letter portrait;
@@ -214,16 +200,6 @@ const StoreQRModal = ({ isOpen, onClose, store }) => {
               font-weight: 500;
               margin: 0 0 15px 0;
             }
-            .url-box {
-              display: inline-block;
-              font-family: monospace;
-              font-size: 16px;
-              font-weight: bold;
-              background: #f1f5f9;
-              padding: 8px 18px;
-              border-radius: 8px;
-              color: #334155;
-            }
             .footer-tag {
               margin-top: 30px;
               font-size: 12px;
@@ -246,8 +222,6 @@ const StoreQRModal = ({ isOpen, onClose, store }) => {
 
             <div class="heading">SCAN TO BROWSE ALL LISTINGS</div>
             <div class="subheading">Scan with your smartphone camera to see all available items, pricing, photos & contact info on Aliwayz</div>
-            
-            <div class="url-box">${displayUrl}</div>
 
             <div class="footer-tag">Powered by Aliwayz Marketplace</div>
           </div>
@@ -291,7 +265,7 @@ const StoreQRModal = ({ isOpen, onClose, store }) => {
               </div>
               <div>
                 <h3 className="text-base font-bold" style={{ color: 'var(--color-text-primary)' }}>
-                  Store QR Code
+                  Business QR Code
                 </h3>
                 <p className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
                   Point buyers directly to all your listings
@@ -356,27 +330,6 @@ const StoreQRModal = ({ isOpen, onClose, store }) => {
                 <p className="text-[11px] max-w-xs mx-auto leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
                   Buyers scan this code with their phone camera to instantly view your full inventory and contact you directly.
                 </p>
-              </div>
-
-              {/* URL Pill with Copy */}
-              <div
-                className="mt-4 flex items-center justify-between gap-2 w-full max-w-xs px-3 py-1.5 rounded-xl border text-xs"
-                style={{
-                  backgroundColor: 'var(--color-surface)',
-                  borderColor: 'var(--color-border)',
-                }}
-              >
-                <span className="truncate font-mono text-[11px]" style={{ color: 'var(--color-text-secondary)' }}>
-                  {displayUrl}
-                </span>
-                <button
-                  type="button"
-                  onClick={handleCopyLink}
-                  className="flex items-center gap-1 font-semibold text-[11px] text-[var(--color-brand)] hover:underline flex-shrink-0"
-                >
-                  {copied ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
-                  <span>{copied ? 'Copied' : 'Copy'}</span>
-                </button>
               </div>
             </div>
 

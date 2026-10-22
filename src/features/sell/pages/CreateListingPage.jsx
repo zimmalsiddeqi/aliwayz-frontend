@@ -3,56 +3,238 @@ import { useSearchParams, useNavigate, useLocation, Link } from 'react-router-do
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Store, Zap, Sparkles } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Store,
+  Zap,
+  Sparkles,
+  User,
+  CheckCircle2,
+  Edit3,
+  Building2,
+  MapPin,
+  Clock,
+} from 'lucide-react';
 import useMyStore from '@hooks/useMyStore';
 import useAuthStore from '@store/auth.store';
 import StoreService from '@api/services/store.service';
+import UserService from '@api/services/user.service';
+import { queryKeys } from '@lib/queryClient';
 import Spinner from '@components/ui/Spinner';
-import Button from '@components/ui/Button';
+import Avatar from '@components/ui/Avatar';
 import CarListingForm from '@features/sell/components/CarListingForm';
 import PropertyListingForm from '@features/sell/components/PropertyListingForm';
 import DailyProductForm from '@features/sell/components/DailyProductForm';
-import { MAIN_CATEGORIES, MAIN_CATEGORY_CONFIG } from '@utils/constants';
-import { cn, getErrorMessage } from '@lib/utils';
+import PersonalSellerOnboarding, {
+  isPersonalProfileComplete,
+} from '@features/sell/components/PersonalSellerOnboarding';
+import BusinessSellerOnboarding from '@features/sell/components/BusinessSellerOnboarding';
+import { MAIN_CATEGORIES, CATEGORY_IDS } from '@utils/constants';
+import {
+  parseStoreMeta,
+  getTodayHoursStatus,
+} from '@utils/sellerMeta';
+import { getErrorMessage } from '@lib/utils';
 import toast from '@lib/toast';
+
+const getBusinessCategory = (storeObj, metaObj) => {
+  const bt = (metaObj?.businessType || '').toLowerCase();
+  if (
+    bt === 'automotive' ||
+    bt === 'car_dealership' ||
+    bt === 'auto_parts'
+  ) {
+    return MAIN_CATEGORIES.VEHICLES;
+  }
+  if (
+    bt === 'real_estate' ||
+    bt === 'real_estate_agency' ||
+    bt === 'property_management'
+  ) {
+    return MAIN_CATEGORIES.REAL_ESTATE;
+  }
+  if (
+    bt === 'marketplace' ||
+    bt === 'retail_store' ||
+    bt === 'electronics_shop' ||
+    bt === 'furniture_home' ||
+    bt === 'online_store' ||
+    bt === 'home_business' ||
+    bt === 'other_business'
+  ) {
+    return MAIN_CATEGORIES.ESSENTIALS;
+  }
+
+  const catId = storeObj?.category_id || storeObj?.categories?.id;
+  if (catId === CATEGORY_IDS.AUTOMOTIVE || catId === CATEGORY_IDS.VEHICLES) {
+    return MAIN_CATEGORIES.VEHICLES;
+  }
+  if (catId === CATEGORY_IDS.PROPERTY || catId === CATEGORY_IDS.REAL_ESTATE) {
+    return MAIN_CATEGORIES.REAL_ESTATE;
+  }
+  if (catId === CATEGORY_IDS.OTHER) {
+    return MAIN_CATEGORIES.ESSENTIALS;
+  }
+
+  const catSlug = (storeObj?.categories?.slug || '').toLowerCase();
+  if (catSlug.includes('vehicle') || catSlug.includes('automotive')) {
+    return MAIN_CATEGORIES.VEHICLES;
+  }
+  if (catSlug.includes('real-estate') || catSlug.includes('property')) {
+    return MAIN_CATEGORIES.REAL_ESTATE;
+  }
+  if (catSlug.includes('marketplace') || catSlug.includes('essentials')) {
+    return MAIN_CATEGORIES.ESSENTIALS;
+  }
+
+  return null;
+};
 
 export default function CreateListingPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
-  const { user } = useAuthStore();
+  const { user, setUser } = useAuthStore();
 
   const rawCategory = searchParams.get('category');
   const selectedCategory = rawCategory
-    ? (rawCategory === 'real_estate' || rawCategory === 'real-estate'
-        ? MAIN_CATEGORIES.REAL_ESTATE
-        : rawCategory === 'automotive' || rawCategory === 'vehicles'
+    ? rawCategory === 'real_estate' || rawCategory === 'real-estate'
+      ? MAIN_CATEGORIES.REAL_ESTATE
+      : rawCategory === 'automotive' || rawCategory === 'vehicles'
         ? MAIN_CATEGORIES.VEHICLES
-        : MAIN_CATEGORIES.ESSENTIALS)
+        : MAIN_CATEGORIES.ESSENTIALS
     : null;
 
-  const { store, hasStore, isLoading: storeLoading, refetch: refetchStore } = useMyStore();
+  const onboardingParam = searchParams.get('onboarding'); // 'personal' | 'business' | 'business-edit' | null
+  const forceChooseScreen = searchParams.get('choose') === '1';
 
-  // Auto-create shop for quick listings
+  const {
+    store,
+    hasStore,
+    isLoading: storeLoading,
+    refetch: refetchStore,
+  } = useMyStore();
+
+  const storeMeta = parseStoreMeta(store);
+  const savedSellerMode = user?.id
+    ? localStorage.getItem(`aliwayz_seller_mode_${user.id}`)
+    : null;
+  const hasBusinessProfile = Boolean(
+    hasStore && (storeMeta.isBusinessProfile || savedSellerMode === 'business')
+  );
+  const personalComplete =
+    isPersonalProfileComplete(user) &&
+    (hasStore ||
+      (user?.id &&
+        localStorage.getItem(`aliwayz_personal_seller_ready_${user.id}`) === 'true'));
+  const hasPersonalProfile = Boolean(
+    hasStore &&
+      !hasBusinessProfile &&
+      (storeMeta.isPersonalProfile || personalComplete || savedSellerMode === 'personal')
+  );
+
+  // Automatically resolve mode when the seller already has a Business or Personal seller profile
+  // so clicking "New Listing" from Seller Dashboard goes straight to listing creation without re-prompting.
+  const defaultSellerMode = hasBusinessProfile
+    ? 'business'
+    : hasPersonalProfile
+      ? 'personal'
+      : hasStore
+        ? 'quick'
+        : selectedCategory
+          ? 'quick'
+          : null;
+
+  const mode = forceChooseScreen
+    ? null
+    : searchParams.get('mode') || defaultSellerMode;
+
+  // Active seller identity when creating a listing ('quick' | 'personal' | 'business')
+  const [sellerIdentityOverride, setSellerIdentityOverride] = useState(null);
+  const activeSellerIdentity =
+    sellerIdentityOverride ||
+    (mode === 'business'
+      ? 'business'
+      : mode === 'personal'
+        ? 'personal'
+        : hasBusinessProfile
+          ? 'business'
+          : hasPersonalProfile
+            ? 'personal'
+            : 'quick');
+
+  const isBusinessSeller = Boolean(
+    activeSellerIdentity === 'business' ||
+    mode === 'business' ||
+    (hasBusinessProfile && activeSellerIdentity !== 'personal')
+  );
+
+  const businessCategory = isBusinessSeller
+    ? getBusinessCategory(store, storeMeta)
+    : null;
+
+  // If business seller has an assigned business category and an incompatible category was passed in URL, align it
+  useEffect(() => {
+    if (isBusinessSeller && businessCategory && rawCategory) {
+      if (selectedCategory && selectedCategory !== businessCategory) {
+        const nextParams = new URLSearchParams(searchParams);
+        nextParams.set('category', businessCategory);
+        setSearchParams(nextParams, { replace: true });
+      }
+    }
+  }, [isBusinessSeller, businessCategory, rawCategory, selectedCategory, searchParams, setSearchParams]);
+
+  // Auto-create shop for Quick Listing (preserves existing Quick Listing behavior 100%)
   const autoCreateMutation = useMutation({
-    mutationFn: () =>
-      StoreService.create({
-        store_name: `${user?.full_name || user?.username || 'My'} Listings`,
+    mutationFn: async () => {
+      // Ensure buyer role is upgraded to 'both' so backend allows store creation
+      if (!user?.role || user.role === 'buyer') {
+        try {
+          const roleRes = await UserService.updateRole({ role: 'both' });
+          const updatedU = roleRes?.data?.user || roleRes?.data || roleRes?.user;
+          if (updatedU && typeof updatedU === 'object') {
+            setUser({ ...updatedU, role: updatedU.role || 'both' });
+          } else {
+            setUser({ role: 'both' });
+          }
+        } catch {
+          setUser({ role: 'both' });
+        }
+      }
+
+      const rawName = `${user?.full_name || user?.username || 'My'} Listings`;
+      return StoreService.create({
+        store_name: rawName.length >= 3 ? rawName : 'My Listings',
+        category_id: CATEGORY_IDS.OTHER,
         description: 'Personal listings',
-        location_city: '',
-      }),
+        location_city: user?.location_city || '',
+      });
+    },
     onSuccess: () => {
+      setUser({ role: user?.role === 'admin' ? 'admin' : 'both' });
       queryClient.invalidateQueries({
         queryKey: ['my-store'],
       });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.auth.me(),
+      });
       refetchStore();
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.set('mode', 'quick');
+      nextParams.delete('onboarding');
+      setSearchParams(nextParams);
       toast.success('All set! Now add your listing.');
     },
     onError: (err) => {
       const msg = getErrorMessage(err);
-      if (msg.includes('already')) {
+      if (msg.toLowerCase().includes('already')) {
         refetchStore();
+        const nextParams = new URLSearchParams(searchParams);
+        nextParams.set('mode', 'quick');
+        nextParams.delete('onboarding');
+        setSearchParams(nextParams);
       } else {
         toast.error(msg);
       }
@@ -68,23 +250,167 @@ export default function CreateListingPage() {
     );
   }
 
-  // No shop — show options
-  if (!hasStore) {
+  // Handlers for the 3 Sell Entry options
+  const handleSelectQuickListing = () => {
+    setSellerIdentityOverride('quick');
+    if (user?.id && !hasBusinessProfile) {
+      localStorage.setItem(`aliwayz_seller_mode_${user.id}`, 'quick');
+    }
+    if (!hasStore) {
+      autoCreateMutation.mutate();
+    } else {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.set('mode', 'quick');
+      nextParams.delete('onboarding');
+      nextParams.delete('choose');
+      setSearchParams(nextParams);
+    }
+  };
+
+  const handleSelectPersonalSeller = (forceEdit = false) => {
+    setSellerIdentityOverride('personal');
+    if (user?.id) {
+      localStorage.setItem(`aliwayz_seller_mode_${user.id}`, 'personal');
+    }
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('mode', 'personal');
+    nextParams.delete('choose');
+    if (forceEdit || !personalComplete || !hasStore) {
+      nextParams.set('onboarding', 'personal');
+    } else {
+      nextParams.delete('onboarding');
+    }
+    setSearchParams(nextParams);
+  };
+
+  const handleSelectBusinessSeller = (forceEdit = false) => {
+    setSellerIdentityOverride('business');
+    if (user?.id && hasBusinessProfile) {
+      localStorage.setItem(`aliwayz_seller_mode_${user.id}`, 'business');
+    }
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('mode', 'business');
+    nextParams.delete('choose');
+    if (forceEdit) {
+      nextParams.set('onboarding', 'business-edit');
+    } else if (!hasBusinessProfile) {
+      nextParams.set('onboarding', 'business');
+    } else {
+      nextParams.delete('onboarding');
+    }
+    setSearchParams(nextParams);
+  };
+
+  // 1. Show 3-Option Sell Entry Screen when no mode is selected (or when user has no store in quick mode)
+  if (!mode || (mode === 'quick' && !hasStore)) {
     return (
       <>
         <Helmet>
-          <title>Sell — Aliwayz</title>
+          <title>Sell on Aliwayz — Choose How to Sell</title>
+          <meta name="robots" content="noindex, nofollow" />
         </Helmet>
 
-        <div className="mx-auto max-w-lg">
-          <NoShopPrompt
-            category={selectedCategory}
-            isCreating={autoCreateMutation.isPending}
-            onQuickStart={() => autoCreateMutation.mutate()}
-            onCreateShop={() => navigate('/store/create')}
+        <div className="mx-auto max-w-3xl">
+          <SellEntryScreen
+            user={user}
+            store={store}
+            hasStore={hasStore}
+            hasBusinessProfile={hasBusinessProfile}
+            personalComplete={personalComplete}
+            storeMeta={storeMeta}
+            isQuickCreating={autoCreateMutation.isPending}
+            onSelectQuick={handleSelectQuickListing}
+            onSelectPersonal={handleSelectPersonalSeller}
+            onSelectBusiness={handleSelectBusinessSeller}
             onBack={() => navigate(-1)}
           />
         </div>
+      </>
+    );
+  }
+
+  // 2. Personal Seller Onboarding Step (when missing required info or editing personal profile)
+  if (
+    mode === 'personal' &&
+    (onboardingParam === 'personal' || !personalComplete || !hasStore)
+  ) {
+    return (
+      <>
+        <Helmet>
+          <title>Personal Seller Setup — Aliwayz</title>
+          <meta name="robots" content="noindex, nofollow" />
+        </Helmet>
+
+        <PersonalSellerOnboarding
+          user={user}
+          existingStore={store}
+          onBack={() => {
+            const nextParams = new URLSearchParams(searchParams);
+            nextParams.delete('onboarding');
+            if (!personalComplete || !hasStore) {
+              nextParams.delete('mode');
+            }
+            setSearchParams(nextParams);
+          }}
+          onComplete={(res) => {
+            if (res?.store) {
+              queryClient.setQueryData(['my-store', user?.id], res.store);
+            }
+            refetchStore();
+            const nextParams = new URLSearchParams(searchParams);
+            nextParams.set('mode', 'personal');
+            nextParams.delete('onboarding');
+            nextParams.delete('choose');
+            setSearchParams(nextParams);
+          }}
+        />
+      </>
+    );
+  }
+
+  // 3. Business Seller Onboarding Step (when creating, reviewing, or editing business profile)
+  if (
+    mode === 'business' &&
+    (onboardingParam === 'business' ||
+      onboardingParam === 'business-edit' ||
+      !hasBusinessProfile)
+  ) {
+    return (
+      <>
+        <Helmet>
+          <title>Business Seller Setup — Aliwayz</title>
+          <meta name="robots" content="noindex, nofollow" />
+        </Helmet>
+
+        <BusinessSellerOnboarding
+          user={user}
+          existingStore={store}
+          initialEditMode={onboardingParam === 'business-edit'}
+          onBack={() => {
+            const nextParams = new URLSearchParams(searchParams);
+            nextParams.delete('onboarding');
+            nextParams.delete('step');
+            if (!hasBusinessProfile) {
+              nextParams.delete('mode');
+            }
+            setSearchParams(nextParams);
+          }}
+          onComplete={(savedStore) => {
+            if (savedStore) {
+              queryClient.setQueryData(['my-store', user?.id], savedStore);
+            }
+            if (user?.id) {
+              localStorage.setItem(`aliwayz_seller_mode_${user.id}`, 'business');
+            }
+            refetchStore();
+            const nextParams = new URLSearchParams(searchParams);
+            nextParams.set('mode', 'business');
+            nextParams.delete('onboarding');
+            nextParams.delete('choose');
+            nextParams.delete('step');
+            setSearchParams(nextParams);
+          }}
+        />
       </>
     );
   }
@@ -94,36 +420,50 @@ export default function CreateListingPage() {
       const stepStr = searchParams.get('step');
       const step = stepStr ? parseInt(stepStr, 10) : 0;
       if (step > 0) {
-        setSearchParams({
-          category: selectedCategory,
-          intent: searchParams.get('intent') || '',
-          type: searchParams.get('type') || '',
-          step: step - 1
-        });
+        const nextParams = new URLSearchParams(searchParams);
+        nextParams.set('category', selectedCategory);
+        nextParams.set('intent', searchParams.get('intent') || '');
+        nextParams.set('type', searchParams.get('type') || '');
+        nextParams.set('step', String(step - 1));
+        setSearchParams(nextParams);
         return;
       }
     }
     if (selectedCategory) {
-      searchParams.delete('category');
-      searchParams.delete('step');
-      searchParams.delete('intent');
-      searchParams.delete('type');
-      setSearchParams(searchParams);
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('category');
+      nextParams.delete('step');
+      nextParams.delete('intent');
+      nextParams.delete('type');
+      setSearchParams(nextParams);
+    } else if (!hasStore && searchParams.get('mode')) {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('mode');
+      nextParams.delete('onboarding');
+      setSearchParams(nextParams);
     } else {
       navigate(-1);
     }
   };
 
-  const wantedRequestId = searchParams.get('wanted_request_id') || location.state?.wantedRequestId || null;
-  const wantedTitle = location.state?.wantedTitle || searchParams.get('wanted_title') || '';
-  const wantedContext = wantedRequestId ? {
-    wantedRequestId,
-    wantedTitle,
-    buyerId: location.state?.buyerId,
-    budgetMin: location.state?.budget_min,
-    budgetMax: location.state?.budget_max,
-    locationCity: location.state?.location_city,
-  } : null;
+  const wantedRequestId =
+    searchParams.get('wanted_request_id') ||
+    location.state?.wantedRequestId ||
+    null;
+  const wantedTitle =
+    location.state?.wantedTitle || searchParams.get('wanted_title') || '';
+  const wantedContext = wantedRequestId
+    ? {
+        wantedRequestId,
+        wantedTitle,
+        buyerId: location.state?.buyerId,
+        budgetMin: location.state?.budget_min,
+        budgetMax: location.state?.budget_max,
+        locationCity: location.state?.location_city,
+      }
+    : null;
+
+  const isGuidedSellerMode = mode === 'personal' || mode === 'business';
 
   return (
     <>
@@ -142,7 +482,8 @@ export default function CreateListingPage() {
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-bold text-indigo-950 dark:text-indigo-200 truncate">
-                  Matching Buyer Request: {wantedContext.wantedTitle || 'Wanted Item'}
+                  Matching Buyer Request:{' '}
+                  {wantedContext.wantedTitle || 'Wanted Item'}
                 </p>
                 <p className="text-[11px] text-indigo-700/90 dark:text-indigo-400/90">
                   Once this listing is published, the buyer will be automatically notified with your match proposal!
@@ -152,12 +493,70 @@ export default function CreateListingPage() {
           </div>
         )}
 
+        {/* Seller Identity Selector & Profile Bar (Shown for Personal & Business Seller flows, or when user has a Business Profile) */}
+        {(isGuidedSellerMode || hasBusinessProfile) && (
+          <SellerIdentityBar
+            mode={mode}
+            activeIdentity={activeSellerIdentity}
+            onChangeIdentity={(nextId) => {
+              if (nextId === 'business' && !hasBusinessProfile) {
+                handleSelectBusinessSeller(false);
+                return;
+              }
+              setSellerIdentityOverride(nextId);
+              const nextParams = new URLSearchParams(searchParams);
+              nextParams.set('mode', nextId);
+              setSearchParams(nextParams);
+            }}
+            user={user}
+            store={store}
+            storeMeta={storeMeta}
+            hasBusinessProfile={hasBusinessProfile}
+            onEditProfile={() => {
+              if (activeSellerIdentity === 'business') {
+                handleSelectBusinessSeller(true);
+              } else {
+                handleSelectPersonalSeller(true);
+              }
+            }}
+            onChangeMode={() => {
+              const nextParams = new URLSearchParams(searchParams);
+              nextParams.delete('mode');
+              nextParams.delete('onboarding');
+              nextParams.set('choose', '1');
+              setSearchParams(nextParams);
+            }}
+          />
+        )}
+
         {/* Category Selector */}
-        {!selectedCategory && <CategorySelector onSelect={(cat) => {
-          const params = { category: cat };
-          if (wantedRequestId) params.wanted_request_id = wantedRequestId;
-          setSearchParams(params);
-        }} />}
+        {!selectedCategory && (
+          <div>
+            <div className="mb-4 flex items-center justify-between">
+              <button
+                onClick={handleBack}
+                className="flex items-center gap-1.5 text-sm font-medium transition-colors hover:underline"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
+                <ArrowLeft size={16} />
+                {hasStore ? 'Back' : 'Selling Options'}
+              </button>
+            </div>
+            <CategorySelector
+              allowedCategory={businessCategory}
+              isBusiness={isBusinessSeller}
+              businessStoreName={store?.store_name}
+              onSelect={(cat) => {
+                const nextParams = new URLSearchParams(searchParams);
+                nextParams.set('category', cat);
+                if (mode) nextParams.set('mode', mode);
+                if (wantedRequestId)
+                  nextParams.set('wanted_request_id', wantedRequestId);
+                setSearchParams(nextParams);
+              }}
+            />
+          </div>
+        )}
 
         {/* Category-Specific Form */}
         <AnimatePresence mode="wait">
@@ -182,19 +581,43 @@ export default function CreateListingPage() {
                 </button>
               </div>
 
-              {(selectedCategory === MAIN_CATEGORIES.VEHICLES || selectedCategory === 'vehicles' || selectedCategory === 'automotive') && (
-                <CarListingForm store={store} wantedContext={wantedContext} />
-              )}
-
-              {(selectedCategory === MAIN_CATEGORIES.REAL_ESTATE || selectedCategory === 'real-estate' || selectedCategory === 'real_estate') && (
-                <RealEstateWizard
+              {(selectedCategory === MAIN_CATEGORIES.VEHICLES ||
+                selectedCategory === 'vehicles' ||
+                selectedCategory === 'automotive') && (
+                <CarListingForm
                   store={store}
                   wantedContext={wantedContext}
+                  sellerIdentity={activeSellerIdentity}
+                  onChangeIdentity={setSellerIdentityOverride}
+                  requireReview={isGuidedSellerMode}
+                  user={user}
                 />
               )}
 
-              {(selectedCategory === MAIN_CATEGORIES.ESSENTIALS || selectedCategory === 'essentials' || selectedCategory === 'marketplace') && (
-                <DailyProductForm store={store} wantedContext={wantedContext} />
+              {(selectedCategory === MAIN_CATEGORIES.REAL_ESTATE ||
+                selectedCategory === 'real-estate' ||
+                selectedCategory === 'real_estate') && (
+                <RealEstateWizard
+                  store={store}
+                  wantedContext={wantedContext}
+                  sellerIdentity={activeSellerIdentity}
+                  onChangeIdentity={setSellerIdentityOverride}
+                  requireReview={isGuidedSellerMode}
+                  user={user}
+                />
+              )}
+
+              {(selectedCategory === MAIN_CATEGORIES.ESSENTIALS ||
+                selectedCategory === 'essentials' ||
+                selectedCategory === 'marketplace') && (
+                <DailyProductForm
+                  store={store}
+                  wantedContext={wantedContext}
+                  sellerIdentity={activeSellerIdentity}
+                  onChangeIdentity={setSellerIdentityOverride}
+                  requireReview={isGuidedSellerMode}
+                  user={user}
+                />
               )}
             </motion.div>
           )}
@@ -205,254 +628,576 @@ export default function CreateListingPage() {
 }
 
 // ──────────────────────────────────────────────────────────────
-// NO SHOP PROMPT — Smart labels per category
+// THREE-OPTION SELL ENTRY SCREEN
 // ──────────────────────────────────────────────────────────────
-function NoShopPrompt({ category, isCreating, onQuickStart, onCreateShop, onBack }) {
-  const getCategoryInfo = () => {
-    switch (category) {
-      case 'vehicles':
-        return {
-          emoji: '🚗',
-          title: 'Ready to sell automotive?',
-          quickLabel: 'List Now',
-          quickDesc: 'Post your automotive listing right away — no shop needed',
-          shopLabel: 'Set Up a Dealership Profile',
-          shopDesc: 'Create a dealer profile for multiple automotive listings',
-        };
-      case 'real-estate':
-        return {
-          emoji: '🏠',
-          title: 'Ready to list your property?',
-          quickLabel: 'List My Property Now',
-          quickDesc: 'Post your real estate listing right away',
-          shopLabel: 'Set Up an Agent Profile',
-          shopDesc: 'Create a real estate agent profile for multiple listings',
-        };
-      default:
-        return {
-          emoji: '🛒',
-          title: 'Ready to start selling?',
-          quickLabel: 'Quick Listing',
-          quickDesc: 'Sell a single item without setting up a shop',
-          shopLabel: 'Open a Shop',
-          shopDesc: 'Create your own storefront for multiple products',
-        };
-    }
-  };
-
-  const info = getCategoryInfo();
+function SellEntryScreen({
+  user,
+  store,
+  hasBusinessProfile,
+  personalComplete,
+  storeMeta,
+  isQuickCreating,
+  onSelectQuick,
+  onSelectPersonal,
+  onSelectBusiness,
+  onBack,
+}) {
+  const todayHours =
+    hasBusinessProfile && storeMeta.hasStorefront
+      ? getTodayHoursStatus(storeMeta.businessHours)
+      : null;
 
   return (
     <motion.div
-      className="space-y-6 py-4"
-      initial={{ opacity: 0, y: 20 }}
+      className="space-y-6 py-2 sm:py-4"
+      initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      {/* Back */}
+      {/* Back Button */}
       <button
+        type="button"
         onClick={onBack}
-        className="flex items-center gap-1.5 text-sm font-medium transition-colors hover:underline"
-        style={{ color: 'var(--color-text-muted)' }}
+        className="inline-flex items-center gap-1.5 text-sm font-medium transition-colors hover:opacity-80"
+        style={{ color: 'var(--color-text-secondary)' }}
       >
         <ArrowLeft size={16} />
         Back
       </button>
 
-      {/* Header */}
-      <div className="space-y-3 text-center">
-        <span className="block text-5xl">{info.emoji}</span>
-        <h2
-          className="text-2xl font-bold"
+      {/* Title & Subtitle */}
+      <div className="space-y-2 text-center max-w-xl mx-auto">
+        <span
+          className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full"
           style={{
+            backgroundColor: 'rgba(91, 110, 245, 0.12)',
+            color: 'var(--color-brand)',
+          }}
+        >
+          <Sparkles size={13} />
+          Sell on Aliwayz
+        </span>
+        <h1
+          className="text-2xl sm:text-3xl font-bold tracking-tight"
+          style={{
+            fontFamily: 'var(--font-display)',
             color: 'var(--color-text-primary)',
           }}
         >
-          {info.title}
-        </h2>
+          How would you like to sell?
+        </h1>
         <p
-          className="mx-auto max-w-sm text-sm"
-          style={{
-            color: 'var(--color-text-secondary)',
-          }}
+          className="text-sm"
+          style={{ color: 'var(--color-text-secondary)' }}
         >
-          Choose how you&apos;d like to get started
+          Post a single item in seconds, sell under your personal name, or launch a branded business storefront.
         </p>
       </div>
 
-      {/* Options */}
-      <div className="space-y-3">
-        {/* Quick Listing — no shop needed */}
-        <motion.button
-          whileTap={{ scale: 0.98 }}
-          onClick={onQuickStart}
-          disabled={isCreating}
-          className="flex w-full items-center gap-4 rounded-2xl p-5 text-left transition-all duration-200 hover:-translate-y-0.5"
+      {/* Three Options Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+        {/* OPTION A: QUICK LISTING */}
+        <div
+          className="flex flex-col justify-between rounded-3xl p-5 sm:p-6 border transition-all duration-200 hover:-translate-y-0.5"
           style={{
-            background: 'linear-gradient(135deg, rgba(91,110,245,0.1), rgba(139,92,246,0.05))',
-            border: '1px solid rgba(91,110,245,0.3)',
-            boxShadow: '0 4px 20px rgba(91,110,245,0.1)',
+            background:
+              'linear-gradient(145deg, rgba(91,110,245,0.10), rgba(139,92,246,0.04))',
+            borderColor: 'rgba(91,110,245,0.35)',
+            boxShadow: '0 4px 20px rgba(91,110,245,0.08)',
           }}
         >
-          <div
-            className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl"
-            style={{
-              background: 'linear-gradient(135deg, var(--color-brand), #8B5CF6)',
-              boxShadow: '0 4px 15px var(--color-brand-glow)',
-            }}
-          >
-            <Zap size={24} className="text-white" />
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <p
-                className="text-base font-bold"
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div
+                className="flex h-11 w-11 items-center justify-center rounded-2xl"
                 style={{
-                  color: 'var(--color-text-primary)',
+                  background: 'linear-gradient(135deg, var(--color-brand), #8B5CF6)',
+                  boxShadow: '0 4px 12px var(--color-brand-glow)',
                 }}
               >
-                {info.quickLabel}
-              </p>
+                <Zap size={20} className="text-white" />
+              </div>
               <span
-                className="rounded-full px-2 py-0.5 text-[9px] font-bold uppercase"
+                className="rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide"
                 style={{
-                  backgroundColor: 'var(--color-brand-glow)',
+                  backgroundColor: 'rgba(91, 110, 245, 0.14)',
                   color: 'var(--color-brand)',
                 }}
               >
-                Recommended
+                Fastest
               </span>
             </div>
-            <p
-              className="mt-0.5 text-xs"
+
+            <div>
+              <h2
+                className="text-lg font-bold"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
+                Quick Listing
+              </h2>
+              <p
+                className="mt-1 text-xs leading-relaxed"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
+                Post an item, vehicle, or property right away with zero setup.
+              </p>
+            </div>
+
+            <ul
+              className="space-y-2 text-xs pt-1"
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                <span>List in under 60 seconds</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                <span>No profile setup needed</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                <span>Goods, Autos &amp; Real Estate</span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="pt-5 mt-5 border-t" style={{ borderColor: 'var(--color-border)' }}>
+            <button
+              type="button"
+              onClick={onSelectQuick}
+              disabled={isQuickCreating}
+              className="w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold text-white flex items-center justify-center gap-2 transition-opacity hover:opacity-90 disabled:opacity-60"
               style={{
-                color: 'var(--color-text-muted)',
+                background: 'linear-gradient(135deg, var(--color-brand), #8B5CF6)',
               }}
             >
-              {info.quickDesc}
-            </p>
+              {isQuickCreating ? (
+                <Spinner size="sm" />
+              ) : (
+                <>
+                  <span>Post Quick Listing</span>
+                  <ArrowRight size={15} />
+                </>
+              )}
+            </button>
           </div>
-          {isCreating ? (
-            <Spinner size="sm" />
-          ) : (
-            <ArrowRight
-              size={18}
-              style={{
-                color: 'var(--color-brand)',
-              }}
-            />
-          )}
-        </motion.button>
+        </div>
 
-        {/* Create Shop */}
-        <motion.button
-          whileTap={{ scale: 0.98 }}
-          onClick={onCreateShop}
-          className="flex w-full items-center gap-4 rounded-2xl p-5 text-left transition-all duration-200 hover:-translate-y-0.5"
+        {/* OPTION B: PERSONAL SELLER */}
+        <div
+          className="flex flex-col justify-between rounded-3xl p-5 sm:p-6 border transition-all duration-200 hover:-translate-y-0.5"
           style={{
             backgroundColor: 'var(--color-surface)',
-            border: '1px solid var(--color-border)',
+            borderColor: 'var(--color-border)',
+            boxShadow: 'var(--shadow-card)',
           }}
         >
-          <div
-            className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl"
-            style={{
-              backgroundColor: 'var(--color-surface-elevated)',
-              border: '1px solid var(--color-border)',
-            }}
-          >
-            <Store
-              size={24}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div
+                className="flex h-11 w-11 items-center justify-center rounded-2xl border"
+                style={{
+                  backgroundColor: 'var(--color-bg)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-brand)',
+                }}
+              >
+                <User size={20} />
+              </div>
+              <span
+                className="rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+                style={{
+                  backgroundColor: 'var(--color-bg)',
+                  color: 'var(--color-text-secondary)',
+                  border: '1px solid var(--color-border)',
+                }}
+              >
+                Individual
+              </span>
+            </div>
+
+            <div>
+              <h2
+                className="text-lg font-bold"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
+                Personal Seller
+              </h2>
+              <p
+                className="mt-1 text-xs leading-relaxed"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
+                Sell under your personal name and build trust with local buyers in your city.
+              </p>
+            </div>
+
+            {/* Existing Personal Profile Preview */}
+            <div
+              className="p-3 rounded-2xl border flex items-center gap-2.5"
               style={{
-                color: 'var(--color-text-secondary)',
-              }}
-            />
-          </div>
-          <div className="flex-1">
-            <p
-              className="text-base font-bold"
-              style={{
-                color: 'var(--color-text-primary)',
+                backgroundColor: 'var(--color-bg)',
+                borderColor: 'var(--color-border)',
               }}
             >
-              {info.shopLabel}
-            </p>
-            <p
-              className="mt-0.5 text-xs"
+              <Avatar
+                src={user?.avatar_url}
+                name={user?.full_name || user?.username}
+                size="sm"
+              />
+              <div className="min-w-0 flex-1">
+                <p
+                  className="text-xs font-bold truncate"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
+                  {user?.full_name || user?.username || 'Your Account'}
+                </p>
+                <p
+                  className="text-[11px] truncate"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
+                  {personalComplete
+                    ? `${user?.location_city} · Active`
+                    : 'Quick 1-step setup'}
+                </p>
+              </div>
+              {personalComplete && (
+                <button
+                  type="button"
+                  onClick={() => onSelectPersonal(true)}
+                  className="text-[11px] font-semibold px-2 py-1 rounded-lg hover:underline"
+                  style={{ color: 'var(--color-brand)' }}
+                  title="Edit personal profile"
+                >
+                  Edit
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="pt-5 mt-5 border-t" style={{ borderColor: 'var(--color-border)' }}>
+            <button
+              type="button"
+              onClick={() => onSelectPersonal(false)}
+              className="w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 border transition-colors hover:opacity-90"
               style={{
-                color: 'var(--color-text-muted)',
+                backgroundColor: 'var(--color-bg)',
+                borderColor: 'var(--color-brand)',
+                color: 'var(--color-brand)',
               }}
             >
-              {info.shopDesc}
-            </p>
+              <span>
+                {personalComplete
+                  ? 'Continue as Personal'
+                  : 'Set Up Personal Profile'}
+              </span>
+              <ArrowRight size={15} />
+            </button>
           </div>
-          <ArrowRight
-            size={18}
-            style={{
-              color: 'var(--color-text-muted)',
-            }}
-          />
-        </motion.button>
+        </div>
+
+        {/* OPTION C: BUSINESS SELLER */}
+        <div
+          className="flex flex-col justify-between rounded-3xl p-5 sm:p-6 border transition-all duration-200 hover:-translate-y-0.5"
+          style={{
+            backgroundColor: 'var(--color-surface)',
+            borderColor: 'var(--color-border)',
+            boxShadow: 'var(--shadow-card)',
+          }}
+        >
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div
+                className="flex h-11 w-11 items-center justify-center rounded-2xl border"
+                style={{
+                  backgroundColor: 'var(--color-bg)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-brand)',
+                }}
+              >
+                <Store size={20} />
+              </div>
+              <span
+                className="rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+                style={{
+                  backgroundColor: 'var(--color-bg)',
+                  color: 'var(--color-text-secondary)',
+                  border: '1px solid var(--color-border)',
+                }}
+              >
+                Dealers &amp; Shops
+              </span>
+            </div>
+
+            <div>
+              <h2
+                className="text-lg font-bold"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
+                Business Seller
+              </h2>
+              <p
+                className="mt-1 text-xs leading-relaxed"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
+                Create a branded storefront for your dealership, brokerage, retail shop, or online brand.
+              </p>
+            </div>
+
+            {hasBusinessProfile ? (
+              <div
+                className="p-3 rounded-2xl border space-y-1.5"
+                style={{
+                  backgroundColor: 'var(--color-bg)',
+                  borderColor: 'var(--color-border)',
+                }}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Avatar
+                    src={store?.logo_url}
+                    name={store?.store_name}
+                    size="sm"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className="text-xs font-bold truncate"
+                      style={{ color: 'var(--color-text-primary)' }}
+                    >
+                      {store?.store_name}
+                    </p>
+                    <p
+                      className="text-[11px] truncate"
+                      style={{ color: 'var(--color-text-muted)' }}
+                    >
+                      {storeMeta.businessTypeLabel || 'Business Storefront'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {store?.slug && (
+                      <Link
+                        to={`/store/${store.slug}`}
+                        className="text-[11px] font-semibold px-2 py-1 rounded-lg hover:underline"
+                        style={{ color: 'var(--color-text-secondary)' }}
+                      >
+                        View
+                      </Link>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => onSelectBusiness(true)}
+                      className="text-[11px] font-semibold px-2 py-1 rounded-lg hover:underline"
+                      style={{ color: 'var(--color-brand)' }}
+                    >
+                      Edit
+                    </button>
+                  </div>
+                </div>
+                {todayHours && (
+                  <p
+                    className="text-[11px] flex items-center gap-1 pt-1 border-t"
+                    style={{
+                      borderColor: 'var(--color-border)',
+                      color: 'var(--color-text-secondary)',
+                    }}
+                  >
+                    <Clock className="w-3 h-3" />
+                    <span>{todayHours.fullLabel}</span>
+                  </p>
+                )}
+              </div>
+            ) : (
+              <ul
+                className="space-y-2 text-xs pt-1"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
+                <li className="flex items-center gap-2">
+                  <Building2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                  <span>Custom logo, cover &amp; store URL</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <MapPin className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                  <span>Storefront address or service area</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Clock className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                  <span>Business hours &amp; contact info</span>
+                </li>
+              </ul>
+            )}
+          </div>
+
+          <div className="pt-5 mt-5 border-t" style={{ borderColor: 'var(--color-border)' }}>
+            <button
+              type="button"
+              onClick={() => onSelectBusiness(false)}
+              className="w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 border transition-colors hover:opacity-90"
+              style={{
+                backgroundColor: 'var(--color-bg)',
+                borderColor: 'var(--color-brand)',
+                color: 'var(--color-brand)',
+              }}
+            >
+              <span>
+                {hasBusinessProfile
+                  ? 'Continue as Business'
+                  : 'Set Up Storefront'}
+              </span>
+              <ArrowRight size={15} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────
+// SELLER IDENTITY BAR
+// ──────────────────────────────────────────────────────────────
+function SellerIdentityBar({
+  activeIdentity,
+  user,
+  store,
+  storeMeta,
+  hasBusinessProfile,
+  onEditProfile,
+  onChangeMode,
+}) {
+  const isBusiness = activeIdentity === 'business' && hasBusinessProfile;
+  const displayName = isBusiness
+    ? store?.store_name || 'Business Storefront'
+    : user?.full_name || user?.username || store?.store_name || 'Personal Seller';
+  const displayAvatar = isBusiness
+    ? store?.logo_url || user?.avatar_url
+    : user?.avatar_url || store?.logo_url;
+  const locationText = isBusiness
+    ? store?.location_city || user?.location_city
+    : user?.location_city || store?.location_city;
+
+  return (
+    <div
+      className="mb-5 rounded-2xl px-4 py-3 border flex flex-wrap items-center justify-between gap-3"
+      style={{
+        backgroundColor: 'var(--color-surface)',
+        borderColor: 'var(--color-border)',
+      }}
+    >
+      <div className="flex items-center gap-3 min-w-0">
+        <Avatar src={displayAvatar} name={displayName} size="sm" />
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className="text-sm font-bold truncate"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
+              {displayName}
+            </span>
+            <span
+              className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+              style={{
+                backgroundColor: 'rgba(91, 110, 245, 0.12)',
+                color: 'var(--color-brand)',
+              }}
+            >
+              {isBusiness
+                ? storeMeta.businessTypeLabel || 'Business Storefront'
+                : 'Personal Seller'}
+            </span>
+          </div>
+          {locationText && (
+            <p
+              className="text-[11px] flex items-center gap-1 mt-0.5 truncate"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              <MapPin size={11} />
+              {locationText}
+            </p>
+          )}
+        </div>
       </div>
 
-      {/* Note */}
-      <p
-        className="px-4 text-center text-[11px]"
-        style={{
-          color: 'var(--color-text-muted)',
-        }}
-      >
-        Quick listing automatically creates a basic profile for you. You can customize it later from
-        your settings.
-      </p>
-    </motion.div>
+      {/* Profile Actions */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <button
+          type="button"
+          onClick={onEditProfile}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border transition-opacity hover:opacity-80"
+          style={{
+            backgroundColor: 'var(--color-bg)',
+            borderColor: 'var(--color-border)',
+            color: 'var(--color-text-primary)',
+          }}
+          title={isBusiness ? 'Edit business storefront' : 'Edit personal seller profile'}
+        >
+          <Edit3 className="w-3.5 h-3.5" style={{ color: 'var(--color-brand)' }} />
+          <span>{isBusiness ? 'Edit Storefront' : 'Edit Profile'}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={onChangeMode}
+          className="text-xs font-medium px-2 py-1 hover:underline"
+          style={{ color: 'var(--color-text-muted)' }}
+          title="Switch selling mode"
+        >
+          Switch Mode
+        </button>
+      </div>
+    </div>
   );
 }
 
 // ──────────────────────────────────────────────────────────────
 // CATEGORY SELECTOR
 // ──────────────────────────────────────────────────────────────
-function CategorySelector({ onSelect }) {
+function CategorySelector({
+  onSelect,
+  allowedCategory = null,
+  isBusiness = false,
+  businessStoreName = '',
+}) {
   const SELL_CATEGORIES = [
     {
       id: MAIN_CATEGORIES.ESSENTIALS,
-      label: 'Products',
-      emoji: '🛒',
-      desc: 'Electronics, fashion, home goods & more',
+      label: 'Marketplace & Goods',
+      emoji: '🛍️',
+      desc: 'Electronics, furniture, apparel, home & everyday items',
       gradient: 'linear-gradient(135deg, #4C1D95 0%, #7C3AED 100%)',
-      examples: 'iPhone, sneakers, furniture...',
     },
     {
       id: MAIN_CATEGORIES.VEHICLES,
-      label: 'Automotive',
+      label: 'Vehicles & Automotive',
       emoji: '🚗',
-      desc: 'Cars, trucks, motorcycles & powersports',
+      desc: 'Cars, trucks, SUVs, motorcycles, boats & auto parts',
       gradient: 'linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)',
-      examples: 'Toyota Camry, Ford F-150...',
     },
     {
       id: MAIN_CATEGORIES.REAL_ESTATE,
-      label: 'Real Estate',
+      label: 'Real Estate & Rentals',
       emoji: '🏠',
-      desc: 'Homes, apartments, land & commercial',
+      desc: 'Homes for sale, apartments for rent, commercial & land',
       gradient: 'linear-gradient(135deg, #065F46 0%, #10B981 100%)',
-      examples: '3-bed house, studio apt...',
     },
   ];
+
+  const visibleCategories = allowedCategory
+    ? SELL_CATEGORIES.filter((c) => c.id === allowedCategory)
+    : SELL_CATEGORIES;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
+      className="space-y-5"
     >
-      <div className="space-y-2 text-center">
+      <div className="space-y-1.5 text-center">
         <h2
-          className="text-2xl font-bold"
+          className="text-2xl font-bold tracking-tight"
           style={{
+            fontFamily: 'var(--font-display)',
             color: 'var(--color-text-primary)',
           }}
         >
-          What are you listing?
+          {allowedCategory ? 'Your Business Category' : 'What are you listing today?'}
         </h2>
         <p
           className="text-sm"
@@ -460,17 +1205,21 @@ function CategorySelector({ onSelect }) {
             color: 'var(--color-text-secondary)',
           }}
         >
-          Pick a category to get started with the right listing form
+          {allowedCategory
+            ? (businessStoreName
+                ? `Create listings under ${businessStoreName}'s registered business category.`
+                : 'Create listings under your registered business category.')
+            : 'Select a category to open the right listing form'}
         </p>
       </div>
 
       <div className="space-y-3">
-        {SELL_CATEGORIES.map((cat) => (
+        {visibleCategories.map((cat) => (
           <motion.button
             key={cat.id}
-            whileTap={{ scale: 0.98 }}
+            whileTap={{ scale: 0.99 }}
             onClick={() => onSelect(cat.id)}
-            className="group flex w-full items-center gap-4 rounded-2xl p-5 text-left transition-all duration-200 hover:-translate-y-0.5"
+            className="group flex w-full items-center gap-4 rounded-2xl p-4 sm:p-5 text-left transition-all duration-200 hover:-translate-y-0.5"
             style={{
               backgroundColor: 'var(--color-surface)',
               border: '1px solid var(--color-border)',
@@ -478,14 +1227,14 @@ function CategorySelector({ onSelect }) {
             }}
           >
             <div
-              className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl text-3xl transition-transform group-hover:scale-110"
+              className="flex h-13 w-13 sm:h-14 sm:w-14 flex-shrink-0 items-center justify-center rounded-2xl text-2xl sm:text-3xl transition-transform group-hover:scale-105"
               style={{
                 background: cat.gradient,
               }}
             >
               <span className="drop-shadow">{cat.emoji}</span>
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <h3
                 className="text-base font-bold"
                 style={{
@@ -495,73 +1244,87 @@ function CategorySelector({ onSelect }) {
                 {cat.label}
               </h3>
               <p
-                className="mt-0.5 text-xs"
+                className="mt-0.5 text-xs sm:text-sm"
                 style={{
-                  color: 'var(--color-text-muted)',
+                  color: 'var(--color-text-secondary)',
                 }}
               >
                 {cat.desc}
               </p>
-              <p
-                className="mt-1 text-[11px] italic"
-                style={{
-                  color: 'var(--color-text-muted)',
-                  opacity: 0.7,
-                }}
-              >
-                e.g. {cat.examples}
-              </p>
             </div>
-            <ArrowRight
-              size={18}
-              className="transition-transform group-hover:translate-x-1"
+            <div
+              className="w-8 h-8 rounded-xl flex items-center justify-center transition-transform group-hover:translate-x-0.5 flex-shrink-0"
               style={{
-                color: 'var(--color-text-muted)',
+                backgroundColor: 'var(--color-bg)',
+                color: 'var(--color-text-secondary)',
               }}
-            />
+            >
+              <ArrowRight size={16} />
+            </div>
           </motion.button>
         ))}
 
-        {/* Bulk Upload Option */}
-        <Link
-          to="/sell/bulk"
-          className="group flex items-center justify-between rounded-2xl p-4 transition-all duration-200 hover:-translate-y-0.5 mt-2"
-          style={{
-            backgroundColor: 'var(--color-surface)',
-            border: '1px dashed var(--color-border)',
-            boxShadow: 'var(--shadow-card)',
-          }}
-        >
-          <div className="flex items-center gap-3 min-w-0">
-            <div
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg"
-              style={{
-                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.15))',
-              }}
+        {/* Bulk Upload Option (only show for marketplace or when not category-restricted) */}
+        {(!allowedCategory || allowedCategory === MAIN_CATEGORIES.ESSENTIALS) && (
+          <Link
+            to="/sell/bulk"
+            className="group flex items-center justify-between rounded-2xl p-4 transition-all duration-200 hover:-translate-y-0.5 mt-2"
+            style={{
+              backgroundColor: 'var(--color-surface)',
+              border: '1px dashed var(--color-border)',
+            }}
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg"
+                style={{
+                  background:
+                    'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.15))',
+                }}
+              >
+                📊
+              </div>
+              <div className="min-w-0">
+                <p
+                  className="text-xs sm:text-sm font-bold"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
+                  Listing multiple products?
+                </p>
+                <p
+                  className="text-xs"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
+                  Import inventory in bulk using a CSV or Excel spreadsheet
+                </p>
+              </div>
+            </div>
+            <span
+              className="flex items-center gap-1 text-xs font-semibold shrink-0"
+              style={{ color: 'var(--color-brand)' }}
             >
-              📊
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-bold" style={{ color: 'var(--color-text-primary)' }}>
-                Have multiple items to list?
-              </p>
-              <p className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
-                Upload multiple products at once using an Excel or CSV file
-              </p>
-            </div>
-          </div>
-          <span className="flex items-center gap-1 text-xs font-semibold shrink-0" style={{ color: 'var(--color-brand)' }}>
-            Bulk Upload <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
-          </span>
-        </Link>
+              Bulk Upload{' '}
+              <ArrowRight
+                size={14}
+                className="transition-transform group-hover:translate-x-1"
+              />
+            </span>
+          </Link>
+        )}
       </div>
     </motion.div>
   );
 }
 
-function RealEstateWizard({ store, wantedContext }) {
+function RealEstateWizard({
+  store,
+  wantedContext,
+  sellerIdentity,
+  onChangeIdentity,
+  requireReview,
+  user,
+}) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
   const stepStr = searchParams.get('step');
   const step = stepStr ? parseInt(stepStr, 10) : 0;
   const intent = searchParams.get('intent') || '';
@@ -651,19 +1414,36 @@ function RealEstateWizard({ store, wantedContext }) {
   };
 
   const handleSelectIntent = (id) => {
-    setSearchParams({ category: 'real-estate', intent: id, step: 1 });
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('category', 'real-estate');
+    nextParams.set('intent', id);
+    nextParams.set('step', '1');
+    setSearchParams(nextParams);
   };
 
   const handleSelectType = (val) => {
-    setSearchParams({ category: 'real-estate', intent, type: val, step: 2 });
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('category', 'real-estate');
+    nextParams.set('intent', intent);
+    nextParams.set('type', val);
+    nextParams.set('step', '2');
+    setSearchParams(nextParams);
   };
 
   if (step === 0) {
     return (
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-6"
+      >
         <div className="space-y-2 text-center">
-          <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">Real Estate Listing Type</h2>
-          <p className="text-sm text-[var(--color-text-secondary)]">Choose whether you are selling, renting, leasing, or listing a vacation stay</p>
+          <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">
+            Real Estate Listing Type
+          </h2>
+          <p className="text-sm text-[var(--color-text-secondary)]">
+            Choose whether you are selling, renting, leasing, or listing a vacation stay
+          </p>
         </div>
         <div className="space-y-3">
           {INTENTS.map((item) => (
@@ -684,10 +1464,17 @@ function RealEstateWizard({ store, wantedContext }) {
                 <span className="drop-shadow">{item.emoji}</span>
               </div>
               <div className="flex-1">
-                <h3 className="text-base font-bold text-[var(--color-text-primary)]">{item.label}</h3>
-                <p className="mt-0.5 text-xs text-[var(--color-text-muted)]">{item.desc}</p>
+                <h3 className="text-base font-bold text-[var(--color-text-primary)]">
+                  {item.label}
+                </h3>
+                <p className="mt-0.5 text-xs text-[var(--color-text-muted)]">
+                  {item.desc}
+                </p>
               </div>
-              <ArrowRight size={18} className="transition-transform group-hover:translate-x-1 text-[var(--color-text-muted)]" />
+              <ArrowRight
+                size={18}
+                className="transition-transform group-hover:translate-x-1 text-[var(--color-text-muted)]"
+              />
             </button>
           ))}
         </div>
@@ -699,12 +1486,24 @@ function RealEstateWizard({ store, wantedContext }) {
     const types = PROPERTY_TYPES_BY_INTENT[intent] || [];
     const intentLabel = INTENTS.find((i) => i.id === intent)?.label || '';
     return (
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-6"
+      >
         <div className="space-y-2 text-center">
           <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">
-            {intent === 'rent' ? 'What property are you renting out?' : intent === 'lease' ? 'What commercial space are you leasing?' : intent === 'vacation' ? 'What vacation property are you listing?' : 'What property are you selling?'}
+            {intent === 'rent'
+              ? 'What property are you renting out?'
+              : intent === 'lease'
+                ? 'What commercial space are you leasing?'
+                : intent === 'vacation'
+                  ? 'What vacation property are you listing?'
+                  : 'What property are you selling?'}
           </h2>
-          <p className="text-sm text-[var(--color-text-secondary)]">Category: Real Estate • {intentLabel}</p>
+          <p className="text-sm text-[var(--color-text-secondary)]">
+            Category: Real Estate • {intentLabel}
+          </p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {types.map((type) => (
@@ -717,7 +1516,9 @@ function RealEstateWizard({ store, wantedContext }) {
                 border: '1px solid var(--color-border)',
               }}
             >
-              <span className="text-sm font-semibold text-[var(--color-text-primary)]">{type.label}</span>
+              <span className="text-sm font-semibold text-[var(--color-text-primary)]">
+                {type.label}
+              </span>
               <ArrowRight size={16} className="text-[var(--color-text-muted)]" />
             </button>
           ))}
@@ -732,6 +1533,10 @@ function RealEstateWizard({ store, wantedContext }) {
       intent={intent}
       propertyType={propertyType}
       wantedContext={wantedContext}
+      sellerIdentity={sellerIdentity}
+      onChangeIdentity={onChangeIdentity}
+      requireReview={requireReview}
+      user={user}
     />
   );
 }

@@ -48,7 +48,8 @@ const SearchPage = lazyWithRetry(() => import('@features/search/pages/SearchPage
 const StoreProfilePage   = lazyWithRetry(() => import('@features/store/pages/StoreProfilePage'));
 const CreateStorePage    = lazyWithRetry(() => import('@features/store/pages/CreateStorePage'));
 const EditStorePage      = lazyWithRetry(() => import('@features/store/pages/EditStorePage'));
-const StoreAnalyticsPage = lazyWithRetry(() => import('@features/store/pages/StoreAnalyticsPage'));
+const StoreAnalyticsPage  = lazyWithRetry(() => import('@features/store/pages/StoreAnalyticsPage'));
+const SellerDashboardPage = lazyWithRetry(() => import('@features/store/pages/SellerDashboardPage'));
 
 // Sell
 const CreateListingPage = lazyWithRetry(() => import('@features/sell/pages/CreateListingPage'));
@@ -107,7 +108,7 @@ export {
   HomePage,
   MarketplacePage, ProductDetailPage, CategoryPage,
   SearchPage,
-  StoreProfilePage, CreateStorePage, EditStorePage, StoreAnalyticsPage,
+  StoreProfilePage, CreateStorePage, EditStorePage, StoreAnalyticsPage, SellerDashboardPage,
   CreateListingPage, BulkUploadPage, EditListingPage, MyListingsPage,
   InboxPage, ConversationPage,
   QRVerificationPage,

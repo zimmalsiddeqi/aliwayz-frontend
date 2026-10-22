@@ -4,38 +4,42 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Store,
   Package,
-  PlusCircle,
   BarChart3,
   Settings,
   LayoutDashboard,
   X,
   ChevronRight,
-  AlertCircle,
-  ShieldCheck,
-  QrCode,
-  FileSpreadsheet,
+  MessageCircle,
+  Bookmark,
+  MapPin,
+  Home,
 } from 'lucide-react';
 import Navbar from '@components/common/Navbar';
 import LoadingScreen from '@components/common/LoadingScreen';
-import Button from '@components/ui/Button';
+import useAuthStore from '@store/auth.store';
 import useMyStore from '@hooks/useMyStore';
-import StoreQRModal from '@components/modals/StoreQRModal';
+import useChatStore from '@store/chat.store';
+import { parseStoreMeta } from '@utils/sellerMeta';
 import { cn } from '@lib/utils';
 
-const sellerLinks = [
-  { to: '/sell/my-listings', icon: Package, label: 'My Listings' },
-  { to: '/sell/create', icon: PlusCircle, label: 'New Listing' },
-  { to: '/sell/bulk', icon: FileSpreadsheet, label: 'Bulk Upload' },
-  { to: '/my-store/analytics', icon: BarChart3, label: 'Analytics' },
-  { to: '/my-store/verification', icon: ShieldCheck, label: 'Verification' },
-  { to: '/my-store/edit', icon: Settings, label: 'Seller Settings' },
-];
-
 export default function DashboardLayout() {
+  const { user } = useAuthStore();
   const { store, hasStore, isLoading } = useMyStore();
+  const { totalUnread } = useChatStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [storeQrOpen, setStoreQrOpen] = useState(false);
   const location = useLocation();
+
+  const storeMeta = parseStoreMeta(store);
+  const sellerMode =
+    typeof window !== 'undefined' && user?.id
+      ? localStorage.getItem(`aliwayz_seller_mode_${user.id}`)
+      : null;
+
+  const isBusinessSeller = Boolean(
+    hasStore &&
+      (storeMeta.isBusinessProfile || sellerMode === 'business') &&
+      sellerMode !== 'personal'
+  );
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
@@ -53,8 +57,8 @@ export default function DashboardLayout() {
           onClick={() => setSidebarOpen(true)}
           className="fixed bottom-20 right-4 z-40 flex items-center gap-2 rounded-full px-3.5 py-2.5 shadow-2xl border border-white/20 text-white lg:hidden backdrop-blur-md"
           style={{
-            background: 'linear-gradient(135deg, #7C3AED 0%, #6366F1 100%)',
-            boxShadow: '0 10px 25px -3px rgba(124, 58, 237, 0.5), 0 4px 10px rgba(0, 0, 0, 0.2)',
+            background: 'linear-gradient(135deg, #2563EB 0%, #4F46E5 100%)',
+            boxShadow: '0 10px 25px -3px rgba(37, 99, 235, 0.5), 0 4px 10px rgba(0, 0, 0, 0.2)',
           }}
           whileHover={{ scale: 1.05, y: -2 }}
           whileTap={{ scale: 0.95 }}
@@ -89,11 +93,16 @@ export default function DashboardLayout() {
               >
                 <div className="flex items-center justify-between mb-4 pb-3 border-b border-[var(--color-border)]">
                   <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-brand)] text-white shadow-sm">
+                    <div
+                      className="flex h-8 w-8 items-center justify-center rounded-lg text-white shadow-sm"
+                      style={{
+                        background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+                      }}
+                    >
                       <LayoutDashboard size={16} />
                     </div>
                     <span className="font-bold text-sm text-[var(--color-text-primary)]">
-                      Seller Dashboard
+                      {isBusinessSeller ? 'Business Dashboard' : 'Seller Dashboard'}
                     </span>
                   </div>
                   <button
@@ -107,11 +116,9 @@ export default function DashboardLayout() {
                 <SellerSidebar
                   store={store}
                   hasStore={hasStore}
+                  isBusinessSeller={isBusinessSeller}
+                  totalUnread={totalUnread}
                   onNavigate={() => setSidebarOpen(false)}
-                  onOpenStoreQr={() => {
-                    setSidebarOpen(false);
-                    setStoreQrOpen(true);
-                  }}
                 />
               </motion.aside>
             </>
@@ -130,7 +137,8 @@ export default function DashboardLayout() {
             <SellerSidebar
               store={store}
               hasStore={hasStore}
-              onOpenStoreQr={() => setStoreQrOpen(true)}
+              isBusinessSeller={isBusinessSeller}
+              totalUnread={totalUnread}
             />
           </div>
         </aside>
@@ -146,212 +154,230 @@ export default function DashboardLayout() {
           )}
         </main>
       </div>
-
-      <StoreQRModal
-        isOpen={storeQrOpen}
-        onClose={() => setStoreQrOpen(false)}
-        store={store}
-      />
     </div>
   );
 }
 
-// ── Seller Sidebar ────────────────────────────────────────────
-function SellerSidebar({ store, hasStore, onNavigate, onOpenStoreQr }) {
-  return (
-    <nav className="space-y-6">
-      {/* Store info */}
-      {hasStore && store && (
-        <div className="flex items-center gap-1.5">
-          <Link
-            to={`/store/${store.slug}`}
-            onClick={onNavigate}
-            className="flex flex-1 min-w-0 items-center gap-3 rounded-xl p-3 transition-all hover:bg-[var(--glass-bg-strong)]"
-            style={{ border: '1px solid var(--color-border)' }}
-          >
-            {store.logo_url ? (
-              <img
-                src={store.logo_url}
-                alt={store.store_name}
-                className="h-10 w-10 rounded-xl object-cover"
-              />
-            ) : (
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500 font-bold text-white flex-shrink-0">
-                {store.store_name?.[0]}
-              </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <p
-                className="truncate text-sm font-semibold"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
-                {store.store_name}
-              </p>
-              <p className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
-                View public store
-              </p>
-            </div>
-            <ChevronRight size={14} style={{ color: 'var(--color-text-muted)' }} />
-          </Link>
-          <button
-            type="button"
-            onClick={() => onOpenStoreQr?.()}
-            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition-all hover:bg-[var(--glass-bg-strong)] hover:text-[var(--color-brand)]"
-            style={{
-              border: '1px solid var(--color-border)',
-              color: 'var(--color-text-secondary)',
-            }}
-            title="Generate Store QR Code"
-          >
-            <QrCode size={18} />
-          </button>
-        </div>
-      )}
+// ── Seller Sidebar (Adapts for Individual vs Business Seller) ────────
+function SellerSidebar({
+  store,
+  hasStore,
+  isBusinessSeller,
+  totalUnread,
+  onNavigate,
+}) {
+  // Links for Individual / Personal Seller ("7. Dashboard – Individual Seller")
+  const individualLinks = [
+    {
+      to: '/dashboard',
+      end: true,
+      icon: Home,
+      label: 'Dashboard',
+    },
+    {
+      to: '/sell/my-listings',
+      icon: Package,
+      label: 'My Listings',
+    },
+    {
+      to: '/inbox',
+      icon: MessageCircle,
+      label: 'Messages',
+      badge: totalUnread,
+    },
+    {
+      to: '/favorites',
+      icon: Bookmark,
+      label: 'Saved Items',
+    },
+    {
+      to: '/profile/edit',
+      icon: Settings,
+      label: 'Profile Settings',
+    },
+  ];
 
-      {!hasStore && (
-        <Link to="/store/create" onClick={onNavigate}>
-          <div
-            className="flex items-center gap-3 rounded-xl p-3"
-            style={{
-              backgroundColor: 'var(--color-brand-glow)',
-              border: '1px solid var(--color-brand)',
-            }}
-          >
-            <Store size={18} style={{ color: 'var(--color-brand)' }} />
-            <span className="text-sm font-semibold" style={{ color: 'var(--color-brand)' }}>
-              Set Up Seller Profile
-            </span>
+  // Links for Business Seller ("8. Dashboard – Business Seller")
+  const businessLinks = [
+    {
+      to: '/dashboard',
+      end: true,
+      icon: Home,
+      label: 'Business Overview',
+    },
+    {
+      to: '/sell/my-listings',
+      icon: Package,
+      label: 'Inventory',
+    },
+    {
+      to: store?.slug ? `/store/${store.slug}` : '/my-store/edit',
+      icon: Store,
+      label: 'Business Profile',
+    },
+    {
+      to: '/sell/create?mode=business&onboarding=business-edit',
+      icon: MapPin,
+      label: 'Location & Hours',
+    },
+    {
+      to: '/my-store/analytics',
+      icon: BarChart3,
+      label: 'Performance',
+      dot: true,
+    },
+    {
+      to: '/my-store/edit',
+      icon: Settings,
+      label: 'Settings',
+    },
+  ];
+
+  const links = isBusinessSeller ? businessLinks : individualLinks;
+
+  return (
+    <nav className="space-y-5">
+      {/* Business Storefront Quick Card */}
+      {isBusinessSeller && store && (
+        <Link
+          to={`/store/${store.slug}`}
+          onClick={onNavigate}
+          className="flex items-center gap-3 rounded-2xl p-3 transition-all hover:bg-[var(--glass-bg-strong)]"
+          style={{ border: '1px solid var(--color-border)' }}
+        >
+          {store.logo_url ? (
+            <img
+              src={store.logo_url}
+              alt={store.store_name}
+              className="h-10 w-10 rounded-xl object-cover flex-shrink-0"
+            />
+          ) : (
+            <div
+              className="flex h-10 w-10 items-center justify-center rounded-xl font-bold text-white flex-shrink-0"
+              style={{
+                background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+              }}
+            >
+              {store.store_name?.[0] || 'B'}
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <p
+              className="truncate text-sm font-bold"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
+              {store.store_name}
+            </p>
+            <p className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+              View public storefront
+            </p>
           </div>
+          <ChevronRight size={14} style={{ color: 'var(--color-text-muted)' }} />
         </Link>
       )}
 
       {/* Navigation links */}
       <div className="space-y-1">
-        <p
-          className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider"
-          style={{ color: 'var(--color-text-muted)' }}
-        >
-          Seller Dashboard
-        </p>
+        {links.map((item) => {
+          const { to, end, icon: Icon, label, badge, dot, comingSoon } = item;
 
-        {sellerLinks.map(({ to, icon: Icon, label }) => {
-          const isDisabled = !hasStore && to !== '/store/create' && to !== '/my-store/verification';
+          if (comingSoon) {
+            return (
+              <div
+                key={label}
+                className="flex items-center justify-between gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium opacity-55 cursor-default select-none"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <Icon size={18} className="flex-shrink-0" />
+                  <span className="truncate">{label}</span>
+                </div>
+                <span className="text-[11px] font-medium whitespace-nowrap">
+                  (Coming Soon)
+                </span>
+              </div>
+            );
+          }
 
           return (
             <NavLink
-              key={to}
-              to={isDisabled ? '#' : to}
-              onClick={(e) => {
-                if (isDisabled) e.preventDefault();
-                else onNavigate?.();
-              }}
+              key={label}
+              to={to}
+              end={end}
+              onClick={() => onNavigate?.()}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
-                  isActive && !isDisabled ? 'text-white' : '',
-                  isDisabled ? 'cursor-not-allowed opacity-40' : 'hover:bg-[var(--glass-bg-strong)]'
+                  'flex items-center justify-between gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all duration-200',
+                  isActive
+                    ? 'text-white'
+                    : 'hover:bg-[var(--glass-bg-strong)]'
                 )
               }
               style={({ isActive }) => ({
-                background:
-                  isActive && !isDisabled
-                    ? 'linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))'
-                    : undefined,
-                color: isActive && !isDisabled ? 'white' : 'var(--color-text-secondary)',
-                boxShadow: isActive && !isDisabled ? 'var(--shadow-brand)' : undefined,
+                background: isActive
+                  ? 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)'
+                  : undefined,
+                color: isActive ? '#ffffff' : 'var(--color-text-secondary)',
+                boxShadow: isActive
+                  ? '0 6px 16px -4px rgba(37, 99, 235, 0.45)'
+                  : undefined,
               })}
             >
-              <Icon size={18} />
-              {label}
+              <div className="flex items-center gap-3 min-w-0">
+                <Icon size={18} className="flex-shrink-0" />
+                <span className="truncate">{label}</span>
+                {dot && (
+                  <span
+                    className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0"
+                    title="Active"
+                  />
+                )}
+              </div>
+
+              {badge > 0 && (
+                <span
+                  className="min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-bold flex items-center justify-center flex-shrink-0 text-white"
+                  style={{ backgroundColor: '#EF4444' }}
+                >
+                  {badge > 99 ? '99+' : badge}
+                </span>
+              )}
             </NavLink>
           );
         })}
       </div>
-    </nav>
-  );
-}
 
-// ── No Store Prompt ───────────────────────────────────────────
-function NoStorePrompt() {
-  return (
-    <div className="flex min-h-[60vh] items-center justify-center">
-      <motion.div
-        className="mx-auto max-w-md space-y-6 text-center"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
+      {/* Upgrade to Business Storefront prompt for Individual Sellers */}
+      {!isBusinessSeller && (
         <div
-          className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl"
+          className="rounded-2xl p-3.5 border space-y-2"
           style={{
-            background: 'linear-gradient(135deg, var(--color-brand), #8B5CF6)',
-            boxShadow: 'var(--shadow-brand)',
+            backgroundColor: 'var(--color-bg)',
+            borderColor: 'var(--color-border)',
           }}
         >
-          <Store size={36} className="text-white" />
-        </div>
-
-        <div>
-          <h2
-            className="text-2xl font-bold"
-            style={{
-              color: 'var(--color-text-primary)',
-            }}
-          >
-            Set Up Your Seller Profile
-          </h2>
           <p
-            className="mx-auto mt-2 max-w-sm text-sm"
-            style={{
-              color: 'var(--color-text-secondary)',
-            }}
+            className="text-xs font-bold"
+            style={{ color: 'var(--color-text-primary)' }}
           >
-            Create your seller profile to manage all your listings in one place. It only takes a
-            minute!
+            Selling as a Business?
           </p>
-        </div>
-
-        <div className="flex flex-col justify-center gap-3 sm:flex-row">
-          <Link to="/store/create">
-            <Button size="lg" leftIcon={<Store size={18} />}>
-              Create Seller Profile
-            </Button>
+          <p
+            className="text-[11px] leading-relaxed"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
+            Upgrade to a Business Storefront to unlock business hours, custom branding, and analytics.
+          </p>
+          <Link
+            to="/sell/create?mode=business&onboarding=business-edit"
+            onClick={onNavigate}
+            className="inline-flex items-center gap-1 text-xs font-bold hover:underline"
+            style={{ color: '#2563EB' }}
+          >
+            <span>Set Up Business Profile →</span>
           </Link>
         </div>
-
-        <div
-          className="grid grid-cols-3 gap-3 pt-4"
-          style={{
-            borderTop: '1px solid var(--color-border)',
-          }}
-        >
-          {[
-            {
-              icon: '📦',
-              label: 'Unlimited listings',
-            },
-            {
-              icon: '📊',
-              label: 'Sales analytics',
-            },
-            {
-              icon: '⭐',
-              label: 'Seller ratings',
-            },
-          ].map((f) => (
-            <div key={f.label} className="p-3 text-center">
-              <span className="text-2xl">{f.icon}</span>
-              <p
-                className="mt-1 text-xs"
-                style={{
-                  color: 'var(--color-text-muted)',
-                }}
-              >
-                {f.label}
-              </p>
-            </div>
-          ))}
-        </div>
-      </motion.div>
-    </div>
+      )}
+    </nav>
   );
 }

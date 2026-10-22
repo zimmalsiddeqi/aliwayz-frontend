@@ -184,9 +184,9 @@ export default function MyListingsPage() {
                 variant="outline"
                 leftIcon={<QrCode size={14} />}
                 onClick={() => setShowStoreQr(true)}
-                title="Generate Store QR Code"
+                title="Generate Business QR Code"
               >
-                Store QR
+                Business QR
               </Button>
             )}
             <Link to="/sell/create">
@@ -255,14 +255,14 @@ export default function MyListingsPage() {
                   level="M"
                 />
                 <span className="mt-1 text-[8px] font-black text-slate-800 tracking-wider group-hover:text-[var(--color-brand)]">
-                  STORE QR
+                  BUSINESS QR
                 </span>
               </div>
 
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <span className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-[var(--color-brand)]/15 text-[var(--color-brand)]">
-                    Official Store QR
+                    Official Business QR
                   </span>
                   {store.is_verified && <span className="text-xs" title="Verified Seller">✅ Verified</span>}
                 </div>
@@ -275,7 +275,7 @@ export default function MyListingsPage() {
                 </h4>
 
                 <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                  Direct buyers to all your listings at <span className="font-mono text-[11px] font-semibold text-[var(--color-brand)]">aliwayz.com/store/{store.slug}</span>
+                  Direct buyers to all your listings with your business QR code
                 </p>
               </div>
             </div>
@@ -288,7 +288,7 @@ export default function MyListingsPage() {
                 onClick={() => setShowStoreQr(true)}
                 className="flex-1 sm:flex-initial justify-center text-xs font-semibold h-9 sm:h-8"
               >
-                Store QR Sign
+                Business QR Sign
               </Button>
               <Button
                 size="sm"
@@ -643,7 +643,7 @@ export default function MyListingsPage() {
         product={qrTarget}
       />
 
-      {/* ── Store QR Code Modal ─────────────────────────── */}
+      {/* ── Business QR Code Modal ──────────────────────── */}
       <StoreQRModal
         isOpen={showStoreQr}
         onClose={() => setShowStoreQr(false)}

@@ -24,6 +24,7 @@ import {
   CreateStorePage,
   EditStorePage,
   StoreAnalyticsPage,
+  SellerDashboardPage,
   CreateListingPage,
   BulkUploadPage,
   EditListingPage,
@@ -107,7 +108,8 @@ const router = createBrowserRouter(
         </SellerGuard>
       ),
       children: [
-        { path: '/dashboard', element: <MyListingsPage /> },
+        { path: '/dashboard', element: <SellerDashboardPage /> },
+        { path: '/seller/dashboard', element: <Navigate to="/dashboard" replace /> },
         { path: '/sell/create', element: <CreateListingPage /> },
         { path: '/sell/bulk', element: <BulkUploadPage /> },
         { path: '/sell/edit/:id', element: <EditListingPage /> },

@@ -109,7 +109,7 @@ export function formatQRExpiry(expiresAt) {
  * Format rating to 1 decimal
  */
 export function formatRating(rating) {
-  if (!rating) return '0.0';
+  if (!rating || Number(rating) === 0) return 'New Seller';
   return Number(rating).toFixed(1);
 }
 

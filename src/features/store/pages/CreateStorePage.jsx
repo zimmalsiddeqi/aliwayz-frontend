@@ -5,25 +5,22 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { Store, Camera, X, Loader2, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Store, Camera, X } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { createStoreSchema } from '@lib/validators';
 import StoreService from '@api/services/store.service';
-import CategoryService from '@api/services/category.service';
 import VerificationService from '@api/services/verification.service';
-import { queryKeys } from '@lib/queryClient';
 import Input from '@components/ui/Input';
 import Textarea from '@components/ui/Textarea';
 import Select from '@components/ui/Select';
 import Button from '@components/ui/Button';
-import Modal from '@components/ui/Modal';
 import PageHeader from '@components/common/PageHeader';
 import Spinner from '@components/ui/Spinner';
+import GoogleLocationPicker from '@components/common/GoogleLocationPicker';
 import { cn, getErrorMessage } from '@lib/utils';
 import {
   setFormErrors,
   validateImageFile,
-  createFilePreview,
   revokeFilePreview,
 } from '@utils/helpers';
 import toast from '@lib/toast';
@@ -31,9 +28,9 @@ import ImageCropperModal from '@components/modals/ImageCropperModal';
 import { CATEGORY_IDS } from '@utils/constants';
 
 const STORE_CATEGORIES = [
+  { value: CATEGORY_IDS.OTHER, label: 'Marketplace & Goods' },
   { value: CATEGORY_IDS.AUTOMOTIVE, label: 'Automotive' },
   { value: CATEGORY_IDS.PROPERTY, label: 'Real Estate' },
-  { value: CATEGORY_IDS.OTHER, label: 'Marketplace' },
 ];
 
 export default function CreateStorePage() {
@@ -66,6 +63,7 @@ export default function CreateStorePage() {
     setError,
     reset,
     watch,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(createStoreSchema),
@@ -97,13 +95,16 @@ export default function CreateStorePage() {
     }
   }, [verificationData, reset]);
 
+  const [coords, setCoords] = useState({ lat: null, lng: null });
+  const [addressVisibility, setAddressVisibility] = useState('exact');
+
   const selectedCategoryId = watch('category_id');
 
   const getStoreNamePlaceholder = (catId) => {
-    if (catId === CATEGORY_IDS.AUTOMOTIVE) return 'e.g. Metro Motors, Apex Auto...';
+    if (catId === CATEGORY_IDS.AUTOMOTIVE) return 'e.g. Metro Auto Group, Apex Motors...';
     if (catId === CATEGORY_IDS.PROPERTY) return 'e.g. Skyline Realty, Prime Properties...';
     if (catId === CATEGORY_IDS.OTHER) return 'e.g. Urban Goods, Daily Essentials...';
-    return 'e.g. Metro Motors, Skyline Realty, or Urban Goods';
+    return 'e.g. Metro Auto Group, Skyline Realty, or Urban Goods';
   };
 
   // ── Crop Complete Handler ─────────────────────────────
@@ -180,13 +181,17 @@ export default function CreateStorePage() {
   // ── Create store mutation ──────────────────────────────
   const mutation = useMutation({
     mutationFn: async (data) => {
-      // Step 1: Create store
-      const response = await StoreService.create(data);
+      const payload = {
+        ...data,
+        ...(coords.lat && coords.lng
+          ? { location_lat: coords.lat, location_lng: coords.lng }
+          : {}),
+      };
+      const response = await StoreService.create(payload);
       const store = response.data;
 
       if (!store?.id) throw new Error('Store creation failed');
 
-      // Step 2: Upload logo if selected
       if (logoFile && store.id) {
         try {
           const logoFormData = new FormData();
@@ -198,7 +203,6 @@ export default function CreateStorePage() {
         }
       }
 
-      // Step 3: Upload banner if selected
       if (bannerFile && store.id) {
         try {
           const bannerFormData = new FormData();
@@ -212,13 +216,12 @@ export default function CreateStorePage() {
 
       return store;
     },
-    onSuccess: (store) => {
-      // Cleanup
+    onSuccess: () => {
       if (logoPreview) revokeFilePreview(logoPreview);
       if (bannerPreview) revokeFilePreview(bannerPreview);
 
       queryClient.invalidateQueries({ queryKey: ['my-store'] });
-      toast.success('Store created! 🎉');
+      toast.success('Storefront created! 🎉');
       navigate('/sell/my-listings');
     },
     onError: (err) => {
@@ -235,174 +238,197 @@ export default function CreateStorePage() {
     );
   }
 
-  const isVerified = verificationData?.data?.status === 'identity_verified';
-
   return (
     <>
       <Helmet>
-        <title>Create Store — Aliwayz</title>
+        <title>Set Up Storefront — Aliwayz</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
       <div className="container-app py-6">
-        <div className="mx-auto max-w-lg">
-          <PageHeader showBack title="Set Up Your Seller Profile" />
+        <div className="mx-auto max-w-xl">
+          <PageHeader showBack title="Set Up Your Storefront" />
 
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-            <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-6">
-              {/* ── Banner Upload ──────────────────────────── */}
-              <div className="space-y-2">
-                <label className="floating-label">Store Banner (optional)</label>
-                <div
-                  {...bannerDropzone.getRootProps()}
-                  className={cn(
-                    'group relative h-32 cursor-pointer overflow-hidden rounded-2xl transition-all duration-200',
-                    bannerDropzone.isDragActive && 'ring-2 ring-[var(--color-brand)]'
-                  )}
-                  style={{
-                    backgroundColor: 'var(--color-surface-elevated)',
-                    border: '2px dashed var(--color-border)',
-                  }}
-                >
-                  <input {...bannerDropzone.getInputProps()} />
+            <form
+              onSubmit={handleSubmit((d) => mutation.mutate(d))}
+              className="rounded-3xl overflow-hidden border shadow-sm"
+              style={{
+                backgroundColor: 'var(--color-surface)',
+                borderColor: 'var(--color-border)',
+              }}
+            >
+              {/* ── Unified Cover Banner ──────────────────────── */}
+              <div
+                {...bannerDropzone.getRootProps()}
+                className={cn(
+                  'group relative h-36 cursor-pointer overflow-hidden transition-all duration-200',
+                  bannerDropzone.isDragActive && 'ring-2 ring-[var(--color-brand)]'
+                )}
+                style={{
+                  background: bannerPreview
+                    ? undefined
+                    : 'linear-gradient(135deg, rgba(91, 110, 245, 0.20) 0%, rgba(139, 92, 246, 0.16) 50%, rgba(59, 130, 246, 0.12) 100%)',
+                }}
+              >
+                <input {...bannerDropzone.getInputProps()} />
 
-                  {bannerPreview ? (
-                    <>
-                      <img
-                        src={bannerPreview}
-                        alt="Banner preview"
-                        className="h-full w-full object-cover"
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity group-hover:opacity-100">
-                        <Camera size={24} className="text-white" />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          revokeFilePreview(bannerPreview);
-                          setBannerPreview(null);
-                          setBannerFile(null);
-                        }}
-                        className="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white"
-                      >
-                        <X size={14} />
-                      </button>
-                    </>
-                  ) : (
-                    <div className="flex h-full flex-col items-center justify-center gap-2">
-                      <Camera size={24} style={{ color: 'var(--color-text-muted)' }} />
-                      <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                        Click or drag to upload banner (1200×400)
-                      </span>
+                {bannerPreview ? (
+                  <>
+                    <img
+                      src={bannerPreview}
+                      alt="Banner preview"
+                      className="h-full w-full object-cover"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity group-hover:opacity-100">
+                      <Camera size={24} className="text-white" />
                     </div>
-                  )}
-                </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        revokeFilePreview(bannerPreview);
+                        setBannerPreview(null);
+                        setBannerFile(null);
+                      }}
+                      className="absolute right-3 top-3 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white"
+                    >
+                      <X size={14} />
+                    </button>
+                  </>
+                ) : (
+                  <div className="flex h-full flex-col items-center justify-center gap-1.5">
+                    <Camera size={22} style={{ color: 'var(--color-text-secondary)' }} />
+                    <span className="text-xs font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+                      Click to add a storefront cover photo (Optional)
+                    </span>
+                  </div>
+                )}
               </div>
 
-              {/* ── Logo Upload ────────────────────────────── */}
-              <div className="flex items-center gap-4">
-                <div className="space-y-1">
-                  <label className="floating-label">Store Logo (optional)</label>
+              <div className="px-6 sm:px-8 pb-7 space-y-5">
+                {/* ── Overlapping Logo + Cleanly Positioned Business Name ── */}
+                <div className="flex flex-col sm:flex-row sm:items-start gap-4">
                   <div
                     {...logoDropzone.getRootProps()}
-                    className="group relative h-20 w-20 cursor-pointer overflow-hidden rounded-2xl"
+                    className="group relative h-20 w-20 -mt-10 cursor-pointer overflow-hidden rounded-2xl p-1 shadow-lg flex-shrink-0"
                     style={{
-                      backgroundColor: 'var(--color-surface-elevated)',
-                      border: '2px dashed var(--color-border)',
+                      backgroundColor: 'var(--color-surface)',
+                      border: '1px solid var(--color-border)',
                     }}
                   >
                     <input {...logoDropzone.getInputProps()} />
-
-                    {logoPreview ? (
-                      <>
-                        <img
-                          src={logoPreview}
-                          alt="Logo preview"
-                          className="h-full w-full object-cover"
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity group-hover:opacity-100">
-                          <Camera size={16} className="text-white" />
+                    <div className="h-full w-full overflow-hidden rounded-xl relative">
+                      {logoPreview ? (
+                        <>
+                          <img
+                            src={logoPreview}
+                            alt="Logo preview"
+                            className="h-full w-full object-cover"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity group-hover:opacity-100">
+                            <Camera size={16} className="text-white" />
+                          </div>
+                        </>
+                      ) : (
+                        <div
+                          className="flex h-full items-center justify-center"
+                          style={{ backgroundColor: 'var(--color-bg)' }}
+                        >
+                          <Camera size={20} style={{ color: 'var(--color-text-muted)' }} />
                         </div>
-                      </>
-                    ) : (
-                      <div className="flex h-full items-center justify-center">
-                        <Camera size={20} style={{ color: 'var(--color-text-muted)' }} />
-                      </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex-1 pt-1 sm:pt-3.5">
+                    <Input
+                      label="Business or Storefront Name *"
+                      placeholder={getStoreNamePlaceholder(selectedCategoryId)}
+                      error={errors.store_name?.message}
+                      autoFocus
+                      {...register('store_name')}
+                    />
+                  </div>
+                </div>
+
+                {/* ── Form Fields ────────────────────────────── */}
+                <div className="space-y-4">
+                  <Select
+                    label="Primary Category"
+                    placeholder="Select a category"
+                    options={STORE_CATEGORIES}
+                    error={errors.category_id?.message}
+                    {...register('category_id')}
+                  />
+
+                  <div>
+                    <label
+                      className="block text-sm font-medium mb-1.5"
+                      style={{ color: 'var(--color-text-primary)' }}
+                    >
+                      Storefront Location &amp; Map *
+                    </label>
+                    <GoogleLocationPicker
+                      value={{
+                        lat: coords.lat,
+                        lng: coords.lng,
+                        locationCity: watch('location_city'),
+                        addressVisibility: addressVisibility,
+                      }}
+                      onChange={(loc) => {
+                        setCoords({ lat: loc.lat, lng: loc.lng });
+                        setValue('location_city', loc.locationCity || '', { shouldValidate: true });
+                        setValue('location_lat', loc.lat);
+                        setValue('location_lng', loc.lng);
+                        setAddressVisibility(loc.addressVisibility);
+                      }}
+                      defaultVisibility="exact"
+                      sellerType="business"
+                    />
+                    {errors.location_city?.message && (
+                      <p className="mt-1 text-xs" style={{ color: 'var(--color-danger)' }}>
+                        {errors.location_city?.message}
+                      </p>
                     )}
                   </div>
                 </div>
 
-                <div className="flex-1">
+                <Textarea
+                  label="About Your Storefront (Optional)"
+                  placeholder="Tell buyers what you offer, your specialties, or policies..."
+                  rows={3}
+                  maxLength={1000}
+                  error={errors.description?.message}
+                  {...register('description')}
+                />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input
-                    label="Business Name"
-                    placeholder={getStoreNamePlaceholder(selectedCategoryId)}
-                    error={errors.store_name?.message}
-                    autoFocus
-                    {...register('store_name')}
+                    label="Instagram (Optional)"
+                    placeholder="@yourstore"
+                    {...register('social_instagram')}
+                  />
+
+                  <Input
+                    label="Facebook (Optional)"
+                    placeholder="facebook.com/yourstore"
+                    {...register('social_facebook')}
                   />
                 </div>
-              </div>
 
-              {/* ── Form Fields ────────────────────────────── */}
-              <Textarea
-                label="Description"
-                placeholder="What do you sell? Tell buyers about your store..."
-                maxLength={1000}
-                error={errors.description?.message}
-                {...register('description')}
-              />
-
-              <Select
-                label="Category (optional)"
-                placeholder="Select a category"
-                options={STORE_CATEGORIES}
-                error={errors.category_id?.message}
-                {...register('category_id')}
-              />
-
-              <Input
-                label="City"
-                placeholder="New York"
-                error={errors.location_city?.message}
-                {...register('location_city')}
-              />
-
-              <Input
-                label="Instagram (optional)"
-                placeholder="https://instagram.com/yourstore"
-                {...register('social_instagram')}
-              />
-
-              <Input
-                label="Facebook (optional)"
-                placeholder="https://facebook.com/yourstore"
-                {...register('social_facebook')}
-              />
-
-              <Input
-                label="TikTok (optional)"
-                placeholder="https://tiktok.com/@yourstore"
-                {...register('social_tiktok')}
-              />
-
-              <div className="space-y-3 pt-2">
-                <Button
-                  type="submit"
-                  fullWidth
-                  size="lg"
-                  isLoading={mutation.isPending}
-                  loadingText="Launching Storefront..."
-                  leftIcon={<Store size={18} />}
-                >
-                  Create Storefront & Start Listing
-                </Button>
-                <p
-                  className="text-center text-xs"
-                  style={{ color: 'var(--color-text-muted)' }}
-                >
-                  You can update your store profile, logo, and social links anytime.
-                </p>
+                <div className="space-y-3 pt-2">
+                  <Button
+                    type="submit"
+                    fullWidth
+                    size="lg"
+                    isLoading={mutation.isPending}
+                    loadingText="Launching Storefront..."
+                    leftIcon={<Store size={18} />}
+                  >
+                    Launch Storefront &amp; Start Selling
+                  </Button>
+                </div>
               </div>
             </form>
           </motion.div>

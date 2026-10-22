@@ -43,6 +43,10 @@ import { formatDate, formatCompactNumber, formatRating } from '@utils/formatters
 import { getPrimaryImage, getAllImageUrls, getProductPlaceholderImage } from '@utils/helpers';
 import toast from '@lib/toast';
 import {
+  resolveProductSellerIdentity,
+  getTodayHoursStatus,
+} from '@utils/sellerMeta';
+import {
   parsePropertyDescription,
   stripPrivateTags,
   getCleanDescriptionText,
@@ -597,7 +601,125 @@ export default function ProductDetailPage() {
             })()}
 
             {/* ── Seller Card ────────────────────────────── */}
-            {store && (
+            {/* ── Seller Card ────────────────────────────── */}
+            {(store || seller) && (() => {
+              const identity = resolveProductSellerIdentity(product);
+              const hoursStatus =
+                identity.isBusiness && identity.storeMeta?.hasStorefront
+                  ? getTodayHoursStatus(identity.storeMeta?.businessHours)
+                  : null;
+              const sellerLocationLabel =
+                identity.isBusiness &&
+                identity.storeMeta?.hasStorefront &&
+                identity.storeMeta?.addressVisibility === 'exact' &&
+                identity.storeMeta?.streetAddress
+                  ? [identity.storeMeta.streetAddress, store?.location_city || seller?.location_city]
+                      .filter(Boolean)
+                      .join(', ')
+                  : store?.location_city || seller?.location_city || '';
+
+              return (
+                <Link
+                  to={store?.slug ? `/store/${store.slug}` : identity.profileUrl || '#'}
+                  className="glass-card block p-4 transition-all duration-200 hover:border-[var(--color-brand)]"
+                >
+                  <div className="flex items-center gap-3">
+                    <Avatar src={identity.avatarUrl} name={identity.displayName} size="lg" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <h4
+                          className="truncate text-sm font-semibold"
+                          style={{
+                            color: 'var(--color-text-primary)',
+                          }}
+                        >
+                          {identity.displayName}
+                        </h4>
+                        {store?.is_verified && (
+                          <ShieldCheck
+                            size={14}
+                            style={{
+                              color: 'var(--color-info)',
+                            }}
+                          />
+                        )}
+                        <span
+                          className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                          style={{
+                            backgroundColor: identity.isBusiness
+                              ? 'var(--color-brand-light)'
+                              : 'var(--color-surface-elevated)',
+                            color: identity.isBusiness
+                              ? 'var(--color-brand)'
+                              : 'var(--color-text-secondary)',
+                          }}
+                        >
+                          {identity.badgeLabel}
+                        </span>
+                      </div>
+                      <div
+                        className="mt-1 flex flex-wrap items-center gap-3 text-xs"
+                        style={{
+                          color: 'var(--color-text-muted)',
+                        }}
+                      >
+                        {(store?.average_rating > 0 && store?.total_reviews > 0) ||
+                        (seller?.seller_stats?.average_rating > 0 && seller?.seller_stats?.total_reviews > 0) ? (
+                          <span className="flex items-center gap-0.5">
+                            <Star
+                              size={11}
+                              fill="var(--color-warning)"
+                              style={{ color: 'var(--color-warning)' }}
+                            />
+                            {formatRating(
+                              store?.average_rating > 0
+                                ? store.average_rating
+                                : seller.seller_stats.average_rating
+                            )}
+                          </span>
+                        ) : (
+                          <span
+                            className="rounded-full px-1.5 py-0.5 text-[10px] font-semibold"
+                            style={{
+                              backgroundColor: 'rgba(91,110,245,0.1)',
+                              color: 'var(--color-brand)',
+                            }}
+                          >
+                            🌱 New Seller
+                          </span>
+                        )}
+                        {sellerLocationLabel && (
+                          <span className="flex items-center gap-0.5">
+                            <MapPin size={11} />
+                            {sellerLocationLabel}
+                          </span>
+                        )}
+                        {hoursStatus && (
+                          <span
+                            className="flex items-center gap-0.5 font-medium"
+                            style={{
+                              color: hoursStatus.isOpen
+                                ? '#10B981'
+                                : 'var(--color-text-muted)',
+                            }}
+                          >
+                            <Clock size={11} />
+                            {hoursStatus.statusText}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <ChevronRight
+                      size={16}
+                      style={{
+                        color: 'var(--color-text-muted)',
+                      }}
+                    />
+                  </div>
+                </Link>
+              );
+            })()}
+            {false && store && (
               <Link
                 to={`/store/${store.slug}`}
                 className="glass-card block p-4 transition-all duration-200 hover:border-[var(--color-brand)]"

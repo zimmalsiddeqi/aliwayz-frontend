@@ -20,6 +20,8 @@ import useLocationStore from '@store/location.store';
 import useFormDraft from '@hooks/useFormDraft';
 import { validateImageFile, createFilePreview, revokeFilePreview, getProductListingLocation } from '@utils/helpers';
 import { getProductUrl } from '@utils/categoryHelpers';
+import { encodeProductSellerIdentity } from '@utils/sellerMeta';
+import ListingReviewModal from './ListingReviewModal';
 import {
   VEHICLE_MAKES,
   VEHICLE_MODELS,
@@ -49,7 +51,14 @@ const ACCESSORIES_IDS = [
   '09d8dc12-1ce4-549a-8639-4392d44a4f7b', // Interior Accessories
 ];
 
-export default function CarListingForm({ store, wantedContext }) {
+export default function CarListingForm({
+  store,
+  wantedContext,
+  sellerIdentity = 'quick',
+  onChangeIdentity,
+  requireReview = false,
+  user = null,
+}) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { lat: userLat, lng: userLng, city: userCity, state: userState } = useLocationStore();
@@ -57,6 +66,7 @@ export default function CarListingForm({ store, wantedContext }) {
   const [imageError, setImageError] = useState(false);
   const [selectedFeatures, setSelectedFeatures] = useState([]);
   const [publishedProduct, setPublishedProduct] = useState(null);
+  const [reviewData, setReviewData] = useState(null);
   const [customMake, setCustomMake] = useState('');
   const [customModel, setCustomModel] = useState('');
 
@@ -76,7 +86,7 @@ export default function CarListingForm({ store, wantedContext }) {
     num_owners: '1',
     condition: '',
     title_status: '',
-    seller_type: '',
+    seller_type: sellerIdentity === 'business' ? 'dealership' : sellerIdentity === 'personal' ? 'private' : '',
     vin: '',
     registration_state: '',
     price: '',
@@ -212,7 +222,7 @@ export default function CarListingForm({ store, wantedContext }) {
 
       const productData = {
         title,
-        description: details || '',
+        description: encodeProductSellerIdentity(details || '', sellerIdentity),
         price: Number(formData.price),
         condition: isAccessories
           ? formData.condition
@@ -267,6 +277,7 @@ export default function CarListingForm({ store, wantedContext }) {
         toast.success('Vehicle listed successfully! 🚗');
       }
 
+      setReviewData(null);
       setPublishedProduct(product);
     },
     onError: (err) => toast.error(getErrorMessage(err)),
@@ -281,6 +292,10 @@ export default function CarListingForm({ store, wantedContext }) {
       return;
     }
     setImageError(false);
+    if (requireReview) {
+      setReviewData(data);
+      return;
+    }
     createMutation.mutate(data);
   };
 
@@ -481,7 +496,7 @@ export default function CarListingForm({ store, wantedContext }) {
                   {...register('mileage')}
                 />
                 <Input
-                  label="Engin"
+                  label="Engine"
                   placeholder="e.g. 2.0, 3.5L, V6, Electric"
                   {...register('engine_size')}
                 />
@@ -653,9 +668,44 @@ export default function CarListingForm({ store, wantedContext }) {
           isLoading={createMutation.isPending}
           loadingText="Publishing listing..."
         >
-          {isAccessories ? 'Publish Accessory Listing' : 'Publish Automotive Listing'}
+          {requireReview
+            ? 'Review & Publish Listing'
+            : isAccessories
+              ? 'Publish Accessory Listing'
+              : 'Publish Automotive Listing'}
         </Button>
       </form>
+
+      {requireReview && (
+        <ListingReviewModal
+          isOpen={!!reviewData}
+          pendingPayload={
+            reviewData
+              ? {
+                  title:
+                    reviewData.title ||
+                    `${reviewData.year || ''} ${reviewData.make === 'Other' ? customMake : reviewData.make || ''} ${reviewData.model === 'Other' ? customModel : reviewData.model || ''}`.trim() ||
+                    'Vehicle Listing',
+                  price: reviewData.price,
+                  condition: reviewData.condition,
+                  location_city:
+                    reviewData.location_city || store?.location_city || userCity || '',
+                  description: reviewData.description,
+                  images: images.map((img) => img.preview || img.file),
+                }
+              : null
+          }
+          sellerIdentity={sellerIdentity}
+          onChangeIdentity={onChangeIdentity}
+          user={user}
+          store={store}
+          isSubmitting={createMutation.isPending}
+          onEdit={() => setReviewData(null)}
+          onConfirmPublish={() => {
+            if (reviewData) createMutation.mutate(reviewData);
+          }}
+        />
+      )}
 
       <ListingQRModal
         isOpen={!!publishedProduct}

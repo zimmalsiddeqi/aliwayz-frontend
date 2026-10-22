@@ -33,9 +33,11 @@ import { cn, isSeller, isBuyer, isAdmin } from '@lib/utils';
 import LocationSelector from './LocationSelector';
 import CategoryDrawer from './CategoryDrawer';
 import useOnClickOutside from '@hooks/useOnClickOutside';
+import useMyStore from '@hooks/useMyStore';
 
 export default function Navbar() {
   const { user, isAuthenticated } = useAuthStore();
+  const { store, hasStore } = useMyStore();
   const { totalUnread } = useChatStore();
   const { unreadCount } = useNotificationStore();
   const { theme, toggleTheme } = useUIStore();
@@ -83,7 +85,7 @@ export default function Navbar() {
 
     // 3. Sell button in the center (highlighted)
     const sellLink = isAuthenticated
-      ? (role === 'admin' ? '/admin' : (isSeller(role) ? '/sell/create' : '/profile/edit'))
+      ? (role === 'admin' ? '/admin' : '/sell/create')
       : '/login';
     items.push({ to: sellLink, icon: PlusCircle, label: 'Sell', highlight: true });
 
@@ -113,7 +115,7 @@ export default function Navbar() {
 
     // Sell — NOT for admin
     if (isAuthenticated && role !== 'admin') {
-      const sellLink = isSeller(role) ? '/sell/create' : '/profile/edit';
+      const sellLink = '/sell/create';
       items.push({ to: sellLink, icon: PlusCircle, label: 'Sell' });
     }
 
@@ -152,7 +154,22 @@ export default function Navbar() {
       }
 
       // Seller section — NOT for admin
-      if (isSeller(role) && role !== 'admin') {
+      if ((isSeller(role) || hasStore) && role !== 'admin') {
+        sections.push({
+          title: 'Selling',
+          items: [
+            { to: '/dashboard', icon: LayoutDashboard, label: 'Seller Dashboard' },
+            ...(store?.slug
+              ? [{ to: `/store/${store.slug}`, icon: Store, label: 'My Seller Profile' }]
+              : []),
+            { to: '/sell/my-listings', icon: Package, label: 'My Listings' },
+            { to: '/sell/create', icon: PlusCircle, label: 'New Listing' },
+            { to: '/my-store/analytics', icon: Store, label: 'Performance' },
+            { to: '/my-store/edit', icon: Settings, label: 'Seller Settings' },
+          ],
+        });
+      }
+      if (false && isSeller(role) && role !== 'admin') {
         sections.push({
           title: 'Selling',
           items: [
