@@ -185,11 +185,11 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
             onClick={handleFavorite}
             disabled={isPending}
             className={cn(
-              'absolute top-2 right-2 sm:top-2.5 sm:right-2.5 w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-200 z-20 flex-shrink-0',
+              'absolute top-2.5 right-2.5 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all duration-200 z-20 flex-shrink-0 shadow-md',
               'backdrop-blur-md border',
               isFav
-                ? 'bg-red-500/20 border-red-500/30 text-red-400'
-                : 'bg-black/30 border-white/20 text-white/90 hover:bg-black/50',
+                ? 'bg-red-500/25 border-red-500/40 text-red-400 scale-105'
+                : 'bg-black/40 border-white/20 text-white/90 hover:bg-black/60 hover:scale-110',
               isPending && 'opacity-50 cursor-not-allowed'
             )}
             title={isFav ? 'Remove from favorites' : 'Add to favorites'}
@@ -197,7 +197,7 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
             <Heart
               size={14}
               fill={isFav ? 'currentColor' : 'none'}
-              className="transition-transform duration-200 group-hover:scale-110"
+              className="transition-transform duration-200"
             />
           </button>
 
@@ -212,21 +212,20 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
         </div>
 
         {/* Content Section */}
-        <div className="p-2.5 sm:p-3 flex flex-col flex-1 justify-between gap-1.5 sm:gap-2">
-          {/* Top Details */}
-          <div className="space-y-1">
+        <div className="p-3 sm:p-3.5 flex flex-col flex-1 justify-between gap-2.5">
+          {/* Main Details (Title, Price, Location, Stats) */}
+          <div className="space-y-1.5">
             {/* Title */}
             <h3
-              className="font-semibold text-xs sm:text-sm line-clamp-2 leading-snug h-[2.1rem] sm:h-[2.4rem] overflow-hidden flex items-start"
-              style={{ color: 'var(--color-text-primary)' }}
+              className="font-semibold text-xs sm:text-sm line-clamp-1 sm:line-clamp-2 leading-snug text-[var(--color-text-primary)] group-hover:text-brand-400 transition-colors"
               title={product.title}
             >
               {product.title}
             </h3>
 
             {/* Price & Real Estate Subtitle */}
-            <div className="flex items-baseline justify-between gap-1 min-h-[1.5rem]">
-              <p className="text-base sm:text-lg font-bold text-gradient-brand leading-tight">
+            <div className="flex items-baseline justify-between gap-1.5 pt-0.5">
+              <p className="text-base sm:text-lg font-bold text-gradient-brand leading-none">
                 {formattedPrice}
               </p>
               {realEstateSubtitle && (
@@ -239,83 +238,79 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
                 </span>
               )}
             </div>
-          </div>
 
-          {/* Bottom Details */}
-          <div className="space-y-1.5">
-            {/* Meta row */}
+            {/* Meta row: Location, Date & Stats */}
             <div
-              className="flex items-center justify-between text-[10px] sm:text-[11px]"
+              className="flex items-center justify-between text-[10px] sm:text-[11px] pt-1"
               style={{ color: 'var(--color-text-muted)' }}
             >
               <div className="flex items-center gap-1 min-w-0 flex-1 mr-1">
                 {product.location_city && (
                   <>
-                    <MapPin size={10} className="flex-shrink-0" />
-                    <span className="truncate max-w-[65px] sm:max-w-[85px]">{product.location_city}</span>
-                    <span className="flex-shrink-0">·</span>
+                    <MapPin size={10} className="flex-shrink-0 opacity-70" />
+                    <span className="truncate max-w-[70px] sm:max-w-[90px]">{product.location_city}</span>
+                    <span className="flex-shrink-0 opacity-40">·</span>
                   </>
                 )}
                 <span className="truncate flex-shrink-0">{formatRelativeTime(product.created_at)}</span>
               </div>
 
               <div className="flex items-center gap-1.5 flex-shrink-0">
-                <span className="flex items-center gap-0.5">
-                  <Eye size={10} />
+                <span className="flex items-center gap-0.5" title="Views">
+                  <Eye size={10} className="opacity-70" />
                   {formatCompactNumber(product.view_count)}
                 </span>
-                <span className="flex items-center gap-0.5">
-                  <Heart size={10} />
+                <span className="flex items-center gap-0.5" title="Favorites">
+                  <Heart size={10} className="opacity-70" />
                   {formatCompactNumber(product.favorite_count)}
                 </span>
               </div>
             </div>
-
-            {/* Seller / Store info */}
-            {showSeller && (store || seller) && (
-              <div
-                className="flex items-center gap-1.5 pt-1.5"
-                style={{ borderTop: '1px solid var(--color-border-subtle)' }}
-              >
-                {store ? (
-                  <>
-                    {store.logo_url ? (
-                      <img
-                        src={store.logo_url}
-                        alt={store.store_name}
-                        className="w-4 h-4 rounded-md object-cover flex-shrink-0"
-                      />
-                    ) : (
-                      <div className="w-4 h-4 rounded-md flex items-center justify-center text-[7px] font-bold text-white bg-brand-500 flex-shrink-0">
-                        {store.store_name?.[0]?.toUpperCase()}
-                      </div>
-                    )}
-                    <span
-                      className="text-[10px] sm:text-[11px] truncate flex-1 font-medium"
-                      style={{ color: 'var(--color-text-secondary)' }}
-                    >
-                      {store.store_name}
-                    </span>
-                    {store.is_verified && (
-                      <span className="text-[9px] flex-shrink-0" title="Verified">✅</span>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <div className="w-4 h-4 rounded-md flex items-center justify-center text-[7px] font-bold text-white bg-slate-600 flex-shrink-0">
-                      {seller?.username?.[0]?.toUpperCase()}
-                    </div>
-                    <span
-                      className="text-[10px] sm:text-[11px] truncate flex-1 font-medium"
-                      style={{ color: 'var(--color-text-secondary)' }}
-                    >
-                      @{seller?.username}
-                    </span>
-                  </>
-                )}
-              </div>
-            )}
           </div>
+
+          {/* Seller / Store info */}
+          {showSeller && (store || seller) && (
+            <div
+              className="flex items-center gap-1.5 pt-2 border-t border-[var(--color-border-subtle)]"
+            >
+              {store ? (
+                <>
+                  {store.logo_url ? (
+                    <img
+                      src={store.logo_url}
+                      alt={store.store_name}
+                      className="w-4 h-4 rounded-full object-cover flex-shrink-0 ring-1 ring-white/10"
+                    />
+                  ) : (
+                    <div className="w-4 h-4 rounded-full flex items-center justify-center text-[7px] font-bold text-white bg-brand-500 flex-shrink-0">
+                      {store.store_name?.[0]?.toUpperCase()}
+                    </div>
+                  )}
+                  <span
+                    className="text-[10px] sm:text-[11px] truncate flex-1 font-medium group-hover:text-[var(--color-text-primary)] transition-colors"
+                    style={{ color: 'var(--color-text-secondary)' }}
+                  >
+                    {store.store_name}
+                  </span>
+                  {store.is_verified && (
+                    <span className="text-[9px] flex-shrink-0" title="Verified">✅</span>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="w-4 h-4 rounded-full flex items-center justify-center text-[7px] font-bold text-white bg-slate-600 flex-shrink-0">
+                    {seller?.username?.[0]?.toUpperCase()}
+                  </div>
+                  <span
+                    className="text-[10px] sm:text-[11px] truncate flex-1 font-medium"
+                    style={{ color: 'var(--color-text-secondary)' }}
+                  >
+                    @{seller?.username}
+                  </span>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </Link>
     </motion.div>
