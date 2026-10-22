@@ -10,8 +10,18 @@ export default function useMyStore() {
 
   const query = useQuery({
     queryKey: ['my-store', user?.id],
-    queryFn: () =>
-      StoreService.getMyStore().then((r) => r?.data?.store || r?.data || null),
+    queryFn: async () => {
+      try {
+        const r = await StoreService.getMyStore();
+        return r?.data?.store || r?.data || null;
+      } catch (err) {
+        // If user is a buyer without a store (403/404), gracefully return null instead of throwing error
+        if (err?.response?.status === 403 || err?.response?.status === 404) {
+          return null;
+        }
+        throw err;
+      }
+    },
     enabled: canHaveStore,
     staleTime: 5 * 60 * 1000,
     retry: false,
