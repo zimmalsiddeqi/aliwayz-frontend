@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import SEOHead from '@components/seo/SEOHead';
@@ -218,24 +218,21 @@ export default function StoreProfilePage() {
     store.categories?.name ||
     (storeMeta.isBusinessProfile ? 'Business Storefront' : 'Personal Seller');
 
-  const availableTabs = useMemo(() => {
-    return STOREFRONT_TABS.filter((tab) => {
-      if (tab.id === 'hours') {
-        return Boolean(
-          storeMeta.isBusinessProfile &&
-            storeMeta.hasStorefront &&
-            storeMeta.businessHours
-        );
-      }
-      return true;
-    });
-  }, [storeMeta.isBusinessProfile, storeMeta.hasStorefront, storeMeta.businessHours]);
-
-  useEffect(() => {
-    if (activeTab === 'hours' && !availableTabs.some((t) => t.id === 'hours')) {
-      setActiveTab('inventory');
+  const availableTabs = STOREFRONT_TABS.filter((tab) => {
+    if (tab.id === 'hours') {
+      return Boolean(
+        storeMeta.isBusinessProfile &&
+          storeMeta.hasStorefront &&
+          storeMeta.businessHours
+      );
     }
-  }, [activeTab, availableTabs]);
+    return true;
+  });
+
+  const effectiveTab =
+    activeTab === 'hours' && !availableTabs.some((t) => t.id === 'hours')
+      ? 'inventory'
+      : activeTab;
 
   const publicAddressLabel =
     storeMeta.hasStorefront &&
@@ -716,7 +713,7 @@ export default function StoreProfilePage() {
           >
             <div className="flex items-center gap-2 sm:gap-8 max-w-2xl overflow-x-auto">
               {availableTabs.map((tab) => {
-                const isActive = activeTab === tab.id;
+                const isActive = effectiveTab === tab.id;
                 return (
                   <button
                     key={tab.id}
@@ -745,7 +742,7 @@ export default function StoreProfilePage() {
         {/* ── 4. FULL-WIDTH RESPONSIVE TAB CONTENT ───────────── */}
         <div className="w-full px-4 sm:px-6 lg:px-10 xl:px-14 py-6 sm:py-8">
           {/* TAB: INVENTORY */}
-          {activeTab === 'inventory' && (
+          {effectiveTab === 'inventory' && (
             <div className="space-y-5">
               <div className="flex items-center justify-between">
                 <h2
@@ -835,7 +832,7 @@ export default function StoreProfilePage() {
           )}
 
           {/* TAB: ABOUT */}
-          {activeTab === 'about' && (
+          {effectiveTab === 'about' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                 {/* Description Card */}
@@ -1100,7 +1097,7 @@ export default function StoreProfilePage() {
           )}
 
           {/* TAB: HOURS (Business storefronts only) */}
-          {activeTab === 'hours' &&
+          {effectiveTab === 'hours' &&
             storeMeta.isBusinessProfile &&
             storeMeta.hasStorefront &&
             storeMeta.businessHours && (
@@ -1254,7 +1251,7 @@ export default function StoreProfilePage() {
           )}
 
           {/* TAB: REVIEWS */}
-          {activeTab === 'reviews' && (
+          {effectiveTab === 'reviews' && (
             <div className="space-y-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
