@@ -241,7 +241,9 @@ export default function StoreProfilePage() {
       ? [storeMeta.streetAddress, store.location_city].filter(Boolean).join(', ')
       : store.location_city || '';
 
-  const phoneNumber = storeMeta.businessPhone || owner?.phone || '';
+  const phoneNumber = storeMeta.isBusinessProfile
+    ? (storeMeta.businessPhone || owner?.phone || '')
+    : '';
   const mapsQuery =
     storeMeta.hasStorefront &&
     storeMeta.addressVisibility === 'exact' &&
@@ -472,7 +474,7 @@ export default function StoreProfilePage() {
                       {store.store_name}
                     </h1>
 
-                    {(store.is_verified || storeMeta.isBusinessProfile) && (
+                    {storeMeta.isBusinessProfile && (
                       <span
                         className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold flex-shrink-0"
                         style={{
@@ -483,6 +485,19 @@ export default function StoreProfilePage() {
                       >
                         <ShieldCheck size={14} className="flex-shrink-0" />
                         Verified Business
+                      </span>
+                    )}
+
+                    {!storeMeta.isBusinessProfile && (
+                      <span
+                        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold flex-shrink-0"
+                        style={{
+                          backgroundColor: 'rgba(91, 110, 245, 0.1)',
+                          color: 'var(--color-brand)',
+                          border: '1px solid rgba(91, 110, 245, 0.25)',
+                        }}
+                      >
+                        Personal Seller
                       </span>
                     )}
                   </div>
@@ -636,44 +651,46 @@ export default function StoreProfilePage() {
                 </div>
               </div>
 
-              {/* Right / Bottom Column: 3 Primary Action Buttons (Call | Message | Get Directions) */}
-              <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full lg:w-auto lg:min-w-[440px]">
-                <button
-                  type="button"
-                  onClick={handleCall}
-                  className="flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 px-2.5 sm:px-5 rounded-xl font-bold text-xs sm:text-sm text-white shadow-sm transition-all hover:opacity-95 active:scale-[0.99]"
-                  style={{
-                    background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
-                  }}
-                >
-                  <Phone size={15} className="flex-shrink-0" />
-                  <span className="truncate">Call</span>
-                </button>
+              {/* Right / Bottom Column: 3 Primary Action Buttons (Call | Message | Get Directions) - Business Profiles Only */}
+              {storeMeta.isBusinessProfile && (
+                <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full lg:w-auto lg:min-w-[440px]">
+                  <button
+                    type="button"
+                    onClick={handleCall}
+                    className="flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 px-2.5 sm:px-5 rounded-xl font-bold text-xs sm:text-sm text-white shadow-sm transition-all hover:opacity-95 active:scale-[0.99]"
+                    style={{
+                      background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+                    }}
+                  >
+                    <Phone size={15} className="flex-shrink-0" />
+                    <span className="truncate">Call</span>
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={handleMessage}
-                  className="flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 px-2.5 sm:px-5 rounded-xl font-bold text-xs sm:text-sm text-white shadow-sm transition-all hover:opacity-95 active:scale-[0.99]"
-                  style={{
-                    background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
-                  }}
-                >
-                  <MessageCircle size={15} className="flex-shrink-0" />
-                  <span className="truncate">Message</span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={handleMessage}
+                    className="flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 px-2.5 sm:px-5 rounded-xl font-bold text-xs sm:text-sm text-white shadow-sm transition-all hover:opacity-95 active:scale-[0.99]"
+                    style={{
+                      background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+                    }}
+                  >
+                    <MessageCircle size={15} className="flex-shrink-0" />
+                    <span className="truncate">Message</span>
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={handleGetDirections}
-                  className="flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 px-2.5 sm:px-5 rounded-xl font-bold text-xs sm:text-sm text-white shadow-sm transition-all hover:opacity-95 active:scale-[0.99]"
-                  style={{
-                    background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
-                  }}
-                >
-                  <MapPin size={15} className="flex-shrink-0" />
-                  <span className="truncate">Get Directions</span>
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    onClick={handleGetDirections}
+                    className="flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 px-2.5 sm:px-5 rounded-xl font-bold text-xs sm:text-sm text-white shadow-sm transition-all hover:opacity-95 active:scale-[0.99]"
+                    style={{
+                      background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+                    }}
+                  >
+                    <MapPin size={15} className="flex-shrink-0" />
+                    <span className="truncate">Get Directions</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Admin Info Bar (only visible to platform admins) */}
@@ -950,7 +967,7 @@ export default function StoreProfilePage() {
                       style={{ color: 'var(--color-text-primary)' }}
                     >
                       <Building2 size={15} style={{ color: '#2563EB' }} />
-                      Business Details &amp; Contact
+                      {storeMeta.isBusinessProfile ? 'Business Details & Contact' : 'Seller Details'}
                     </h3>
 
                     <div
@@ -978,7 +995,7 @@ export default function StoreProfilePage() {
                         </p>
                       )}
 
-                      {phoneNumber && (
+                      {storeMeta.isBusinessProfile && phoneNumber && (
                         <p className="flex items-center gap-2">
                           <Phone size={14} style={{ color: '#2563EB' }} />
                           <a href={`tel:${phoneNumber}`} className="hover:underline">
@@ -987,7 +1004,7 @@ export default function StoreProfilePage() {
                         </p>
                       )}
 
-                      {storeMeta.businessEmail && (
+                      {storeMeta.isBusinessProfile && storeMeta.businessEmail && (
                         <p className="flex items-center gap-2">
                           <Mail size={14} style={{ color: '#2563EB' }} />
                           <a
@@ -999,7 +1016,7 @@ export default function StoreProfilePage() {
                         </p>
                       )}
 
-                      {storeMeta.websiteUrl && (
+                      {storeMeta.isBusinessProfile && storeMeta.websiteUrl && (
                         <p className="flex items-center gap-2">
                           <Globe size={14} style={{ color: '#2563EB' }} />
                           <a
