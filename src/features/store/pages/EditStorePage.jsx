@@ -208,14 +208,14 @@ export default function EditStorePage() {
         ...data,
         description: encodeStoreDescription(data.description, {
           sellerType: storeMeta.sellerType === 'personal' ? 'personal' : 'business',
-          businessType: syncedBusinessType || storeMeta.businessType,
-          hasStorefront: storeMeta.hasStorefront,
-          streetAddress: storeMeta.streetAddress,
+          businessType: storeMeta.isBusinessProfile ? (syncedBusinessType || storeMeta.businessType) : undefined,
+          hasStorefront: storeMeta.isBusinessProfile ? storeMeta.hasStorefront : false,
+          streetAddress: storeMeta.isBusinessProfile ? storeMeta.streetAddress : undefined,
           addressVisibility: addressVisibility || storeMeta.addressVisibility,
-          businessEmail: storeMeta.businessEmail,
+          businessEmail: storeMeta.isBusinessProfile ? storeMeta.businessEmail : undefined,
           businessPhone: storeMeta.businessPhone,
-          websiteUrl: storeMeta.websiteUrl,
-          businessHours: storeMeta.businessHours,
+          websiteUrl: storeMeta.isBusinessProfile ? storeMeta.websiteUrl : undefined,
+          businessHours: storeMeta.isBusinessProfile ? storeMeta.businessHours : undefined,
         }),
         ...(coords.lat && coords.lng
           ? { location_lat: coords.lat, location_lng: coords.lng }

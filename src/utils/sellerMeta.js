@@ -141,8 +141,15 @@ function compressHours(hours) {
 
 /**
  * Expand compact or full businessHours into normalized 7-day structure
+ * Returns null if raw hours are not provided or empty
  */
 export function normalizeBusinessHours(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const rawKeys = Object.keys(raw);
+  if (rawKeys.length === 0) return null;
+  const hasAnyDay = DAYS_OF_WEEK.some((d) => d.key in raw);
+  if (!hasAnyDay) return null;
+
   const result = {};
   for (const d of DAYS_OF_WEEK) {
     const def = DEFAULT_BUSINESS_HOURS[d.key];
@@ -189,16 +196,17 @@ export function stripStoreMetaTag(description = '') {
  */
 export function encodeStoreDescription(cleanDescription = '', meta = {}) {
   const clean = stripStoreMetaTag(cleanDescription);
+  const isBusiness = (meta.sellerType || 'business') === 'business';
   const compactMeta = {
     st: meta.sellerType || 'business',
-    bt: meta.businessType || undefined,
-    hs: meta.hasStorefront !== undefined ? Boolean(meta.hasStorefront) : undefined,
-    sa: meta.streetAddress ? String(meta.streetAddress).trim() : undefined,
+    bt: isBusiness ? (meta.businessType || undefined) : undefined,
+    hs: isBusiness && meta.hasStorefront !== undefined ? Boolean(meta.hasStorefront) : undefined,
+    sa: isBusiness && meta.streetAddress ? String(meta.streetAddress).trim() : undefined,
     av: meta.addressVisibility || undefined,
-    be: meta.businessEmail ? String(meta.businessEmail).trim() : undefined,
+    be: isBusiness && meta.businessEmail ? String(meta.businessEmail).trim() : undefined,
     bp: meta.businessPhone ? String(meta.businessPhone).trim() : undefined,
-    ws: meta.websiteUrl ? String(meta.websiteUrl).trim() : undefined,
-    bh: meta.businessHours ? compressHours(meta.businessHours) : undefined,
+    ws: isBusiness && meta.websiteUrl ? String(meta.websiteUrl).trim() : undefined,
+    bh: isBusiness && meta.businessHours ? compressHours(meta.businessHours) : undefined,
   };
 
   // Remove undefined keys
@@ -233,7 +241,7 @@ export function parseStoreMeta(store) {
       businessEmail: '',
       businessPhone: '',
       websiteUrl: '',
-      businessHours: normalizeBusinessHours(DEFAULT_BUSINESS_HOURS),
+      businessHours: null,
       cleanDescription: '',
     };
   }
@@ -263,21 +271,25 @@ export function parseStoreMeta(store) {
     }
   }
 
-  const businessType = store.business_type || parsedTag.bt || '';
+  const isBusinessProfile = sellerType === 'business';
+  const businessType = isBusinessProfile ? (store.business_type || parsedTag.bt || '') : '';
   const hasStorefront =
-    store.has_storefront !== undefined && store.has_storefront !== null
-      ? Boolean(store.has_storefront)
-      : parsedTag.hs !== undefined
-        ? Boolean(parsedTag.hs)
-        : false;
+    isBusinessProfile
+      ? (store.has_storefront !== undefined && store.has_storefront !== null
+          ? Boolean(store.has_storefront)
+          : parsedTag.hs !== undefined
+            ? Boolean(parsedTag.hs)
+            : false)
+      : false;
 
-  const streetAddress = store.street_address ?? parsedTag.sa ?? '';
+  const streetAddress = isBusinessProfile ? (store.street_address ?? parsedTag.sa ?? '') : '';
   const addressVisibility =
     store.address_visibility || parsedTag.av || (hasStorefront ? 'exact' : 'approximate');
-  const businessEmail = store.business_email || parsedTag.be || '';
+  const businessEmail = isBusinessProfile ? (store.business_email || parsedTag.be || '') : '';
   const businessPhone = store.business_phone || parsedTag.bp || '';
-  const websiteUrl = store.website_url || parsedTag.ws || '';
-  const businessHours = normalizeBusinessHours(store.business_hours || parsedTag.bh);
+  const websiteUrl = isBusinessProfile ? (store.website_url || parsedTag.ws || '') : '';
+  const rawHours = store.business_hours || parsedTag.bh;
+  const businessHours = isBusinessProfile && rawHours ? normalizeBusinessHours(rawHours) : null;
 
   const displayDescription =
     cleanDescription === 'Personal listings' || cleanDescription === 'Personal seller profile'
@@ -288,7 +300,7 @@ export function parseStoreMeta(store) {
     sellerType,
     isQuickProfile: sellerType === 'quick',
     isPersonalProfile: sellerType === 'personal',
-    isBusinessProfile: sellerType === 'business',
+    isBusinessProfile,
     businessType,
     businessTypeLabel: getBusinessTypeLabel(businessType),
     hasStorefront,
@@ -344,7 +356,9 @@ export function getTodayHoursStatus(businessHours) {
  * Group weekly hours into concise summary lines (e.g. Mon – Fri: 9:00 AM – 6:00 PM)
  */
 export function formatHoursSummary(businessHours) {
+  if (!businessHours) return [];
   const normalized = normalizeBusinessHours(businessHours);
+  if (!normalized) return [];
   const monToFriSame = ['tue', 'wed', 'thu', 'fri'].every(
     (k) =>
       normalized[k].closed === normalized.mon.closed &&

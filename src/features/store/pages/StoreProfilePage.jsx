@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import SEOHead from '@components/seo/SEOHead';
@@ -209,11 +209,33 @@ export default function StoreProfilePage() {
   }
 
   const storeMeta = parseStoreMeta(store);
-  const todayHours = getTodayHoursStatus(storeMeta.businessHours);
+  const todayHours =
+    storeMeta.isBusinessProfile && storeMeta.hasStorefront && storeMeta.businessHours
+      ? getTodayHoursStatus(storeMeta.businessHours)
+      : null;
   const categorySubtitle =
     storeMeta.businessTypeLabel ||
     store.categories?.name ||
     (storeMeta.isBusinessProfile ? 'Business Storefront' : 'Personal Seller');
+
+  const availableTabs = useMemo(() => {
+    return STOREFRONT_TABS.filter((tab) => {
+      if (tab.id === 'hours') {
+        return Boolean(
+          storeMeta.isBusinessProfile &&
+            storeMeta.hasStorefront &&
+            storeMeta.businessHours
+        );
+      }
+      return true;
+    });
+  }, [storeMeta.isBusinessProfile, storeMeta.hasStorefront, storeMeta.businessHours]);
+
+  useEffect(() => {
+    if (activeTab === 'hours' && !availableTabs.some((t) => t.id === 'hours')) {
+      setActiveTab('inventory');
+    }
+  }, [activeTab, availableTabs]);
 
   const publicAddressLabel =
     storeMeta.hasStorefront &&
@@ -264,8 +286,10 @@ export default function StoreProfilePage() {
   const handleGetDirections = () => {
     if (mapsQuery) {
       window.open(mapsUrl, '_blank', 'noopener,noreferrer');
-    } else {
+    } else if (availableTabs.some((t) => t.id === 'hours')) {
       setActiveTab('hours');
+    } else {
+      setActiveTab('about');
     }
   };
 
@@ -525,93 +549,92 @@ export default function StoreProfilePage() {
                       )}
                     </div>
 
-                    {/* Open Today · Hours Line with Expandable Dropdown */}
-                    <div>
-                      <button
-                        type="button"
-                        onClick={() => setShowHoursDropdown((prev) => !prev)}
-                        className="inline-flex items-center gap-1.5 transition-opacity hover:opacity-80"
-                      >
-                        <Clock
-                          size={15}
-                          style={{
-                            color:
-                              todayHours?.isOpen === false ? '#EF4444' : '#10B981',
-                          }}
-                        />
-                        <span
-                          className="font-semibold"
-                          style={{
-                            color:
-                              todayHours?.isOpen === false ? '#EF4444' : '#10B981',
-                          }}
+                    {/* Open Today · Hours Line with Expandable Dropdown (Business storefronts only) */}
+                    {todayHours && (
+                      <div>
+                        <button
+                          type="button"
+                          onClick={() => setShowHoursDropdown((prev) => !prev)}
+                          className="inline-flex items-center gap-1.5 transition-opacity hover:opacity-80"
                         >
-                          {todayHours?.isOpen === false ? 'Closed today' : 'Open today'}
-                        </span>
-                        <span style={{ color: 'var(--color-text-secondary)' }}>
-                          ·{' '}
-                          {todayHours?.hoursText && todayHours.hoursText !== 'Closed'
-                            ? todayHours.hoursText
-                            : '9:00 AM – 6:00 PM'}
-                        </span>
-                        <ChevronDown
-                          size={14}
-                          className={cn(
-                            'transition-transform duration-200',
-                            showHoursDropdown && 'rotate-180'
-                          )}
-                          style={{ color: 'var(--color-text-muted)' }}
-                        />
-                      </button>
-
-                      <AnimatePresence>
-                        {showHoursDropdown && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="overflow-hidden"
+                          <Clock
+                            size={15}
+                            style={{
+                              color:
+                                todayHours.isOpen === false ? '#EF4444' : '#10B981',
+                            }}
+                          />
+                          <span
+                            className="font-semibold"
+                            style={{
+                              color:
+                                todayHours.isOpen === false ? '#EF4444' : '#10B981',
+                            }}
                           >
-                            <div
-                              className="mt-2 p-3.5 rounded-2xl border max-w-sm space-y-1 text-xs"
-                              style={{
-                                backgroundColor: 'var(--color-bg)',
-                                borderColor: 'var(--color-border)',
-                              }}
+                            {todayHours.isOpen === false ? 'Closed today' : 'Open today'}
+                          </span>
+                          <span style={{ color: 'var(--color-text-secondary)' }}>
+                            · {todayHours.hoursText}
+                          </span>
+                          <ChevronDown
+                            size={14}
+                            className={cn(
+                              'transition-transform duration-200',
+                              showHoursDropdown && 'rotate-180'
+                            )}
+                            style={{ color: 'var(--color-text-muted)' }}
+                          />
+                        </button>
+
+                        <AnimatePresence>
+                          {showHoursDropdown && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="overflow-hidden"
                             >
-                              {DAYS_OF_WEEK.map((day) => {
-                                const info = storeMeta.businessHours?.[day.key];
-                                const isClosed = !info || info.closed;
-                                const isToday = day.key === todayDayKey;
-                                return (
-                                  <div
-                                    key={day.key}
-                                    className={cn(
-                                      'flex items-center justify-between py-0.5',
-                                      isToday && 'font-bold'
-                                    )}
-                                    style={{
-                                      color: isToday
-                                        ? 'var(--color-text-primary)'
-                                        : 'var(--color-text-secondary)',
-                                    }}
-                                  >
-                                    <span>{day.label}</span>
-                                    <span>
-                                      {isClosed
-                                        ? 'Closed'
-                                        : `${formatTime24To12(info.open)} – ${formatTime24To12(
-                                            info.close
-                                          )}`}
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
+                              <div
+                                className="mt-2 p-3.5 rounded-2xl border max-w-sm space-y-1 text-xs"
+                                style={{
+                                  backgroundColor: 'var(--color-bg)',
+                                  borderColor: 'var(--color-border)',
+                                }}
+                              >
+                                {DAYS_OF_WEEK.map((day) => {
+                                  const info = storeMeta.businessHours?.[day.key];
+                                  const isClosed = !info || info.closed;
+                                  const isToday = day.key === todayDayKey;
+                                  return (
+                                    <div
+                                      key={day.key}
+                                      className={cn(
+                                        'flex items-center justify-between py-0.5',
+                                        isToday && 'font-bold'
+                                      )}
+                                      style={{
+                                        color: isToday
+                                          ? 'var(--color-text-primary)'
+                                          : 'var(--color-text-secondary)',
+                                      }}
+                                    >
+                                      <span>{day.label}</span>
+                                      <span>
+                                        {isClosed
+                                          ? 'Closed'
+                                          : `${formatTime24To12(info.open)} – ${formatTime24To12(
+                                              info.close
+                                            )}`}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -691,15 +714,15 @@ export default function StoreProfilePage() {
             className="w-full border-t border-b px-4 sm:px-6 lg:px-10 xl:px-14"
             style={{ borderColor: 'var(--color-border)' }}
           >
-            <div className="grid grid-cols-4 max-w-2xl">
-              {STOREFRONT_TABS.map((tab) => {
+            <div className="flex items-center gap-2 sm:gap-8 max-w-2xl overflow-x-auto">
+              {availableTabs.map((tab) => {
                 const isActive = activeTab === tab.id;
                 return (
                   <button
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveTab(tab.id)}
-                    className="relative py-3.5 text-center text-xs sm:text-sm font-bold transition-colors"
+                    className="relative py-3.5 px-3 sm:px-4 text-center text-xs sm:text-sm font-bold transition-colors whitespace-nowrap"
                     style={{
                       color: isActive ? '#2563EB' : 'var(--color-text-secondary)',
                     }}
@@ -708,7 +731,7 @@ export default function StoreProfilePage() {
                     {isActive && (
                       <motion.div
                         layoutId="storefrontActiveTabIndicator"
-                        className="absolute bottom-0 inset-x-2 sm:inset-x-4 h-[3px] rounded-t-full"
+                        className="absolute bottom-0 inset-x-1 sm:inset-x-2 h-[3px] rounded-t-full"
                         style={{ backgroundColor: '#2563EB' }}
                       />
                     )}
@@ -1076,8 +1099,11 @@ export default function StoreProfilePage() {
             </div>
           )}
 
-          {/* TAB: HOURS */}
-          {activeTab === 'hours' && (
+          {/* TAB: HOURS (Business storefronts only) */}
+          {activeTab === 'hours' &&
+            storeMeta.isBusinessProfile &&
+            storeMeta.hasStorefront &&
+            storeMeta.businessHours && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Weekly Schedule Card */}
               <div
