@@ -1,12 +1,24 @@
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, Home, ExternalLink, MessageCircle, MapPin, ShieldCheck, Sparkles } from 'lucide-react';
+import { CheckCircle2, Home, ExternalLink, MessageCircle, MapPin, ShieldCheck, Sparkles, LogIn } from 'lucide-react';
 import Modal from '@components/ui/Modal';
 import Button from '@components/ui/Button';
+import useAuthStore from '@store/auth.store';
 
-export default function WantedMatchesModal({ isOpen, onClose, request }) {
+export default function WantedMatchesModal({ isOpen, onClose, request, onIHaveThis }) {
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuthStore();
 
   if (!isOpen || !request) return null;
+
+  const isOwner = Boolean(
+    user?.id &&
+    (request.user_id === user.id ||
+      request.user?.id === user.id ||
+      request.buyer_id === user.id ||
+      request.users?.id === user.id)
+  );
+
+  const city = request.location_city || 'this area';
 
   // Strictly use real dynamic matches from backend/database
   const rawMatches = Array.isArray(request.wanted_matches) ? request.wanted_matches : [];
@@ -67,9 +79,59 @@ export default function WantedMatchesModal({ isOpen, onClose, request }) {
               <p className="text-sm font-bold text-[var(--color-text-primary)]">
                 No matched seller proposals yet
               </p>
-              <p className="text-xs text-[var(--color-text-muted)] mt-1 max-w-sm mx-auto">
-                Local sellers in Philadelphia will be able to propose their matching inventory here as soon as they respond to your request.
-              </p>
+
+              {isOwner ? (
+                <>
+                  <p className="text-xs text-[var(--color-text-muted)] mt-1.5 max-w-sm mx-auto">
+                    Local sellers in {city} will be able to propose their matching inventory here as soon as they respond to your request.
+                  </p>
+                  <p className="text-[11px] text-indigo-500 dark:text-indigo-400 font-medium mt-1">
+                    You will be notified as soon as an offer is submitted.
+                  </p>
+                </>
+              ) : !isAuthenticated ? (
+                <>
+                  <p className="text-xs text-[var(--color-text-muted)] mt-1.5 max-w-sm mx-auto">
+                    No sellers have submitted proposals for this buyer's request in {city} yet.
+                  </p>
+                  <p className="text-xs text-[var(--color-text-secondary)] mt-1 font-medium max-w-sm mx-auto">
+                    Do you have matching inventory? Sign in to propose an offer directly to this buyer.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      navigate('/login?redirect=/wanted');
+                    }}
+                    className="mt-3.5 inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 px-4 py-2 text-xs font-bold text-white shadow-md shadow-indigo-500/20 transition-all active:scale-95"
+                  >
+                    <LogIn size={13} />
+                    <span>Sign In to Propose an Item</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="text-xs text-[var(--color-text-muted)] mt-1.5 max-w-sm mx-auto">
+                    No sellers have submitted proposals for this request in {city} yet.
+                  </p>
+                  <p className="text-xs text-[var(--color-text-secondary)] mt-1 font-medium max-w-sm mx-auto">
+                    Do you have matching inventory or property? Be the first to submit an offer to this buyer!
+                  </p>
+                  {onIHaveThis && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        onIHaveThis(request);
+                      }}
+                      className="mt-3.5 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 px-4 py-2 text-xs font-bold text-white shadow-md shadow-indigo-500/20 transition-all active:scale-95"
+                    >
+                      <Sparkles size={14} />
+                      <span>I Have This Item — Propose Offer</span>
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           ) : (
             <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
@@ -166,7 +228,22 @@ export default function WantedMatchesModal({ isOpen, onClose, request }) {
         </div>
 
         {/* Modal Footer */}
-        <div className="flex justify-end pt-2 border-t border-[var(--color-border)]">
+        <div className="flex items-center justify-between pt-2 border-t border-[var(--color-border)]">
+          {!isOwner && matches.length > 0 && onIHaveThis ? (
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onIHaveThis(request);
+              }}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm transition-all active:scale-95"
+            >
+              <Sparkles size={13} />
+              <span>Propose Matching Item</span>
+            </button>
+          ) : (
+            <span />
+          )}
           <Button variant="ghost" size="sm" onClick={onClose}>
             Close
           </Button>
@@ -175,4 +252,3 @@ export default function WantedMatchesModal({ isOpen, onClose, request }) {
     </Modal>
   );
 }
-

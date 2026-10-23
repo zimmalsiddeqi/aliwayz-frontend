@@ -287,6 +287,7 @@ export default function WantedFeedPage() {
         isOpen={!!activeRequestForView}
         onClose={() => setActiveRequestForView(null)}
         request={activeRequestForView}
+        onIHaveThis={(item) => setActiveRequestForMatch(item)}
       />
 
       {/* Filter Modal */}
