@@ -209,6 +209,12 @@ export default function StoreProfilePage() {
   }
 
   const storeMeta = parseStoreMeta(store);
+  const isStoreVerified =
+    Boolean(store?.is_verified) ||
+    owner?.seller_verification_status === 'identity_verified' ||
+    owner?.seller_verification_status === 'approved' ||
+    Boolean(isOwner && (currentUser?.seller_verification_status === 'identity_verified' || currentUser?.seller_verification_status === 'approved'));
+
   const todayHours =
     storeMeta.isBusinessProfile && storeMeta.hasStorefront && storeMeta.businessHours
       ? getTodayHoursStatus(storeMeta.businessHours)
@@ -474,30 +480,49 @@ export default function StoreProfilePage() {
                       {store.store_name}
                     </h1>
 
-                    {storeMeta.isBusinessProfile && (
+                    {storeMeta.isBusinessProfile ? (
+                      isStoreVerified ? (
+                        <span
+                          className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold flex-shrink-0"
+                          style={{
+                            backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                            color: '#10B981',
+                            border: '1px solid rgba(16, 185, 129, 0.3)',
+                          }}
+                        >
+                          <ShieldCheck size={14} className="flex-shrink-0" />
+                          Verified Business
+                        </span>
+                      ) : (
+                        <span
+                          className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold flex-shrink-0"
+                          style={{
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            color: 'var(--color-brand)',
+                            border: '1px solid rgba(59, 130, 246, 0.25)',
+                          }}
+                        >
+                          <Building2 size={13} className="flex-shrink-0" />
+                          Business Storefront
+                        </span>
+                      )
+                    ) : (
                       <span
                         className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold flex-shrink-0"
                         style={{
-                          backgroundColor: 'rgba(16, 185, 129, 0.12)',
-                          color: '#10B981',
-                          border: '1px solid rgba(16, 185, 129, 0.3)',
+                          backgroundColor: isStoreVerified
+                            ? 'rgba(16, 185, 129, 0.12)'
+                            : 'rgba(91, 110, 245, 0.1)',
+                          color: isStoreVerified
+                            ? '#10B981'
+                            : 'var(--color-brand)',
+                          border: isStoreVerified
+                            ? '1px solid rgba(16, 185, 129, 0.3)'
+                            : '1px solid rgba(91, 110, 245, 0.25)',
                         }}
                       >
-                        <ShieldCheck size={14} className="flex-shrink-0" />
-                        Verified Business
-                      </span>
-                    )}
-
-                    {!storeMeta.isBusinessProfile && (
-                      <span
-                        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold flex-shrink-0"
-                        style={{
-                          backgroundColor: 'rgba(91, 110, 245, 0.1)',
-                          color: 'var(--color-brand)',
-                          border: '1px solid rgba(91, 110, 245, 0.25)',
-                        }}
-                      >
-                        Personal Seller
+                        {isStoreVerified && <ShieldCheck size={14} className="flex-shrink-0" />}
+                        {isStoreVerified ? 'Verified Seller' : 'Personal Seller'}
                       </span>
                     )}
                   </div>
