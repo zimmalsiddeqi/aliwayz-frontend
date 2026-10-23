@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
@@ -6,6 +7,9 @@ import {
   Plus,
   Settings,
   ShieldCheck,
+  ShieldAlert,
+  CheckCircle2,
+  ArrowLeft,
   Edit3,
   ExternalLink,
   MessageCircle,
@@ -22,6 +26,8 @@ import {
 import ProductService from '@api/services/product.service';
 import StoreService from '@api/services/store.service';
 import ChatService from '@api/services/chat.service';
+import VerificationService from '@api/services/verification.service';
+import VerificationWizard from '@features/verification/components/VerificationWizard';
 import { queryKeys } from '@lib/queryClient';
 import useAuthStore from '@store/auth.store';
 import useMyStore from '@hooks/useMyStore';
@@ -29,16 +35,19 @@ import Avatar from '@components/ui/Avatar';
 import Button from '@components/ui/Button';
 import Spinner from '@components/ui/Spinner';
 import EmptyState from '@components/common/EmptyState';
-import { formatPrice, formatChatTime, cn } from '@lib/utils';
-import { formatCompactNumber, formatRating } from '@utils/formatters';
+import toast from '@lib/toast';
+import { getErrorMessage, formatPrice, formatChatTime, cn } from '@lib/utils';
+import { formatCompactNumber, formatRating, formatDate } from '@utils/formatters';
 import { getPrimaryImage, getOtherParticipant, getUnreadCount } from '@utils/helpers';
 import { getProductUrl } from '@utils/categoryHelpers';
 import { parseStoreMeta } from '@utils/sellerMeta';
 
 export default function SellerDashboardPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const { store, hasStore, isLoading: storeLoading } = useMyStore();
+  const [inVerificationWizard, setInVerificationWizard] = useState(false);
 
   const storeMeta = parseStoreMeta(store);
   const sellerMode =
@@ -58,6 +67,40 @@ export default function SellerDashboardPage() {
     const nextMode = isBusinessSeller ? 'personal' : 'business';
     localStorage.setItem(`aliwayz_seller_mode_${user.id}`, nextMode);
     window.location.reload();
+  };
+
+  // ── 0. Fetch business verification status ────────────────
+  const { data: verificationStatusData } = useQuery({
+    queryKey: queryKeys.verification.status(),
+    queryFn: VerificationService.getStatus,
+    enabled: !!user?.id,
+  });
+
+  const rawVerificationStatus = verificationStatusData?.data?.status;
+  const isIdentityVerified =
+    rawVerificationStatus === 'approved' ||
+    rawVerificationStatus === 'identity_verified' ||
+    Boolean(store?.is_verified);
+  const verificationStatus = isIdentityVerified
+    ? 'identity_verified'
+    : rawVerificationStatus || 'none';
+  const latestSubmission = verificationStatusData?.data?.latest_submission || null;
+
+  const submitVerificationMutation = useMutation({
+    mutationFn: VerificationService.submitVerification,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['verification'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.stores.my() });
+      toast.success('Identity verification request submitted successfully! 🚀');
+      setInVerificationWizard(false);
+    },
+    onError: (err) => {
+      toast.error(getErrorMessage(err));
+    },
+  });
+
+  const handleVerificationSubmit = (formData) => {
+    submitVerificationMutation.mutate(formData);
   };
 
   // ── 1. Fetch real listings created by seller ─────────────
@@ -272,7 +315,7 @@ export default function SellerDashboardPage() {
                   {store?.store_name || 'My Business Storefront'}
                 </h1>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
-                  {store?.is_verified ? (
+                  {verificationStatus === 'identity_verified' ? (
                     <span
                       className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold"
                       style={{
@@ -283,6 +326,30 @@ export default function SellerDashboardPage() {
                     >
                       <ShieldCheck size={13} />
                       Verified Business
+                    </span>
+                  ) : verificationStatus === 'pending' ? (
+                    <span
+                      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                      style={{
+                        backgroundColor: 'rgba(245, 158, 11, 0.12)',
+                        color: '#F59E0B',
+                        border: '1px solid rgba(245, 158, 11, 0.3)',
+                      }}
+                    >
+                      <Clock size={13} />
+                      Verification In Review
+                    </span>
+                  ) : verificationStatus === 'rejected' ? (
+                    <span
+                      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                      style={{
+                        backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                        color: '#EF4444',
+                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                      }}
+                    >
+                      <ShieldAlert size={13} />
+                      Verification Rejected
                     </span>
                   ) : (
                     <span
@@ -353,7 +420,360 @@ export default function SellerDashboardPage() {
             </div>
           </div>
 
-          {/* Business Overview: 4 KPI Stat Cards */}
+          {/* ── Business Verification Section (Preserves exact verification workflow) ── */}
+          {inVerificationWizard ? (
+            <div
+              className="w-full rounded-3xl p-5 sm:p-6 border shadow-sm"
+              style={{
+                backgroundColor: 'var(--color-surface)',
+                borderColor: 'var(--color-border)',
+              }}
+            >
+              <div
+                className="flex items-center justify-between gap-3 mb-6 border-b pb-4"
+                style={{ borderColor: 'var(--color-border)' }}
+              >
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setInVerificationWizard(false)}
+                    className="p-2 rounded-xl border transition-colors hover:bg-[var(--glass-bg-strong)]"
+                    style={{
+                      borderColor: 'var(--color-border)',
+                      color: 'var(--color-text-primary)',
+                    }}
+                    title="Cancel"
+                  >
+                    <ArrowLeft size={16} />
+                  </button>
+                  <div>
+                    <h2
+                      className="text-base sm:text-lg font-bold"
+                      style={{ color: 'var(--color-text-primary)' }}
+                    >
+                      Business Identity Verification Wizard
+                    </h2>
+                    <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                      Complete the 4 steps to submit your official government ID documents
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setInVerificationWizard(false)}
+                  className="text-xs font-medium hover:underline"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
+                  Close
+                </button>
+              </div>
+
+              <VerificationWizard
+                onSubmit={handleVerificationSubmit}
+                isSubmitting={submitVerificationMutation.isPending}
+              />
+            </div>
+          ) : (
+            <>
+              {verificationStatus === 'none' && (
+                <div
+                  className="w-full rounded-3xl p-5 sm:p-6 border shadow-sm relative overflow-hidden"
+                  style={{
+                    backgroundColor: 'var(--color-surface)',
+                    borderColor: 'rgba(37, 99, 235, 0.25)',
+                    background:
+                      'linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(37, 99, 235, 0.01) 100%)',
+                  }}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+                    <div className="flex items-start gap-4">
+                      <div
+                        className="flex h-12 w-12 items-center justify-center rounded-2xl flex-shrink-0"
+                        style={{
+                          backgroundColor: 'rgba(37, 99, 235, 0.12)',
+                          color: '#2563EB',
+                        }}
+                      >
+                        <ShieldCheck size={26} />
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <h3
+                            className="text-base sm:text-lg font-bold"
+                            style={{ color: 'var(--color-text-primary)' }}
+                          >
+                            Verify Your Business Storefront
+                          </h3>
+                          <span
+                            className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                            style={{
+                              backgroundColor: 'rgba(37, 99, 235, 0.15)',
+                              color: '#2563EB',
+                            }}
+                          >
+                            Recommended
+                          </span>
+                        </div>
+                        <p
+                          className="text-xs sm:text-sm max-w-xl leading-relaxed"
+                          style={{ color: 'var(--color-text-secondary)' }}
+                        >
+                          Unlock the official <strong>Verified Business</strong> badge on your storefront and listings to build buyer trust and increase customer inquiries.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 sm:flex-shrink-0">
+                      <Button
+                        size="md"
+                        onClick={() => setInVerificationWizard(true)}
+                        rightIcon={<ArrowRight size={15} />}
+                        className="w-full sm:w-auto shadow-sm"
+                      >
+                        Start Verification
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* 3 Trust points */}
+                  <div
+                    className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 pt-4 border-t text-xs"
+                    style={{ borderColor: 'rgba(37, 99, 235, 0.15)' }}
+                  >
+                    <div className="flex items-center gap-2" style={{ color: 'var(--color-text-secondary)' }}>
+                      <div className="w-4 h-4 rounded-full flex items-center justify-center bg-emerald-500/10 text-emerald-500 font-bold text-[10px]">
+                        ✓
+                      </div>
+                      <span>Verified Business Badge on listings</span>
+                    </div>
+                    <div className="flex items-center gap-2" style={{ color: 'var(--color-text-secondary)' }}>
+                      <div className="w-4 h-4 rounded-full flex items-center justify-center bg-emerald-500/10 text-emerald-500 font-bold text-[10px]">
+                        ✓
+                      </div>
+                      <span>Higher customer trust & conversions</span>
+                    </div>
+                    <div className="flex items-center gap-2" style={{ color: 'var(--color-text-secondary)' }}>
+                      <div className="w-4 h-4 rounded-full flex items-center justify-center bg-emerald-500/10 text-emerald-500 font-bold text-[10px]">
+                        ✓
+                      </div>
+                      <span>Quick review in 1–2 business days</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {verificationStatus === 'pending' && (
+                <div
+                  className="w-full rounded-3xl p-5 sm:p-6 border shadow-sm"
+                  style={{
+                    backgroundColor: 'var(--color-surface)',
+                    borderColor: 'rgba(245, 158, 11, 0.35)',
+                    background:
+                      'linear-gradient(135deg, rgba(245, 158, 11, 0.06) 0%, rgba(245, 158, 11, 0.01) 100%)',
+                  }}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-start gap-4">
+                      <div
+                        className="flex h-12 w-12 items-center justify-center rounded-2xl flex-shrink-0"
+                        style={{
+                          backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                          color: '#F59E0B',
+                        }}
+                      >
+                        <Clock size={26} />
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <h3
+                            className="text-base sm:text-lg font-bold"
+                            style={{ color: 'var(--color-text-primary)' }}
+                          >
+                            Business Verification Under Review
+                          </h3>
+                          <span
+                            className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                            style={{
+                              backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                              color: '#F59E0B',
+                            }}
+                          >
+                            Pending
+                          </span>
+                        </div>
+                        <p
+                          className="text-xs sm:text-sm max-w-xl leading-relaxed"
+                          style={{ color: 'var(--color-text-secondary)' }}
+                        >
+                          Your identity documents have been submitted and are being reviewed by our moderation team. Evaluation usually takes 1–2 business days.
+                        </p>
+                      </div>
+                    </div>
+
+                    {latestSubmission?.submitted_at && (
+                      <div
+                        className="rounded-xl px-3.5 py-2 border text-xs sm:text-right"
+                        style={{
+                          backgroundColor: 'var(--color-bg)',
+                          borderColor: 'var(--color-border)',
+                        }}
+                      >
+                        <p style={{ color: 'var(--color-text-muted)' }}>Submitted</p>
+                        <p className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                          {formatDate(latestSubmission.submitted_at)}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {verificationStatus === 'identity_verified' && (
+                <div
+                  className="w-full rounded-3xl p-5 sm:p-6 border shadow-sm"
+                  style={{
+                    backgroundColor: 'var(--color-surface)',
+                    borderColor: 'rgba(16, 185, 129, 0.35)',
+                    background:
+                      'linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(16, 185, 129, 0.01) 100%)',
+                  }}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-start gap-4">
+                      <div
+                        className="flex h-12 w-12 items-center justify-center rounded-2xl flex-shrink-0"
+                        style={{
+                          backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                          color: '#10B981',
+                        }}
+                      >
+                        <CheckCircle2 size={26} />
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <h3
+                            className="text-base sm:text-lg font-bold"
+                            style={{ color: 'var(--color-text-primary)' }}
+                          >
+                            Business Storefront Verified
+                          </h3>
+                          <span
+                            className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                            style={{
+                              backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                              color: '#10B981',
+                            }}
+                          >
+                            Active
+                          </span>
+                        </div>
+                        <p
+                          className="text-xs sm:text-sm max-w-xl leading-relaxed"
+                          style={{ color: 'var(--color-text-secondary)' }}
+                        >
+                          Your business identity check is approved. The <strong>Verified Business</strong> badge is displayed on your storefront and across all your active listings.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 sm:flex-shrink-0">
+                      <span
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold"
+                        style={{
+                          backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                          color: '#10B981',
+                          border: '1px solid rgba(16, 185, 129, 0.3)',
+                        }}
+                      >
+                        <ShieldCheck size={14} />
+                        Verified Badge Active
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {verificationStatus === 'rejected' && (
+                <div
+                  className="w-full rounded-3xl p-5 sm:p-6 border shadow-sm"
+                  style={{
+                    backgroundColor: 'var(--color-surface)',
+                    borderColor: 'rgba(239, 68, 68, 0.35)',
+                    background:
+                      'linear-gradient(135deg, rgba(239, 68, 68, 0.06) 0%, rgba(239, 68, 68, 0.01) 100%)',
+                  }}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                    <div className="flex items-start gap-4">
+                      <div
+                        className="flex h-12 w-12 items-center justify-center rounded-2xl flex-shrink-0"
+                        style={{
+                          backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                          color: '#EF4444',
+                        }}
+                      >
+                        <ShieldAlert size={26} />
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <h3
+                            className="text-base sm:text-lg font-bold"
+                            style={{ color: 'var(--color-text-primary)' }}
+                          >
+                            Business Verification Rejected
+                          </h3>
+                          <span
+                            className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                            style={{
+                              backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                              color: '#EF4444',
+                            }}
+                          >
+                            Action Required
+                          </span>
+                        </div>
+                        <p
+                          className="text-xs sm:text-sm max-w-xl leading-relaxed"
+                          style={{ color: 'var(--color-text-secondary)' }}
+                        >
+                          Your verification request was not approved. Please review the reason below and submit updated documents.
+                        </p>
+
+                        {latestSubmission?.rejection_reason && (
+                          <div
+                            className="mt-2 p-3 rounded-xl border text-xs"
+                            style={{
+                              backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                              borderColor: 'rgba(239, 68, 68, 0.25)',
+                              color: 'var(--color-text-primary)',
+                            }}
+                          >
+                            <span className="font-bold text-red-500 uppercase text-[10px] block">
+                              Reason for rejection:
+                            </span>
+                            <span className="mt-0.5 block leading-relaxed">
+                              {latestSubmission.rejection_reason}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 sm:flex-shrink-0">
+                      <Button
+                        size="md"
+                        variant="danger"
+                        onClick={() => setInVerificationWizard(true)}
+                        className="w-full sm:w-auto shadow-sm"
+                      >
+                        Resubmit Documents
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
           <div
             className="w-full rounded-3xl p-5 sm:p-6 border shadow-sm space-y-4"
             style={{
