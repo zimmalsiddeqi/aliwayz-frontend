@@ -651,8 +651,8 @@ export default function StoreProfilePage() {
                 </div>
               </div>
 
-              {/* Right / Bottom Column: 3 Primary Action Buttons (Call | Message | Get Directions) - Business Profiles Only */}
-              {storeMeta.isBusinessProfile && (
+              {/* Right / Bottom Column: Action Buttons (Call | Message | Get Directions for Business, Message only for Personal) */}
+              {storeMeta.isBusinessProfile ? (
                 <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full lg:w-auto lg:min-w-[440px]">
                   <button
                     type="button"
@@ -688,6 +688,20 @@ export default function StoreProfilePage() {
                   >
                     <MapPin size={15} className="flex-shrink-0" />
                     <span className="truncate">Get Directions</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="w-full sm:w-auto lg:min-w-[180px]">
+                  <button
+                    type="button"
+                    onClick={handleMessage}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 sm:py-3 px-5 sm:px-7 rounded-xl font-bold text-xs sm:text-sm text-white shadow-sm transition-all hover:opacity-95 active:scale-[0.99]"
+                    style={{
+                      background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+                    }}
+                  >
+                    <MessageCircle size={15} className="flex-shrink-0" />
+                    <span className="truncate">{isOwner ? 'View Messages' : 'Message Seller'}</span>
                   </button>
                 </div>
               )}
