@@ -571,7 +571,6 @@ export default function StoreProfilePage() {
                             🌱 New Seller
                           </span>
                         )}
-                        <ChevronDown size={14} style={{ color: 'var(--color-text-muted)' }} />
                       </button>
 
                       {publicAddressLabel && (
@@ -592,35 +591,41 @@ export default function StoreProfilePage() {
                         <button
                           type="button"
                           onClick={() => setShowHoursDropdown((prev) => !prev)}
-                          className="inline-flex items-center gap-1.5 transition-opacity hover:opacity-80"
+                          className="inline-flex flex-wrap items-center gap-x-2 gap-y-1 transition-opacity hover:opacity-80 text-left"
                         >
-                          <Clock
-                            size={15}
-                            style={{
-                              color:
-                                todayHours.isOpen === false ? '#EF4444' : '#10B981',
-                            }}
-                          />
+                          <span className="inline-flex items-center gap-1.5 flex-shrink-0">
+                            <Clock
+                              size={15}
+                              style={{
+                                color:
+                                  todayHours.isOpen === false ? '#EF4444' : '#10B981',
+                              }}
+                            />
+                            <span
+                              className="font-semibold"
+                              style={{
+                                color:
+                                  todayHours.isOpen === false ? '#EF4444' : '#10B981',
+                              }}
+                            >
+                              {todayHours.isOpen === false ? 'Closed today' : 'Open today'}
+                            </span>
+                          </span>
+
                           <span
-                            className="font-semibold"
-                            style={{
-                              color:
-                                todayHours.isOpen === false ? '#EF4444' : '#10B981',
-                            }}
+                            className="inline-flex items-center gap-2"
+                            style={{ color: 'var(--color-text-secondary)' }}
                           >
-                            {todayHours.isOpen === false ? 'Closed today' : 'Open today'}
+                            <span>· {todayHours.hoursText}</span>
+                            <ChevronDown
+                              size={14}
+                              className={cn(
+                                'transition-transform duration-200 flex-shrink-0 ml-1.5',
+                                showHoursDropdown && 'rotate-180'
+                              )}
+                              style={{ color: 'var(--color-text-muted)' }}
+                            />
                           </span>
-                          <span style={{ color: 'var(--color-text-secondary)' }}>
-                            · {todayHours.hoursText}
-                          </span>
-                          <ChevronDown
-                            size={14}
-                            className={cn(
-                              'transition-transform duration-200',
-                              showHoursDropdown && 'rotate-180'
-                            )}
-                            style={{ color: 'var(--color-text-muted)' }}
-                          />
                         </button>
 
                         <AnimatePresence>
@@ -632,7 +637,7 @@ export default function StoreProfilePage() {
                               className="overflow-hidden"
                             >
                               <div
-                                className="mt-2 p-3.5 rounded-2xl border max-w-sm space-y-1 text-xs"
+                                className="mt-2.5 p-3.5 sm:p-4 rounded-2xl border w-full max-w-sm space-y-1.5 text-xs shadow-md"
                                 style={{
                                   backgroundColor: 'var(--color-bg)',
                                   borderColor: 'var(--color-border)',
@@ -646,8 +651,8 @@ export default function StoreProfilePage() {
                                     <div
                                       key={day.key}
                                       className={cn(
-                                        'flex items-center justify-between py-0.5',
-                                        isToday && 'font-bold'
+                                        'flex items-center justify-between gap-4 py-1 px-2 rounded-lg transition-colors',
+                                        isToday && 'font-bold bg-[var(--color-surface)]'
                                       )}
                                       style={{
                                         color: isToday
@@ -655,8 +660,13 @@ export default function StoreProfilePage() {
                                           : 'var(--color-text-secondary)',
                                       }}
                                     >
-                                      <span>{day.label}</span>
-                                      <span>
+                                      <span className="flex-shrink-0">{day.label}</span>
+                                      <span
+                                        className={cn(
+                                          'text-right font-medium',
+                                          isToday && (todayHours.isOpen ? 'text-emerald-500 font-bold' : 'text-rose-500 font-bold')
+                                        )}
+                                      >
                                         {isClosed
                                           ? 'Closed'
                                           : `${formatTime24To12(info.open)} – ${formatTime24To12(

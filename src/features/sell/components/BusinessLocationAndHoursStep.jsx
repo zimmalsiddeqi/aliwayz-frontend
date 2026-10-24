@@ -497,90 +497,90 @@ export default function BusinessLocationAndHoursStep({
     return (
       <div
         key={day.key}
-        className="flex items-center justify-between gap-3 py-1.5"
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 py-2 sm:py-2.5"
       >
-        {/* Day Name */}
-        <span
-          className="text-sm font-semibold text-[var(--color-text-primary)] w-24 sm:w-28 flex-shrink-0"
-        >
-          {day.label}
-        </span>
+        {/* Day Name & Toggle */}
+        <div className="flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
+          <span className="text-sm font-semibold text-[var(--color-text-primary)] w-24 sm:w-28 flex-shrink-0">
+            {day.label}
+          </span>
 
-        {/* iOS-style Blue Toggle */}
-        <button
-          type="button"
-          onClick={() =>
-            handleDayHourChange(day.key, 'closed', !dayConfig?.closed)
-          }
-          className={cn(
-            'w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 flex-shrink-0 cursor-pointer focus:outline-none',
-            isOpen ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-700'
-          )}
-          aria-label={`Toggle ${day.label}`}
-        >
-          <span
+          {/* iOS-style Blue Toggle */}
+          <button
+            type="button"
+            onClick={() =>
+              handleDayHourChange(day.key, 'closed', !dayConfig?.closed)
+            }
             className={cn(
-              'w-5 h-5 rounded-full bg-white shadow-md transform transition-transform duration-200 ease-in-out',
-              isOpen ? 'translate-x-5' : 'translate-x-0'
+              'w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 flex-shrink-0 cursor-pointer focus:outline-none',
+              isOpen ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-700'
             )}
-          />
-        </button>
+            aria-label={`Toggle ${day.label}`}
+          >
+            <span
+              className={cn(
+                'w-5 h-5 rounded-full bg-white shadow-md transform transition-transform duration-200 ease-in-out',
+                isOpen ? 'translate-x-5' : 'translate-x-0'
+              )}
+            />
+          </button>
+        </div>
 
         {/* Dropdowns */}
-        <div className="flex items-center gap-2 flex-1 justify-end min-w-0">
-          {/* Open Time */}
-          <div className="relative">
-            <select
-              value={dayConfig?.open || '09:00'}
-              disabled={!isOpen}
-              onChange={(e) =>
-                handleDayHourChange(day.key, 'open', e.target.value)
-              }
-              className={cn(
-                'appearance-none pl-3 pr-7 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20',
-                isOpen
-                  ? 'bg-[var(--color-bg)] border-[var(--color-border)] text-[var(--color-text-primary)]'
-                  : 'bg-slate-100 dark:bg-slate-800/60 border-transparent text-slate-400 dark:text-slate-600 cursor-not-allowed'
-              )}
-            >
-              {TIME_OPTIONS.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              size={13}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"
-            />
-          </div>
+        <div className="flex items-center gap-2 sm:gap-2.5 w-full sm:w-auto sm:flex-1 justify-end min-w-0">
+          {isOpen ? (
+            <>
+              {/* Open Time */}
+              <div className="relative flex-1 sm:flex-initial min-w-[110px] sm:min-w-[122px]">
+                <select
+                  value={dayConfig?.open || '09:00'}
+                  onChange={(e) =>
+                    handleDayHourChange(day.key, 'open', e.target.value)
+                  }
+                  className="w-full appearance-none pl-3.5 pr-9 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-[var(--color-bg)] border-[var(--color-border)] text-[var(--color-text-primary)]"
+                >
+                  {TIME_OPTIONS.map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  size={14}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"
+                />
+              </div>
 
-          {/* Close Time */}
-          <div className="relative">
-            <select
-              value={dayConfig?.close || '18:00'}
-              disabled={!isOpen}
-              onChange={(e) =>
-                handleDayHourChange(day.key, 'close', e.target.value)
-              }
-              className={cn(
-                'appearance-none pl-3 pr-7 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20',
-                isOpen
-                  ? 'bg-[var(--color-bg)] border-[var(--color-border)] text-[var(--color-text-primary)]'
-                  : 'bg-slate-100 dark:bg-slate-800/60 border-transparent text-slate-400 dark:text-slate-600 cursor-not-allowed'
-              )}
-            >
-              {TIME_OPTIONS.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              size={13}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"
-            />
-          </div>
+              <span className="text-xs text-[var(--color-text-muted)] font-medium px-0.5 flex-shrink-0">
+                to
+              </span>
+
+              {/* Close Time */}
+              <div className="relative flex-1 sm:flex-initial min-w-[110px] sm:min-w-[122px]">
+                <select
+                  value={dayConfig?.close || '18:00'}
+                  onChange={(e) =>
+                    handleDayHourChange(day.key, 'close', e.target.value)
+                  }
+                  className="w-full appearance-none pl-3.5 pr-9 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-[var(--color-bg)] border-[var(--color-border)] text-[var(--color-text-primary)]"
+                >
+                  {TIME_OPTIONS.map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  size={14}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"
+                />
+              </div>
+            </>
+          ) : (
+            <span className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 border border-transparent">
+              Closed all day
+            </span>
+          )}
         </div>
       </div>
     );
