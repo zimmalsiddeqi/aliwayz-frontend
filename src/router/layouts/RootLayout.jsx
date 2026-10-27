@@ -4,15 +4,19 @@ import Navbar from '@components/common/Navbar';
 import Footer from '@components/common/Footer';
 import LoadingScreen from '@components/common/LoadingScreen';
 import LegalConsentModal from '@features/legal/components/LegalConsentModal';
+import { cn } from '@lib/utils';
 
 export default function RootLayout() {
   const { pathname } = useLocation();
+  const isChatRoute = pathname.startsWith('/inbox');
 
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-  }, [pathname]);
+    if (!isChatRoute) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+  }, [pathname, isChatRoute]);
 
   return (
     <div
@@ -21,14 +25,16 @@ export default function RootLayout() {
     >
       <ScrollRestoration />
       <Navbar />
-      <main className="flex-1 pb-16 md:pb-0">
+      <main className={cn('flex-1 pb-16 md:pb-0', isChatRoute && 'pb-0 overflow-hidden flex flex-col')}>
         <Suspense fallback={<LoadingScreen />}>
           <Outlet />
         </Suspense>
       </main>
-      <div className="hidden md:block">
-        <Footer />
-      </div>
+      {!isChatRoute && (
+        <div className="hidden md:block">
+          <Footer />
+        </div>
+      )}
       <LegalConsentModal />
     </div>
   );

@@ -31,6 +31,7 @@ import useChatStore from '@store/chat.store';
 import useConversationSocket from '@hooks/useSocket';
 import { getSocket, SOCKET_EVENTS } from '@lib/socket';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import InboxSidebar from '../components/InboxSidebar';
 import Avatar from '@components/ui/Avatar';
 import Spinner from '@components/ui/Spinner';
 import Button from '@components/ui/Button';
@@ -400,12 +401,14 @@ export default function ConversationPage() {
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
-      <div
-        className="flex flex-col overflow-x-hidden w-full max-w-full"
-        style={{
-          height: 'calc(100vh - var(--navbar-height) - 4rem)',
-        }}
-      >
+      <div className="flex w-full h-[calc(100vh-var(--navbar-height)-4rem)] md:h-[calc(100vh-var(--navbar-height))] overflow-hidden bg-[var(--color-bg)]">
+        {/* ═══ LEFT PANE: INBOX LIST (Tablet / Desktop Sidebar) ═══ */}
+        <div className="hidden md:flex flex-col w-[340px] lg:w-[390px] xl:w-[430px] flex-shrink-0 h-full">
+          <InboxSidebar activeConversationId={conversationId} className="w-full h-full" />
+        </div>
+
+        {/* ═══ RIGHT PANE: ACTIVE CONVERSATION (Full on mobile, right pane on desktop) ═══ */}
+        <div className="flex-1 min-w-0 flex flex-col h-full overflow-hidden bg-[var(--color-bg)] relative">
         {/* ═══ HEADER ═════════════════════════════════════ */}
         <div
           className="flex flex-shrink-0 items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3"
@@ -1012,6 +1015,7 @@ export default function ConversationPage() {
             </p>
           </div>
         )}
+        </div>
       </div>
 
       {/* ═══ MODALS ═══════════════════════════════════════ */}
