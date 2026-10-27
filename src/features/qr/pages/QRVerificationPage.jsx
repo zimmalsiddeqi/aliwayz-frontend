@@ -64,17 +64,32 @@ export default function QRVerificationPage() {
 
   // Countdown timer
   useEffect(() => {
-    if (!qrData?.expires_at) return;
-    const interval = setInterval(() => {
-      const remaining = formatQRExpiry(qrData.expires_at);
-      setCountdown(remaining);
-      if (remaining === 'Expired') {
-        setQrData(null);
-        clearInterval(interval);
+    if (!qrData) return;
+    let durationMs = (qrData.expires_in_minutes || 10) * 60 * 1000;
+    if (qrData.expires_at) {
+      const parsedDiff = new Date(qrData.expires_at).getTime() - Date.now();
+      if (parsedDiff > 60000 && parsedDiff < 30 * 60 * 1000) {
+        durationMs = parsedDiff;
       }
-    }, 1000);
+    }
+    const endTime = Date.now() + durationMs;
+
+    const tick = () => {
+      const diff = endTime - Date.now();
+      if (diff <= 0) {
+        setCountdown('Expired');
+        setQrData(null);
+        return;
+      }
+      const m = Math.floor(diff / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      setCountdown(`${m}:${String(s).padStart(2, '0')}`);
+    };
+
+    tick();
+    const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
-  }, [qrData?.expires_at]);
+  }, [qrData?.transaction_id]);
 
   // Generate QR
   const generateMutation = useMutation({

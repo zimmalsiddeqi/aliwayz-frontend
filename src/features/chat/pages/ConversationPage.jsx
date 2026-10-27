@@ -166,12 +166,13 @@ export default function ConversationPage() {
     if (!socket) return;
 
     const handleQRScanned = (data) => {
-      const matchesConv = !data?.conversationId || data.conversationId === conversationId;
-      const matchesProd = !data?.productId || data.productId === product?.id;
+      const matchesConv = Boolean(data?.conversationId && data.conversationId === conversationId);
+      const matchesProd = Boolean(data?.productId && product?.id && data.productId === product.id);
       if (matchesConv || matchesProd) {
         // Automatically disappear QR Code from Seller screen immediately
         setShowQRGenerator(false);
         setShowQRScanner(false);
+        setQrReadyAlert(false);
         setSaleCompleted(true);
         const tId = data?.transactionId || data?.transaction_id;
         if (tId) setTransactionId(tId);
@@ -187,11 +188,16 @@ export default function ConversationPage() {
     };
 
     const handleQRGenerated = (data) => {
-      if ((!data?.conversationId || data.conversationId === conversationId) && isProductBuyer) {
+      const matchesConv = Boolean(!data?.conversationId || data.conversationId === conversationId);
+      const matchesProd = Boolean(!data?.productId || (product?.id && data.productId === product.id));
+      if ((matchesConv || matchesProd) && isProductBuyer) {
         setQrReadyAlert(true);
         toast.success('Seller generated a QR code! Check the chat.', {
-          duration: 1000,
+          duration: 3000,
           icon: '📱',
+        });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.conversations.messages(conversationId),
         });
       }
     };
@@ -714,8 +720,8 @@ export default function ConversationPage() {
               // ── QR code message ────────────────────
               if (isQR) {
                 // When buyer scans the QR code and the deal is completed,
-                // automatically disappear the QR code from the Seller chat screen
-                if (isMine && isCompleted) {
+                // automatically disappear the QR code from BOTH seller and buyer screens
+                if (isCompleted) {
                   return null;
                 }
 
@@ -1205,8 +1211,8 @@ function QRGeneratorModal({ isOpen, onClose, product, buyerId, conversationId, i
     if (!socket) return;
 
     const handleScanned = (data) => {
-      const matchesConv = !data?.conversationId || data.conversationId === conversationId;
-      const matchesProd = !data?.productId || data.productId === product?.id;
+      const matchesConv = Boolean(data?.conversationId && data.conversationId === conversationId);
+      const matchesProd = Boolean(data?.productId && product?.id && data.productId === product.id);
       if (matchesConv || matchesProd) {
         clearInterval(intervalRef.current);
         setQrData(null);
@@ -1225,9 +1231,40 @@ function QRGeneratorModal({ isOpen, onClose, product, buyerId, conversationId, i
     };
   }, [conversationId, product?.id, onClose]);
 
-  // Active polling fallback: check QR status every 1.5s while modal is open
+  const startCountdown = (expiresAt, expiresInMinutes = 10) => {
+    clearInterval(intervalRef.current);
+
+    let durationMs = (expiresInMinutes || 10) * 60 * 1000;
+    if (expiresAt) {
+      const parsedDiff = new Date(expiresAt).getTime() - Date.now();
+      // If client and server clocks are reasonably aligned (between 1 and 30 minutes)
+      if (parsedDiff > 60000 && parsedDiff < 30 * 60 * 1000) {
+        durationMs = parsedDiff;
+      }
+    }
+
+    const endTime = Date.now() + durationMs;
+
+    const tick = () => {
+      const diff = endTime - Date.now();
+      if (diff <= 0) {
+        clearInterval(intervalRef.current);
+        setExpired(true);
+        setCountdown('Expired');
+        return;
+      }
+      const m = Math.floor(diff / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      setCountdown(`${m}:${String(s).padStart(2, '0')}`);
+    };
+
+    tick();
+    intervalRef.current = setInterval(tick, 1000);
+  };
+
+  // Active polling fallback: check QR status while modal is open and QR has been generated
   useEffect(() => {
-    if (!isOpen || !product?.id) return;
+    if (!isOpen || !product?.id || !qrData?.transaction_id) return;
 
     const checkStatus = async () => {
       try {
@@ -1243,9 +1280,9 @@ function QRGeneratorModal({ isOpen, onClose, product, buyerId, conversationId, i
       }
     };
 
-    const pollInterval = setInterval(checkStatus, 1500);
+    const pollInterval = setInterval(checkStatus, 2500);
     return () => clearInterval(pollInterval);
-  }, [isOpen, product?.id, onClose]);
+  }, [isOpen, product?.id, qrData?.transaction_id, onClose]);
 
   useEffect(() => () => clearInterval(intervalRef.current), []);
 
@@ -1258,7 +1295,7 @@ function QRGeneratorModal({ isOpen, onClose, product, buyerId, conversationId, i
     onSuccess: (res) => {
       setQrData(res.data);
       setExpired(false);
-      startCountdown(res.data.expires_at);
+      startCountdown(res.data.expires_at, res.data.expires_in_minutes || 10);
       toast.success('QR Code sent to buyer in chat!');
     },
     onError: (err) => toast.error(getErrorMessage(err)),
@@ -1274,24 +1311,6 @@ function QRGeneratorModal({ isOpen, onClose, product, buyerId, conversationId, i
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });
-
-  const startCountdown = (expiresAt) => {
-    clearInterval(intervalRef.current);
-    intervalRef.current = setInterval(() => {
-      const diff = new Date(expiresAt) - new Date();
-      if (diff <= 0) {
-        clearInterval(intervalRef.current);
-        setExpired(true);
-        setCountdown('Expired');
-        return;
-      }
-      const m = Math.floor(diff / 60000);
-      const s = Math.floor((diff % 60000) / 1000);
-      setCountdown(`${m}:${String(s).padStart(2, '0')}`);
-    }, 1000);
-  };
-
-  useEffect(() => () => clearInterval(intervalRef.current), []);
 
   return (
     <Modal
