@@ -11,6 +11,7 @@ import Button from '@components/ui/Button';
 import Spinner from '@components/ui/Spinner';
 import PageHeader from '@components/common/PageHeader';
 import EmptyState from '@components/common/EmptyState';
+import ConfirmDeleteModal from '@components/modals/ConfirmDeleteModal';
 import { cn, getNotificationIcon, formatRelativeTime } from '@lib/utils';
 
 const FILTER_TABS = [
@@ -38,6 +39,7 @@ export default function NotificationsPage() {
 
   const [activeFilter, setActiveFilter] = useState('');
   const [deletingId, setDeletingId]     = useState(null);
+  const [showClearModal, setShowClearModal] = useState(false);
 
   // ✅ FIX: useQuery MUST be declared BEFORE useEffect
   const { data, isLoading } = useQuery({
@@ -132,9 +134,7 @@ export default function NotificationsPage() {
   });
 
   const handleClearAll = () => {
-    if (window.confirm('Are you sure you want to delete all notifications?')) {
-      deleteAllMutation.mutate();
-    }
+    setShowClearModal(true);
   };
 
   const handleDeleteOne = (e, id) => {
@@ -389,6 +389,20 @@ export default function NotificationsPage() {
           </AnimatePresence>
         )}
       </div>
+
+      <ConfirmDeleteModal
+        isOpen={showClearModal}
+        onClose={() => setShowClearModal(false)}
+        onConfirm={() => {
+          deleteAllMutation.mutate();
+          setShowClearModal(false);
+        }}
+        isLoading={deleteAllMutation.isPending}
+        title="Delete all notifications?"
+        description="Are you sure you want to delete all notifications?"
+        confirmLabel="Yes"
+        cancelLabel="No"
+      />
     </>
   );
 }

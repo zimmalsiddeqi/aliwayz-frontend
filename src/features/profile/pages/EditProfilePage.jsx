@@ -22,6 +22,7 @@ import Separator from '@components/ui/Separator';
 import PageHeader from '@components/common/PageHeader';
 import { cn, getErrorMessage } from '@lib/utils';
 import ImageCropperModal from '@components/modals/ImageCropperModal';
+import ConfirmDeleteModal from '@components/modals/ConfirmDeleteModal';
 import {
   setFormErrors,
   validateImageFile,
@@ -555,19 +556,7 @@ export default function EditProfilePage() {
             <Button
               variant="danger"
               size="sm"
-              onClick={() => {
-                if (
-                  confirm(
-                    'Are you absolutely sure? This cannot be undone.'
-                  )
-                ) {
-                  UserService.deleteAccount().then(
-                    () => {
-                      logout();
-                    }
-                  );
-                }
-              }}
+              onClick={() => setShowDeleteAccountModal(true)}
             >
               Delete Account
             </Button>

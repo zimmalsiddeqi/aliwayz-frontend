@@ -9,7 +9,7 @@ import useChatStore from '@store/chat.store';
 import useAuthStore from '@store/auth.store';
 import Avatar from '@components/ui/Avatar';
 import Button from '@components/ui/Button';
-import Modal from '@components/ui/Modal';
+import ConfirmDeleteModal from '@components/modals/ConfirmDeleteModal';
 import { ConversationSkeleton } from '@components/ui/Skeleton';
 import EmptyState from '@components/common/EmptyState';
 import { cn, formatChatTime, getErrorMessage } from '@lib/utils';
@@ -342,43 +342,26 @@ export default function InboxSidebar({ activeConversationId = null, className = 
       </div>
 
       {/* ═══ DELETE CHAT MODAL ════════════════════════════ */}
-      <Modal
+      <ConfirmDeleteModal
         isOpen={showDeleteChat}
         onClose={() => {
           setShowDeleteChat(false);
           setDeleteTarget(null);
         }}
-        title="Delete Conversation"
-        description={`Are you sure you want to delete this conversation with ${
+        onConfirm={() => {
+          if (deleteTarget?.id) {
+            deleteChatMutation.mutate(deleteTarget.id);
+          }
+        }}
+        isLoading={deleteChatMutation.isPending}
+        title="Delete conversation?"
+        description={`Are you sure you want to delete this conversation with @${
           getOtherParticipant(deleteTarget, user?.id)?.username || 'this user'
-        }? Chat history will be removed.`}
-        size="sm"
-      >
-        <div className="flex gap-3 mt-4">
-          <Button
-            variant="outline"
-            fullWidth
-            onClick={() => {
-              setShowDeleteChat(false);
-              setDeleteTarget(null);
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="danger"
-            fullWidth
-            isLoading={deleteChatMutation.isPending}
-            onClick={() => {
-              if (deleteTarget?.id) {
-                deleteChatMutation.mutate(deleteTarget.id);
-              }
-            }}
-          >
-            Delete
-          </Button>
-        </div>
-      </Modal>
+        }?`}
+        itemName={deleteTarget?.products?.title}
+        confirmLabel="Yes"
+        cancelLabel="No"
+      />
     </div>
   );
 }
