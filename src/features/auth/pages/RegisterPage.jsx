@@ -15,6 +15,10 @@ import Button from '@components/ui/Button';
 import Separator from '@components/ui/Separator';
 import { cn } from '@lib/utils';
 import { setFormErrors } from '@utils/helpers';
+import GoogleButton from '@components/ui/GoogleButton';
+import AppleButton from '@components/ui/AppleButton';
+import useOAuth from '@features/auth/hooks/useOAuth';
+import useAppleOAuth from '@features/auth/hooks/useAppleOAuth';
 
 const ROLE_OPTIONS = [
   {
@@ -42,6 +46,8 @@ const ROLE_OPTIONS = [
 
 export default function RegisterPage() {
   const { signup } = useAuth();
+  const { triggerGoogleLogin, isLoading: isGoogleLoading } = useOAuth();
+  const { triggerAppleLogin, isLoading: isAppleLoading } = useAppleOAuth();
   const [step, setStep]       = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -205,8 +211,21 @@ export default function RegisterPage() {
             onClick={() => selectedRole && setStep(2)}
             rightIcon={<ArrowRight size={16} />}
           >
-            Continue
+            Continue with Email
           </Button>
+
+          <Separator label="or sign up with" />
+
+          <div className="space-y-3">
+            <GoogleButton
+              onClick={() => triggerGoogleLogin({ role: selectedRole || 'buyer' })}
+              isLoading={isGoogleLoading}
+            />
+            <AppleButton
+              onClick={() => triggerAppleLogin(selectedRole || 'buyer')}
+              isLoading={isAppleLoading}
+            />
+          </div>
         </motion.div>
       )}
 
