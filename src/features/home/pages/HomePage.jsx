@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -108,12 +108,21 @@ export default function HomePage() {
   const [searchCategoriesOpen, setSearchCategoriesOpen] = useState(false);
   const { lat, lng, isLocated, radiusMiles } = useLocationStore();
 
-  const filterContainerRef = useRef(null);
-  useOnClickOutside(filterContainerRef, () => {
-    if (filtersOpen && !isMobile) {
+  const filterModalRef = useRef(null);
+  useOnClickOutside(filterModalRef, () => {
+    if (filtersOpen) {
       setFiltersOpen(false);
     }
   });
+
+  useEffect(() => {
+    if (!filtersOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setFiltersOpen(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [filtersOpen]);
 
   const filters = {
     category_id: searchParams.get('category_id') || undefined,
@@ -263,49 +272,25 @@ export default function HomePage() {
               {isLocated ? '📍 Near You' : '✨ Recently Listed'}
             </h2>
 
-            {/* Filter Button & Desktop Popup Anchor */}
-            <div className="relative" ref={filterContainerRef}>
-              <Button
-                variant="outline"
-                size="md"
-                leftIcon={<SlidersHorizontal size={14} />}
-                onClick={() => setFiltersOpen((prev) => !prev)}
-                className={cn(
-                  "relative shrink-0 rounded-2xl h-[46px] border transition-colors",
-                  filtersOpen
-                    ? "bg-[var(--glass-bg-strong)] border-[var(--color-brand)] text-[var(--color-brand)]"
-                    : "border-[var(--color-border)]"
-                )}
-              >
-                <span className="hidden sm:inline">Filters</span>
-                {activeFilterCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--color-brand)] text-[9px] font-bold text-white shadow-sm">
-                    {activeFilterCount}
-                  </span>
-                )}
-              </Button>
-
-              {/* Desktop / Tablet Popup Box */}
-              <AnimatePresence>
-                {filtersOpen && !isMobile && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -8, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -8, scale: 0.96 }}
-                    transition={{ duration: 0.16, ease: 'easeOut' }}
-                    className="absolute right-0 top-full mt-2.5 z-50 w-[320px] rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] p-4 sm:p-5 shadow-2xl"
-                  >
-                    <FilterPopupContent
-                      filters={filters}
-                      updateFilter={updateFilter}
-                      clearFilters={clearFilters}
-                      onClose={() => setFiltersOpen(false)}
-                      activeFilterCount={activeFilterCount}
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            <Button
+              variant="outline"
+              size="md"
+              leftIcon={<SlidersHorizontal size={14} />}
+              onClick={() => setFiltersOpen(true)}
+              className={cn(
+                "relative shrink-0 rounded-2xl h-[46px] border transition-colors",
+                filtersOpen
+                  ? "bg-[var(--glass-bg-strong)] border-[var(--color-brand)] text-[var(--color-brand)]"
+                  : "border-[var(--color-border)]"
+              )}
+            >
+              <span className="hidden sm:inline">Filters</span>
+              {activeFilterCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--color-brand)] text-[9px] font-bold text-white shadow-sm">
+                  {activeFilterCount}
+                </span>
+              )}
+            </Button>
           </div>
 
           {/* Inline Categories */}
@@ -388,10 +373,11 @@ export default function HomePage() {
         </section>
       </div>
 
-      {/* Mobile Filter Popup Box Modal */}
+      {/* Center Screen Filter Popup Modal */}
       <AnimatePresence>
-        {filtersOpen && isMobile && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        {filtersOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+            {/* Backdrop */}
             <motion.div
               className="fixed inset-0 bg-black/50 backdrop-blur-sm"
               initial={{ opacity: 0 }}
@@ -399,12 +385,14 @@ export default function HomePage() {
               exit={{ opacity: 0 }}
               onClick={() => setFiltersOpen(false)}
             />
+            {/* Centered Popup Dialog Box */}
             <motion.div
-              className="relative z-10 w-full max-w-sm rounded-3xl bg-[var(--color-surface)] border border-[var(--color-border)] p-5 shadow-2xl max-h-[85vh] overflow-y-auto"
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              ref={filterModalRef}
+              className="relative z-10 w-full max-w-md rounded-3xl bg-[var(--color-surface)] border border-[var(--color-border)] p-5 sm:p-6 shadow-2xl max-h-[85vh] overflow-y-auto"
+              initial={{ opacity: 0, scale: 0.94, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              transition={{ duration: 0.2 }}
+              exit={{ opacity: 0, scale: 0.94, y: 15 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
               onClick={(e) => e.stopPropagation()}
             >
               <FilterPopupContent
@@ -432,22 +420,23 @@ export default function HomePage() {
 
 function FilterPopupContent({ filters, updateFilter, clearFilters, onClose, activeFilterCount }) {
   return (
-    <div>
+    <div className="space-y-4">
+      {/* Header */}
       <div className="flex items-center justify-between pb-3 border-b border-[var(--color-border)]">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-bold text-[var(--color-text-primary)]">Filters</h3>
+          <h3 className="text-base sm:text-lg font-bold text-[var(--color-text-primary)]">Filters</h3>
           {activeFilterCount > 0 && (
-            <span className="flex h-5 px-1.5 items-center justify-center rounded-full bg-[var(--color-brand)] text-[10px] font-bold text-white">
-              {activeFilterCount}
+            <span className="flex h-5 px-2 items-center justify-center rounded-full bg-[var(--color-brand)] text-[10px] font-bold text-white shadow-sm">
+              {activeFilterCount} active
             </span>
           )}
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           {activeFilterCount > 0 && (
             <button
               type="button"
               onClick={clearFilters}
-              className="text-xs font-semibold text-[var(--color-error)] hover:underline px-1 py-0.5 rounded transition-colors"
+              className="text-xs font-semibold text-[var(--color-error)] hover:underline px-1.5 py-0.5 rounded transition-colors"
             >
               Reset
             </button>
@@ -455,15 +444,16 @@ function FilterPopupContent({ filters, updateFilter, clearFilters, onClose, acti
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-lg text-[var(--color-text-muted)] hover:bg-[var(--glass-bg-strong)] hover:text-[var(--color-text-primary)] transition-colors"
+            className="p-1.5 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--glass-bg-strong)] hover:text-[var(--color-text-primary)] transition-colors"
             aria-label="Close filters"
           >
-            <X size={16} />
+            <X size={18} />
           </button>
         </div>
       </div>
 
-      <div className="space-y-4 py-3">
+      {/* Controls */}
+      <div className="space-y-4 py-1">
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-[var(--color-text-secondary)]">Price Range</label>
           <div className="flex items-center gap-2">
@@ -472,7 +462,7 @@ function FilterPopupContent({ filters, updateFilter, clearFilters, onClose, acti
               placeholder="Min"
               value={filters.min_price || ''}
               onChange={(e) => updateFilter('min_price', e.target.value)}
-              className="text-center text-xs py-1.5"
+              className="text-center text-xs py-2"
             />
             <span className="text-xs text-[var(--color-text-muted)] font-bold">—</span>
             <Input
@@ -480,7 +470,7 @@ function FilterPopupContent({ filters, updateFilter, clearFilters, onClose, acti
               placeholder="Max"
               value={filters.max_price || ''}
               onChange={(e) => updateFilter('max_price', e.target.value)}
-              className="text-center text-xs py-1.5"
+              className="text-center text-xs py-2"
             />
           </div>
         </div>
@@ -501,11 +491,12 @@ function FilterPopupContent({ filters, updateFilter, clearFilters, onClose, acti
         />
       </div>
 
-      <div className="pt-3 border-t border-[var(--color-border)] flex items-center gap-2">
+      {/* Footer */}
+      <div className="pt-3 border-t border-[var(--color-border)] flex items-center gap-3">
         <Button
           type="button"
           variant="outline"
-          size="sm"
+          size="md"
           onClick={clearFilters}
           className="flex-1 text-xs font-medium"
         >
@@ -514,11 +505,11 @@ function FilterPopupContent({ filters, updateFilter, clearFilters, onClose, acti
         <Button
           type="button"
           variant="brand"
-          size="sm"
+          size="md"
           onClick={onClose}
           className="flex-1 text-xs font-medium"
         >
-          Done
+          Show Results
         </Button>
       </div>
     </div>

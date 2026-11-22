@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useMemo } from 'react';
+import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import SEOHead from '@components/seo/SEOHead';
@@ -28,7 +28,18 @@ export default function MarketplacePage() {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const filtersRef = useRef(null);
-  useOnClickOutside(filtersRef, () => setFiltersOpen(false));
+  useOnClickOutside(filtersRef, () => {
+    if (filtersOpen) setFiltersOpen(false);
+  });
+
+  useEffect(() => {
+    if (!filtersOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setFiltersOpen(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [filtersOpen]);
   const [viewMode, setViewMode] = useState('grid');
 
   const { isAuthenticated } = useAuthStore();
@@ -182,124 +193,132 @@ export default function MarketplacePage() {
           </p>
         )}
 
-        <div className="flex gap-6">
+        <div>
+          {/* Centered Filter Popup Modal */}
           <AnimatePresence>
             {filtersOpen && (
-              <div ref={filtersRef}>
-                {isMobile && (
-                  <motion.div
-                    className="fixed inset-0 z-40 bg-black/50"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={() => setFiltersOpen(false)}
-                  />
-                )}
-                <motion.aside
-                  className={cn(
-                    'z-50 flex-shrink-0 space-y-5',
-                    isMobile
-                      ? 'fixed bottom-0 left-0 right-0 max-h-[80vh] overflow-y-auto rounded-t-3xl p-6'
-                      : 'sticky top-24 w-64 self-start'
-                  )}
-                  style={{
-                    backgroundColor: 'var(--color-surface)',
-                    border: isMobile ? undefined : '1px solid var(--color-border)',
-                    borderRadius: isMobile ? undefined : 'var(--radius-2xl)',
-                    padding: isMobile ? undefined : '1.25rem',
-                    boxShadow: isMobile ? 'var(--shadow-xl)' : undefined,
-                  }}
-                  initial={isMobile ? { y: '100%' } : { opacity: 0, x: -20 }}
-                  animate={isMobile ? { y: 0 } : { opacity: 1, x: 0 }}
-                  exit={isMobile ? { y: '100%' } : { opacity: 0, x: -20 }}
-                  transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+                <motion.div
+                  className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setFiltersOpen(false)}
+                />
+                <motion.div
+                  ref={filtersRef}
+                  className="relative z-10 w-full max-w-md rounded-3xl bg-[var(--color-surface)] border border-[var(--color-border)] p-5 sm:p-6 shadow-2xl max-h-[85vh] overflow-y-auto space-y-4"
+                  initial={{ opacity: 0, scale: 0.94, y: 15 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.94, y: 15 }}
+                  transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex items-center justify-between">
-                    <h3
-                      className="text-sm font-semibold"
-                      style={{ color: 'var(--color-text-primary)' }}
-                    >
-                      Filters
-                    </h3>
+                  <div className="flex items-center justify-between pb-3 border-b border-[var(--color-border)]">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base sm:text-lg font-bold text-[var(--color-text-primary)]">
+                        Filters
+                      </h3>
+                      {activeFilterCount > 0 && (
+                        <span className="flex h-5 px-2 items-center justify-center rounded-full bg-[var(--color-brand)] text-[10px] font-bold text-white shadow-sm">
+                          {activeFilterCount} active
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-2">
                       {activeFilterCount > 0 && (
                         <button
                           onClick={clearFilters}
-                          className="text-xs font-medium"
-                          style={{ color: 'var(--color-error)' }}
+                          className="text-xs font-semibold text-[var(--color-error)] hover:underline px-1.5 py-0.5 rounded transition-colors"
                         >
-                          Clear all
+                          Reset
                         </button>
                       )}
-                      {isMobile && (
-                        <button onClick={() => setFiltersOpen(false)} className="p-1">
-                          <X size={18} style={{ color: 'var(--color-text-muted)' }} />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                  <Select
-                    label="Category"
-                    placeholder="All Categories"
-                    value={filters.category_id || ''}
-                    onChange={(e) => updateFilter('category_id', e.target.value)}
-                    options={marketplaceCategories.map((c) => ({ value: c.id, label: c.name }))}
-                  />
-                  <div className="space-y-1.5">
-                    <label className="floating-label">Price Range</label>
-                    <div className="flex gap-2">
-                      <Input
-                        type="number"
-                        placeholder="Min"
-                        value={filters.min_price || ''}
-                        onChange={(e) => updateFilter('min_price', e.target.value)}
-                        className="text-center"
-                      />
-                      <span
-                        className="flex items-center"
-                        style={{ color: 'var(--color-text-muted)' }}
+                      <button
+                        onClick={() => setFiltersOpen(false)}
+                        className="p-1.5 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--glass-bg-strong)] hover:text-[var(--color-text-primary)] transition-colors"
+                        aria-label="Close filters"
                       >
-                        —
-                      </span>
-                      <Input
-                        type="number"
-                        placeholder="Max"
-                        value={filters.max_price || ''}
-                        onChange={(e) => updateFilter('max_price', e.target.value)}
-                        className="text-center"
-                      />
+                        <X size={18} />
+                      </button>
                     </div>
                   </div>
-                  <Select
-                    label="Item Condition"
-                    placeholder="Any Condition"
-                    value={filters.condition || ''}
-                    onChange={(e) => updateFilter('condition', e.target.value)}
-                    options={ITEM_CONDITIONS}
-                  />
-                  <Select
-                    label="Sort By"
-                    value={filters.sort}
-                    onChange={(e) => updateFilter('sort', e.target.value)}
-                    options={SORT_OPTIONS}
-                  />
-                  <Input
-                    label="City"
-                    placeholder="Filter by city"
-                    value={filters.city || ''}
-                    onChange={(e) => updateFilter('city', e.target.value)}
-                  />
-                  {isMobile && (
-                    <Button fullWidth onClick={() => setFiltersOpen(false)}>
+
+                  <div className="space-y-4 py-1">
+                    <Select
+                      label="Category"
+                      placeholder="All Categories"
+                      value={filters.category_id || ''}
+                      onChange={(e) => updateFilter('category_id', e.target.value)}
+                      options={marketplaceCategories.map((c) => ({ value: c.id, label: c.name }))}
+                    />
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-[var(--color-text-secondary)]">Price Range</label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          placeholder="Min"
+                          value={filters.min_price || ''}
+                          onChange={(e) => updateFilter('min_price', e.target.value)}
+                          className="text-center text-xs py-2"
+                        />
+                        <span className="text-xs text-[var(--color-text-muted)] font-bold">—</span>
+                        <Input
+                          type="number"
+                          placeholder="Max"
+                          value={filters.max_price || ''}
+                          onChange={(e) => updateFilter('max_price', e.target.value)}
+                          className="text-center text-xs py-2"
+                        />
+                      </div>
+                    </div>
+                    <Select
+                      label="Item Condition"
+                      placeholder="Any Condition"
+                      value={filters.condition || ''}
+                      onChange={(e) => updateFilter('condition', e.target.value)}
+                      options={ITEM_CONDITIONS}
+                    />
+                    <Select
+                      label="Sort By"
+                      value={filters.sort}
+                      onChange={(e) => updateFilter('sort', e.target.value)}
+                      options={SORT_OPTIONS}
+                    />
+                    <Input
+                      label="City"
+                      placeholder="Filter by city"
+                      value={filters.city || ''}
+                      onChange={(e) => updateFilter('city', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="pt-3 border-t border-[var(--color-border)] flex items-center gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="md"
+                      onClick={clearFilters}
+                      className="flex-1 text-xs font-medium"
+                    >
+                      Reset
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="brand"
+                      size="md"
+                      onClick={() => setFiltersOpen(false)}
+                      className="flex-1 text-xs font-medium"
+                    >
                       Show Results
                     </Button>
-                  )}
-                </motion.aside>
+                  </div>
+                </motion.div>
               </div>
             )}
           </AnimatePresence>
 
-          <div className="min-w-0 flex-1">
+          <div className="w-full">
             {isLoading ? (
               <div
                 className={cn(
