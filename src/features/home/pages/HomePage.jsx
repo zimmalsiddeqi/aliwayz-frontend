@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,6 +20,7 @@ import Button from '@components/ui/Button';
 import Input from '@components/ui/Input';
 import Select from '@components/ui/Select';
 import useMediaQuery from '@hooks/useMediaQuery';
+import useOnClickOutside from '@hooks/useOnClickOutside';
 import { ITEM_CONDITIONS, SORT_OPTIONS, DEFAULT_PAGE_SIZE } from '@utils/constants';
 import SearchCategoriesModal from '../components/SearchCategoriesModal';
 
@@ -107,6 +108,13 @@ export default function HomePage() {
   const [searchCategoriesOpen, setSearchCategoriesOpen] = useState(false);
   const { lat, lng, isLocated, radiusMiles } = useLocationStore();
 
+  const filterContainerRef = useRef(null);
+  useOnClickOutside(filterContainerRef, () => {
+    if (filtersOpen && !isMobile) {
+      setFiltersOpen(false);
+    }
+  });
+
   const filters = {
     category_id: searchParams.get('category_id') || undefined,
     min_price: searchParams.get('min_price') || undefined,
@@ -159,10 +167,11 @@ export default function HomePage() {
     [searchParams, setSearchParams]
   );
 
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     const params = new URLSearchParams();
     setSearchParams(params);
-  };
+    setFiltersOpen(false);
+  }, [setSearchParams]);
 
   const handleCategorySelect = (cat) => {
     updateFilter('category_id', cat.id);
@@ -249,248 +258,164 @@ export default function HomePage() {
         </section>
 
         <section className="container-app py-2">
-          <div className="flex flex-col md:flex-row gap-6 items-start">
-            
-            <div className="flex-1 min-w-0 w-full">
-              <div className="flex items-center justify-between gap-3 mb-6">
-                <h2 className="text-lg sm:text-2xl font-bold text-[var(--color-text-primary)]">
-                  {isLocated ? '📍 Near You' : '✨ Recently Listed'}
-                </h2>
-                <Button
-                  variant="outline"
-                  size="md"
-                  leftIcon={<SlidersHorizontal size={14} />}
-                  onClick={() => setFiltersOpen(!filtersOpen)}
-                  className={cn(
-                    "relative shrink-0 rounded-2xl h-[46px] border",
-                    filtersOpen ? "bg-[var(--glass-bg-strong)] border-[var(--color-border)]" : "border-[var(--color-border)]"
-                  )}
-                >
-                  <span className="hidden sm:inline">Filters</span>
-                  {activeFilterCount > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--color-brand)] text-[9px] font-bold text-white shadow-sm">
-                      {activeFilterCount}
-                    </span>
-                  )}
-                </Button>
-              </div>
+          <div className="flex items-center justify-between gap-3 mb-6">
+            <h2 className="text-lg sm:text-2xl font-bold text-[var(--color-text-primary)]">
+              {isLocated ? '📍 Near You' : '✨ Recently Listed'}
+            </h2>
 
-              {/* Inline Categories */}
-              <div className="flex items-center justify-start gap-1.5 sm:gap-2 mb-6 overflow-x-auto pb-2 flex-nowrap w-full scrollbar-none">
-                 <button
-                   onClick={() => updateFilter('category_id', undefined)}
-                   className="flex flex-shrink-0 items-center gap-1 sm:gap-1.5 whitespace-nowrap rounded-xl px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium transition-all"
-                   style={{
-                     backgroundColor: !filters.category_id ? '#7C3AED' : 'var(--color-surface)',
-                     color: !filters.category_id ? 'white' : 'var(--color-text-secondary)',
-                     border: `1px solid ${!filters.category_id ? '#7C3AED' : 'var(--color-border)'}`,
-                   }}
-                 >
-                   <span className="text-[12px] sm:text-sm">🌟</span> All
-                 </button>
-                 {quickCategories.map((cat) => (
-                   <button
-                     key={cat.id}
-                     onClick={() => updateFilter('category_id', cat.id)}
-                     className="flex flex-shrink-0 items-center gap-1 sm:gap-1.5 whitespace-nowrap rounded-xl px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium transition-all"
-                     style={{
-                       backgroundColor: filters.category_id === cat.id ? '#7C3AED' : 'var(--color-surface)',
-                       color: filters.category_id === cat.id ? 'white' : 'var(--color-text-secondary)',
-                       border: `1px solid ${filters.category_id === cat.id ? '#7C3AED' : 'var(--color-border)'}`,
-                     }}
-                   >
-                     <span className="text-[12px] sm:text-sm">{CATEGORY_ICONS[cat.name] || '📦'}</span> {cat.name}
-                   </button>
-                 ))}
-                 <button
-                   onClick={() => setSearchCategoriesOpen(true)}
-                   className="flex flex-shrink-0 items-center gap-1 sm:gap-1.5 whitespace-nowrap rounded-xl px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium transition-all hover:bg-[var(--glass-bg-strong)]"
-                   style={{
-                     backgroundColor: 'var(--color-surface)',
-                     color: 'var(--color-text-secondary)',
-                     border: '1px solid var(--color-border)',
-                   }}
-                 >
-                   <span className="text-[12px] sm:text-sm">🔍</span> All Categories
-                 </button>
-              </div>
+            {/* Filter Button & Desktop Popup Anchor */}
+            <div className="relative" ref={filterContainerRef}>
+              <Button
+                variant="outline"
+                size="md"
+                leftIcon={<SlidersHorizontal size={14} />}
+                onClick={() => setFiltersOpen((prev) => !prev)}
+                className={cn(
+                  "relative shrink-0 rounded-2xl h-[46px] border transition-colors",
+                  filtersOpen
+                    ? "bg-[var(--glass-bg-strong)] border-[var(--color-brand)] text-[var(--color-brand)]"
+                    : "border-[var(--color-border)]"
+                )}
+              >
+                <span className="hidden sm:inline">Filters</span>
+                {activeFilterCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--color-brand)] text-[9px] font-bold text-white shadow-sm">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </Button>
 
-              <div>
-                 {isLoading ? (
-                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-                     {Array.from({ length: 8 }).map((_, i) => (
-                       <ProductCardSkeleton key={i} />
-                     ))}
-                   </div>
-                 ) : products.length === 0 ? (
-                   <EmptyState
-                     icon="🔍"
-                     title="No products found"
-                     description="Try adjusting your filters or search terms"
-                     actionLabel="Clear Filters"
-                     onAction={clearFilters}
-                   />
-                 ) : (
-                   <>
-                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-                       {products.map((product) => (
-                         <ProductCard key={product.id} product={product} />
-                       ))}
-                     </div>
-                     {hasNextPage && (
-                       <div className="mt-8 flex justify-center">
-                         <Button
-                           variant="outline"
-                           isLoading={isFetchingNextPage}
-                           onClick={() => fetchNextPage()}
-                           leftIcon={<ChevronDown size={16} />}
-                         >
-                           Load more
-                         </Button>
-                       </div>
-                     )}
-                   </>
-                 )}
-              </div>
+              {/* Desktop / Tablet Popup Box */}
+              <AnimatePresence>
+                {filtersOpen && !isMobile && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                    transition={{ duration: 0.16, ease: 'easeOut' }}
+                    className="absolute right-0 top-full mt-2.5 z-50 w-[320px] rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] p-4 sm:p-5 shadow-2xl"
+                  >
+                    <FilterPopupContent
+                      filters={filters}
+                      updateFilter={updateFilter}
+                      clearFilters={clearFilters}
+                      onClose={() => setFiltersOpen(false)}
+                      activeFilterCount={activeFilterCount}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-            
-            <AnimatePresence>
-              {filtersOpen && (
-                <motion.aside
-                  initial={{ width: 0, opacity: 0, scale: 0.95 }}
-                  animate={{ width: 280, opacity: 1, scale: 1 }}
-                  exit={{ width: 0, opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.2 }}
-                  className="hidden md:block shrink-0 overflow-hidden"
-                >
-                  <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-4 w-[280px] shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-sm font-bold" style={{ color: 'var(--color-text-primary)' }}>Filters</h3>
-                      <button onClick={() => setFiltersOpen(false)} className="p-1 rounded-full hover:bg-[var(--glass-bg-strong)]">
-                        <X size={16} />
-                      </button>
-                    </div>
-                    
-                    <div className="space-y-4">
+          </div>
 
-                      <div className="space-y-1">
-                        <label className="text-xs font-medium">Price Range</label>
-                        <div className="flex gap-2">
-                          <Input type="number" placeholder="Min" value={filters.min_price || ''} onChange={(e) => updateFilter('min_price', e.target.value)} className="text-center text-xs py-1.5" />
-                          <span className="flex items-center text-xs text-[var(--color-text-muted)]">—</span>
-                          <Input type="number" placeholder="Max" value={filters.max_price || ''} onChange={(e) => updateFilter('max_price', e.target.value)} className="text-center text-xs py-1.5" />
-                        </div>
-                      </div>
-                      <Select
-                        label="Condition"
-                        placeholder="Any Condition"
-                        value={filters.condition || ''}
-                        onChange={(e) => updateFilter('condition', e.target.value)}
-                        options={ITEM_CONDITIONS}
-                      />
-                      <Select
-                        label="Sort By"
-                        value={filters.sort}
-                        onChange={(e) => updateFilter('sort', e.target.value)}
-                        options={SORT_OPTIONS}
-                      />
-                      {activeFilterCount > 0 && (
-                        <button onClick={clearFilters} className="text-xs font-medium text-[var(--color-error)] w-full text-left mt-2">Clear all filters</button>
-                      )}
-                    </div>
-                  </div>
-                </motion.aside>
-              )}
-            </AnimatePresence>
+          {/* Inline Categories */}
+          <div className="flex items-center justify-start gap-1.5 sm:gap-2 mb-6 overflow-x-auto pb-2 flex-nowrap w-full scrollbar-none">
+             <button
+               onClick={() => updateFilter('category_id', undefined)}
+               className="flex flex-shrink-0 items-center gap-1 sm:gap-1.5 whitespace-nowrap rounded-xl px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium transition-all"
+               style={{
+                 backgroundColor: !filters.category_id ? '#7C3AED' : 'var(--color-surface)',
+                 color: !filters.category_id ? 'white' : 'var(--color-text-secondary)',
+                 border: `1px solid ${!filters.category_id ? '#7C3AED' : 'var(--color-border)'}`,
+               }}
+             >
+               <span className="text-[12px] sm:text-sm">🌟</span> All
+             </button>
+             {quickCategories.map((cat) => (
+               <button
+                 key={cat.id}
+                 onClick={() => updateFilter('category_id', cat.id)}
+                 className="flex flex-shrink-0 items-center gap-1 sm:gap-1.5 whitespace-nowrap rounded-xl px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium transition-all"
+                 style={{
+                   backgroundColor: filters.category_id === cat.id ? '#7C3AED' : 'var(--color-surface)',
+                   color: filters.category_id === cat.id ? 'white' : 'var(--color-text-secondary)',
+                   border: `1px solid ${filters.category_id === cat.id ? '#7C3AED' : 'var(--color-border)'}`,
+                 }}
+               >
+                 <span className="text-[12px] sm:text-sm">{CATEGORY_ICONS[cat.name] || '📦'}</span> {cat.name}
+               </button>
+             ))}
+             <button
+               onClick={() => setSearchCategoriesOpen(true)}
+               className="flex flex-shrink-0 items-center gap-1 sm:gap-1.5 whitespace-nowrap rounded-xl px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium transition-all hover:bg-[var(--glass-bg-strong)]"
+               style={{
+                 backgroundColor: 'var(--color-surface)',
+                 color: 'var(--color-text-secondary)',
+                 border: '1px solid var(--color-border)',
+               }}
+             >
+               <span className="text-[12px] sm:text-sm">🔍</span> All Categories
+             </button>
+          </div>
 
+          <div>
+             {isLoading ? (
+               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                 {Array.from({ length: 8 }).map((_, i) => (
+                   <ProductCardSkeleton key={i} />
+                 ))}
+               </div>
+             ) : products.length === 0 ? (
+               <EmptyState
+                 icon="🔍"
+                 title="No products found"
+                 description="Try adjusting your filters or search terms"
+                 actionLabel="Clear Filters"
+                 onAction={clearFilters}
+               />
+             ) : (
+               <>
+                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                   {products.map((product) => (
+                     <ProductCard key={product.id} product={product} />
+                   ))}
+                 </div>
+                 {hasNextPage && (
+                   <div className="mt-8 flex justify-center">
+                     <Button
+                       variant="outline"
+                       isLoading={isFetchingNextPage}
+                       onClick={() => fetchNextPage()}
+                       leftIcon={<ChevronDown size={16} />}
+                     >
+                       Load more
+                     </Button>
+                   </div>
+                 )}
+               </>
+             )}
           </div>
         </section>
       </div>
 
+      {/* Mobile Filter Popup Box Modal */}
       <AnimatePresence>
         {filtersOpen && isMobile && (
-           <>
-              <motion.div
-                className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setFiltersOpen(false)}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setFiltersOpen(false)}
+            />
+            <motion.div
+              className="relative z-10 w-full max-w-sm rounded-3xl bg-[var(--color-surface)] border border-[var(--color-border)] p-5 shadow-2xl max-h-[85vh] overflow-y-auto"
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <FilterPopupContent
+                filters={filters}
+                updateFilter={updateFilter}
+                clearFilters={clearFilters}
+                onClose={() => setFiltersOpen(false)}
+                activeFilterCount={activeFilterCount}
               />
-              <motion.aside
-                className="fixed bottom-0 left-0 right-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-3xl p-6 bg-[var(--color-surface)] shadow-[var(--shadow-xl)]"
-                initial={{ y: '100%' }}
-                animate={{ y: 0 }}
-                exit={{ y: '100%' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              >
-                 <div className="flex items-center justify-between mb-5">
-                   <h3 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
-                     Filters
-                   </h3>
-                   <div className="flex items-center gap-2">
-                     {activeFilterCount > 0 && (
-                       <button
-                         onClick={clearFilters}
-                         className="text-sm font-medium"
-                         style={{ color: 'var(--color-error)' }}
-                       >
-                         Clear all
-                       </button>
-                     )}
-                     <button onClick={() => setFiltersOpen(false)} className="p-2 rounded-full hover:bg-[var(--glass-bg-strong)] transition-colors">
-                       <X size={20} style={{ color: 'var(--color-text-muted)' }} />
-                     </button>
-                   </div>
-                 </div>
-                 
-                 <div className="space-y-5">
-                   <Select
-                     label="Category"
-                     placeholder="All Categories"
-                     value={filters.category_id || ''}
-                     onChange={(e) => updateFilter('category_id', e.target.value)}
-                     options={allCategories.map((c) => ({ value: c.id, label: c.name }))}
-                   />
-                   <div className="space-y-1.5">
-                     <label className="text-sm font-medium">Price Range</label>
-                     <div className="flex gap-2">
-                       <Input
-                         type="number"
-                         placeholder="Min"
-                         value={filters.min_price || ''}
-                         onChange={(e) => updateFilter('min_price', e.target.value)}
-                         className="text-center"
-                       />
-                       <span className="flex items-center text-[var(--color-text-muted)]">—</span>
-                       <Input
-                         type="number"
-                         placeholder="Max"
-                         value={filters.max_price || ''}
-                         onChange={(e) => updateFilter('max_price', e.target.value)}
-                         className="text-center"
-                       />
-                     </div>
-                   </div>
-                   <Select
-                     label="Condition"
-                     placeholder="Any Condition"
-                     value={filters.condition || ''}
-                     onChange={(e) => updateFilter('condition', e.target.value)}
-                     options={ITEM_CONDITIONS}
-                   />
-                   <Select
-                     label="Sort By"
-                     value={filters.sort}
-                     onChange={(e) => updateFilter('sort', e.target.value)}
-                     options={SORT_OPTIONS}
-                   />
-                   <Button fullWidth onClick={() => setFiltersOpen(false)} className="mt-4">
-                     Show Results
-                   </Button>
-                 </div>
-              </motion.aside>
-           </>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
@@ -501,6 +426,102 @@ export default function HomePage() {
         onSelect={handleCategorySelect}
       />
     </>
+  );
+}
+
+
+function FilterPopupContent({ filters, updateFilter, clearFilters, onClose, activeFilterCount }) {
+  return (
+    <div>
+      <div className="flex items-center justify-between pb-3 border-b border-[var(--color-border)]">
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-bold text-[var(--color-text-primary)]">Filters</h3>
+          {activeFilterCount > 0 && (
+            <span className="flex h-5 px-1.5 items-center justify-center rounded-full bg-[var(--color-brand)] text-[10px] font-bold text-white">
+              {activeFilterCount}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5">
+          {activeFilterCount > 0 && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="text-xs font-semibold text-[var(--color-error)] hover:underline px-1 py-0.5 rounded transition-colors"
+            >
+              Reset
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 rounded-lg text-[var(--color-text-muted)] hover:bg-[var(--glass-bg-strong)] hover:text-[var(--color-text-primary)] transition-colors"
+            aria-label="Close filters"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      </div>
+
+      <div className="space-y-4 py-3">
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-[var(--color-text-secondary)]">Price Range</label>
+          <div className="flex items-center gap-2">
+            <Input
+              type="number"
+              placeholder="Min"
+              value={filters.min_price || ''}
+              onChange={(e) => updateFilter('min_price', e.target.value)}
+              className="text-center text-xs py-1.5"
+            />
+            <span className="text-xs text-[var(--color-text-muted)] font-bold">—</span>
+            <Input
+              type="number"
+              placeholder="Max"
+              value={filters.max_price || ''}
+              onChange={(e) => updateFilter('max_price', e.target.value)}
+              className="text-center text-xs py-1.5"
+            />
+          </div>
+        </div>
+
+        <Select
+          label="Condition"
+          placeholder="Any Condition"
+          value={filters.condition || ''}
+          onChange={(e) => updateFilter('condition', e.target.value)}
+          options={ITEM_CONDITIONS}
+        />
+
+        <Select
+          label="Sort By"
+          value={filters.sort}
+          onChange={(e) => updateFilter('sort', e.target.value)}
+          options={SORT_OPTIONS}
+        />
+      </div>
+
+      <div className="pt-3 border-t border-[var(--color-border)] flex items-center gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={clearFilters}
+          className="flex-1 text-xs font-medium"
+        >
+          Reset
+        </Button>
+        <Button
+          type="button"
+          variant="brand"
+          size="sm"
+          onClick={onClose}
+          className="flex-1 text-xs font-medium"
+        >
+          Done
+        </Button>
+      </div>
+    </div>
   );
 }
 

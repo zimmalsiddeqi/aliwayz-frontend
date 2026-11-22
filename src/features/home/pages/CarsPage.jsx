@@ -145,6 +145,7 @@ export default function CarsPage() {
     setSelectedCondition('');
     setMinPrice('');
     setMaxPrice('');
+    setShowFilters(false);
   };
 
   return (

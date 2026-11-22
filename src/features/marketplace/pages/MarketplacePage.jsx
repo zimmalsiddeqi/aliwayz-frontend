@@ -97,7 +97,10 @@ export default function MarketplacePage() {
     [searchParams, setSearchParams]
   );
 
-  const clearFilters = () => setSearchParams({});
+  const clearFilters = () => {
+    setSearchParams({});
+    setFiltersOpen(false);
+  };
 
   return (
     <>
