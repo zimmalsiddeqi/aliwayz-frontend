@@ -209,6 +209,7 @@ export default function StoreProfilePage() {
   }
 
   const storeMeta = parseStoreMeta(store);
+  const hasBanner = Boolean(store?.banner_url && store.banner_url.trim());
   const isStoreVerified =
     Boolean(store?.is_verified) ||
     owner?.seller_verification_status === 'identity_verified' ||
@@ -301,6 +302,136 @@ export default function StoreProfilePage() {
   const displayedProducts = showAllInventory ? products : products.slice(0, 10);
   const todayDayKey = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date().getDay()];
 
+  const renderTopControls = (isOverBanner = false) => (
+    <div
+      className={
+        isOverBanner
+          ? 'absolute inset-x-0 top-0 z-20 flex items-center justify-between px-4 sm:px-6 lg:px-10 xl:px-14 pt-3.5 sm:pt-5 pointer-events-auto'
+          : 'w-full flex items-center justify-between px-4 sm:px-6 lg:px-10 xl:px-14 py-3.5 sm:py-4 border-b border-[var(--color-border-subtle)] bg-[var(--color-surface)]'
+      }
+    >
+      {/* Back Button */}
+      <button
+        type="button"
+        onClick={() => navigate(-1)}
+        className={cn(
+          'w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-colors shadow-sm',
+          isOverBanner
+            ? 'bg-black/45 hover:bg-black/65 backdrop-blur-md text-white'
+            : 'bg-[var(--color-surface-hover)] hover:bg-[var(--color-border)] text-[var(--color-text-primary)] border border-[var(--color-border)]'
+        )}
+        title="Go back"
+      >
+        <ArrowLeft size={18} />
+      </button>
+
+      {/* Right Utility & Owner Actions */}
+      <div className="flex flex-wrap items-center gap-2">
+        {isOwner && (
+          <>
+            <Link
+              to="/my-store/edit"
+              className={cn(
+                'inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-semibold transition-colors shadow-sm',
+                isOverBanner
+                  ? 'bg-black/45 hover:bg-black/65 backdrop-blur-md text-white'
+                  : 'bg-[var(--color-surface-hover)] hover:bg-[var(--color-border)] text-[var(--color-text-primary)] border border-[var(--color-border)]'
+              )}
+            >
+              <Edit3 size={13} />
+              <span>Edit Storefront</span>
+            </Link>
+            <Link
+              to="/sell/create"
+              className="inline-flex items-center gap-1 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-semibold transition-colors shadow-sm"
+            >
+              <Plus size={14} />
+              <span>Add Listing</span>
+            </Link>
+          </>
+        )}
+
+        {!isOwner && isAuthenticated && !isCurrentAdmin && (
+          <button
+            type="button"
+            onClick={() => followMutation.mutate()}
+            disabled={followMutation.isPending}
+            className={cn(
+              'inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-semibold transition-colors shadow-sm',
+              isOverBanner
+                ? 'bg-black/45 hover:bg-black/65 backdrop-blur-md text-white'
+                : 'bg-[var(--color-surface-hover)] hover:bg-[var(--color-border)] text-[var(--color-text-primary)] border border-[var(--color-border)]'
+            )}
+          >
+            {isFollowing ? <UserMinus size={13} /> : <UserPlus size={13} />}
+            <span>{isFollowing ? 'Following' : 'Follow'}</span>
+          </button>
+        )}
+
+        <button
+          type="button"
+          onClick={handleShare}
+          className={cn(
+            'w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-colors shadow-sm',
+            isOverBanner
+              ? 'bg-black/45 hover:bg-black/65 backdrop-blur-md text-white'
+              : 'bg-[var(--color-surface-hover)] hover:bg-[var(--color-border)] text-[var(--color-text-primary)] border border-[var(--color-border)]'
+          )}
+          title="Share Storefront"
+        >
+          <Share2 size={16} />
+        </button>
+
+        {!isOwner && isAuthenticated && !isCurrentAdmin && (
+          <button
+            type="button"
+            onClick={() => setShowReport(true)}
+            className={cn(
+              'w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-colors shadow-sm',
+              isOverBanner
+                ? 'bg-black/45 hover:bg-black/65 backdrop-blur-md text-white'
+                : 'bg-[var(--color-surface-hover)] hover:bg-[var(--color-border)] text-[var(--color-text-primary)] border border-[var(--color-border)]'
+            )}
+            title="Report Storefront"
+          >
+            <Flag size={15} />
+          </button>
+        )}
+
+        {isCurrentAdmin && !isOwner && (
+          <>
+            <button
+              type="button"
+              onClick={() => adminVerifyMutation.mutate()}
+              className={cn(
+                'w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-colors',
+                isOverBanner
+                  ? 'bg-black/55 hover:bg-black/75 backdrop-blur-md text-emerald-400'
+                  : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 border border-emerald-500/20'
+              )}
+              title={store.is_verified ? 'Remove Verification' : 'Verify Business'}
+            >
+              <ShieldCheck size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowAdminDelete(true)}
+              className={cn(
+                'w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-colors',
+                isOverBanner
+                  ? 'bg-black/55 hover:bg-black/75 backdrop-blur-md text-rose-400'
+                  : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/20'
+              )}
+              title="Delete Storefront"
+            >
+              <Trash2 size={16} />
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <>
       <SEOHead
@@ -329,119 +460,33 @@ export default function StoreProfilePage() {
         className="w-full min-h-screen pb-24 md:pb-12"
         style={{ backgroundColor: 'var(--color-bg)' }}
       >
-        {/* ── 1. FULL-WIDTH HERO COVER BANNER ───────────────── */}
-        <div
-          className="relative w-full h-44 sm:h-60 md:h-72 lg:h-80 xl:h-96 overflow-hidden"
-          style={{
-            background: store.banner_url
-              ? undefined
-              : 'linear-gradient(135deg, #1E3A8A 0%, #2563EB 50%, #4F46E5 100%)',
-          }}
-        >
-          {store.banner_url && (
+        {/* ── 1. FULL-WIDTH HERO COVER BANNER (Only shown when seller uploads a banner) ── */}
+        {hasBanner ? (
+          <div className="relative w-full h-44 sm:h-60 md:h-72 lg:h-80 xl:h-96 overflow-hidden">
             <img
               src={store.banner_url}
               alt={store.store_name}
               className="w-full h-full object-cover"
             />
-          )}
 
-          {/* Top & Bottom subtle gradients for contrast */}
-          <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent pointer-events-none" />
-          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/25 to-transparent pointer-events-none" />
+            {/* Top & Bottom subtle gradients for contrast */}
+            <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent pointer-events-none" />
+            <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/25 to-transparent pointer-events-none" />
 
-          {/* Floating Top Controls (Full-width responsive padding) */}
-          <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-4 sm:px-6 lg:px-10 xl:px-14 pt-3.5 sm:pt-5">
-            {/* Back Button */}
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black/45 hover:bg-black/65 backdrop-blur-md text-white flex items-center justify-center transition-colors shadow-sm"
-              title="Go back"
-            >
-              <ArrowLeft size={18} />
-            </button>
-
-            {/* Right Utility & Owner Actions */}
-            <div className="flex flex-wrap items-center gap-2">
-              {isOwner && (
-                <>
-                  <Link
-                    to="/my-store/edit"
-                    className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-black/45 hover:bg-black/65 backdrop-blur-md text-white text-xs font-semibold transition-colors shadow-sm"
-                  >
-                    <Edit3 size={13} />
-                    <span>Edit Storefront</span>
-                  </Link>
-                  <Link
-                    to="/sell/create"
-                    className="inline-flex items-center gap-1 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-semibold transition-colors shadow-sm"
-                  >
-                    <Plus size={14} />
-                    <span>Add Listing</span>
-                  </Link>
-                </>
-              )}
-
-              {!isOwner && isAuthenticated && !isCurrentAdmin && (
-                <button
-                  type="button"
-                  onClick={() => followMutation.mutate()}
-                  disabled={followMutation.isPending}
-                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-black/45 hover:bg-black/65 backdrop-blur-md text-white text-xs font-semibold transition-colors shadow-sm"
-                >
-                  {isFollowing ? <UserMinus size={13} /> : <UserPlus size={13} />}
-                  <span>{isFollowing ? 'Following' : 'Follow'}</span>
-                </button>
-              )}
-
-              <button
-                type="button"
-                onClick={handleShare}
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black/45 hover:bg-black/65 backdrop-blur-md text-white flex items-center justify-center transition-colors shadow-sm"
-                title="Share Storefront"
-              >
-                <Share2 size={16} />
-              </button>
-
-              {!isOwner && isAuthenticated && !isCurrentAdmin && (
-                <button
-                  type="button"
-                  onClick={() => setShowReport(true)}
-                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black/45 hover:bg-black/65 backdrop-blur-md text-white flex items-center justify-center transition-colors shadow-sm"
-                  title="Report Storefront"
-                >
-                  <Flag size={15} />
-                </button>
-              )}
-
-              {isCurrentAdmin && !isOwner && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => adminVerifyMutation.mutate()}
-                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black/55 hover:bg-black/75 backdrop-blur-md text-emerald-400 flex items-center justify-center transition-colors"
-                    title={store.is_verified ? 'Remove Verification' : 'Verify Business'}
-                  >
-                    <ShieldCheck size={16} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowAdminDelete(true)}
-                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black/55 hover:bg-black/75 backdrop-blur-md text-rose-400 flex items-center justify-center transition-colors"
-                    title="Delete Storefront"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </>
-              )}
-            </div>
+            {/* Floating Top Controls over banner */}
+            {renderTopControls(true)}
           </div>
-        </div>
+        ) : (
+          /* When no banner is uploaded: Render top controls directly in-flow with zero blue background */
+          renderTopControls(false)
+        )}
 
-        {/* ── 2. FULL-WIDTH OVERLAPPING BUSINESS HEADER ──────── */}
+        {/* ── 2. FULL-WIDTH BUSINESS HEADER ──────── */}
         <div
-          className="relative z-10 -mt-6 sm:-mt-8 rounded-t-3xl border-t shadow-sm w-full"
+          className={cn(
+            'relative z-10 w-full shadow-sm',
+            hasBanner ? '-mt-6 sm:-mt-8 rounded-t-3xl border-t' : 'border-b'
+          )}
           style={{
             backgroundColor: 'var(--color-surface)',
             borderColor: 'var(--color-border)',
@@ -452,9 +497,9 @@ export default function StoreProfilePage() {
             <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
               {/* Left Column: Avatar + Business Info */}
               <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-5 min-w-0 flex-1">
-                {/* Store Logo Badge (overlaps cover banner cleanly) */}
+                {/* Store Logo Badge */}
                 {store.logo_url && (
-                  <div className="-mt-12 sm:-mt-16 w-fit flex-shrink-0">
+                  <div className={cn('w-fit flex-shrink-0', hasBanner ? '-mt-12 sm:-mt-16' : 'mt-0')}>
                     <div
                       className="rounded-2xl p-1.5 shadow-lg border"
                       style={{
