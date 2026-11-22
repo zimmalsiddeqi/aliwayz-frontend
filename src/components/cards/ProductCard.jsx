@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Eye, MapPin } from 'lucide-react';
+import { Heart, Eye, MapPin, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@lib/queryClient';
@@ -203,41 +203,52 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
 
 
 
-          {/* Featured badge */}
+          {/* Featured badge (Top Left) */}
           {product.is_featured && (
-            <div className="absolute bottom-2 left-2 sm:bottom-2.5 sm:left-2.5">
-              <BadgeUI variant="brand" size="xs">⭐ Featured</BadgeUI>
+            <div className="absolute top-2.5 left-2.5 z-20">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-semibold bg-blue-100/90 text-blue-700 dark:bg-blue-950/90 dark:text-blue-300 shadow-sm backdrop-blur-sm border border-blue-200/50 dark:border-blue-800/50">
+                <span className="text-[10px]">★</span> Featured
+              </span>
             </div>
           )}
+
+          {/* Price Badge on bottom-left of image */}
+          <div className="absolute bottom-2.5 left-2.5 sm:bottom-3 sm:left-3 z-10 pointer-events-none">
+            <span
+              className={cn(
+                'inline-flex items-center px-3 py-1 sm:px-3.5 sm:py-1 rounded-full font-bold text-xs sm:text-sm tracking-tight shadow-md backdrop-blur-sm transition-all duration-200',
+                product.is_featured
+                  ? 'bg-blue-600 text-white shadow-blue-500/25'
+                  : 'bg-blue-50/95 text-blue-600 border border-blue-100/60 dark:bg-slate-900/90 dark:text-blue-400 dark:border-blue-900/40 group-hover:bg-blue-600 group-hover:text-white group-hover:border-transparent'
+              )}
+            >
+              {formattedPrice}
+            </span>
+          </div>
         </div>
 
         {/* Content Section */}
         <div className="p-3 sm:p-3.5 flex flex-col flex-1 justify-between gap-2.5">
-          {/* Main Details (Title, Price, Location, Stats) */}
+          {/* Main Details (Title, Subtitle, Location, Stats) */}
           <div className="space-y-1.5">
             {/* Title */}
             <h3
-              className="font-semibold text-xs sm:text-sm line-clamp-1 sm:line-clamp-2 leading-snug text-[var(--color-text-primary)] group-hover:text-brand-400 transition-colors"
+              className="font-bold text-sm sm:text-base line-clamp-1 leading-snug text-[var(--color-text-primary)] group-hover:text-brand-500 transition-colors"
               title={product.title}
             >
               {product.title}
             </h3>
 
-            {/* Price & Real Estate Subtitle */}
-            <div className="flex items-baseline justify-between gap-1.5 pt-0.5">
-              <p className="text-base sm:text-lg font-bold text-gradient-brand leading-none">
-                {formattedPrice}
+            {/* Real Estate Subtitle if applicable */}
+            {realEstateSubtitle && (
+              <p
+                className="text-[11px] sm:text-xs font-medium truncate"
+                style={{ color: 'var(--color-text-muted)' }}
+                title={realEstateSubtitle}
+              >
+                {realEstateSubtitle}
               </p>
-              {realEstateSubtitle && (
-                <span
-                  className="text-[10px] sm:text-[11px] font-medium truncate max-w-[50%]"
-                  style={{ color: 'var(--color-text-muted)' }}
-                  title={realEstateSubtitle}
-                >
-                  {realEstateSubtitle}
-                </span>
-              )}
-            </div>
+            )}
 
             {/* Meta row: Location, Date & Stats */}
             <div
@@ -293,7 +304,13 @@ const ProductCard = memo(function ProductCard({ product, showSeller = true }) {
                     {store.store_name}
                   </span>
                   {store.is_verified && (
-                    <span className="text-[9px] flex-shrink-0" title="Verified">✅</span>
+                    <span
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-600 dark:bg-blue-950/80 dark:text-blue-300 border border-blue-100/60 dark:border-blue-900/40 flex-shrink-0"
+                      title="Verified"
+                    >
+                      <ShieldCheck size={11} className="text-blue-600" />
+                      Verified
+                    </span>
                   )}
                 </>
               ) : (

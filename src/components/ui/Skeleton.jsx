@@ -23,12 +23,14 @@ export default function Skeleton({ className, variant = 'rect', ...props }) {
 export function ProductCardSkeleton() {
   return (
     <div className="card p-0 overflow-hidden">
-      <Skeleton className="aspect-square w-full rounded-none" />
+      <div className="relative aspect-square w-full">
+        <Skeleton className="w-full h-full rounded-none" />
+        <Skeleton className="absolute bottom-2.5 left-2.5 h-6 w-20 rounded-full" />
+      </div>
       <div className="p-4 space-y-3">
         <Skeleton variant="title" />
-        <Skeleton variant="text" className="w-1/3" />
         <div className="flex justify-between items-center">
-          <Skeleton variant="button" />
+          <Skeleton variant="text" className="w-1/3" />
           <Skeleton variant="circle" className="w-6 h-6" />
         </div>
       </div>
