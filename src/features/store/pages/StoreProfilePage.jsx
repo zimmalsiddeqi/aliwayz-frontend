@@ -958,7 +958,7 @@ export default function StoreProfilePage() {
                     className="text-lg font-bold"
                     style={{ color: 'var(--color-text-primary)' }}
                   >
-                    About {store.store_name}
+                    {store.store_name}
                   </h2>
                   <p
                     className="whitespace-pre-line text-sm sm:text-base leading-relaxed"
@@ -1017,34 +1017,7 @@ export default function StoreProfilePage() {
                     </div>
                   )}
 
-                  {/* Member Since / Owner */}
-                  {owner && (
-                    <div
-                      className="pt-4 border-t flex flex-wrap items-center justify-between gap-3"
-                      style={{ borderColor: 'var(--color-border)' }}
-                    >
-                      <Link
-                        to={`/user/${owner.username}`}
-                        className="flex items-center gap-3 rounded-xl hover:opacity-85 transition-opacity"
-                      >
-                        <Avatar src={owner.avatar_url} name={owner.username} size="sm" />
-                        <div>
-                          <p
-                            className="text-xs sm:text-sm font-bold"
-                            style={{ color: 'var(--color-text-primary)' }}
-                          >
-                            Managed by @{owner.username}
-                          </p>
-                          <p
-                            className="text-xs"
-                            style={{ color: 'var(--color-text-muted)' }}
-                          >
-                            {formatMemberSince(store.created_at)}
-                          </p>
-                        </div>
-                      </Link>
-                    </div>
-                  )}
+
                 </div>
 
                 {/* Contact & Storefront Highlights Column */}
