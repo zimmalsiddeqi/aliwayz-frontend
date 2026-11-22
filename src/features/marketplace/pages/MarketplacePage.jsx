@@ -1,4 +1,5 @@
-import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import SEOHead from '@components/seo/SEOHead';
@@ -27,18 +28,18 @@ export default function MarketplacePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const filtersRef = useRef(null);
-  useOnClickOutside(filtersRef, () => {
-    if (filtersOpen) setFiltersOpen(false);
-  });
-
   useEffect(() => {
     if (!filtersOpen) return;
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') setFiltersOpen(false);
     };
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    const origOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = origOverflow;
+    };
   }, [filtersOpen]);
   const [viewMode, setViewMode] = useState('grid');
 
@@ -171,7 +172,10 @@ export default function MarketplacePage() {
                 variant="outline"
                 size="sm"
                 leftIcon={<SlidersHorizontal size={14} />}
-                onClick={() => setFiltersOpen(!filtersOpen)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFiltersOpen(true);
+                }}
                 className="relative ignore-click-outside"
               >
                 Filters
@@ -194,26 +198,26 @@ export default function MarketplacePage() {
         )}
 
         <div>
-          {/* Centered Filter Popup Modal */}
-          <AnimatePresence>
-            {filtersOpen && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-                <motion.div
-                  className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={() => setFiltersOpen(false)}
-                />
-                <motion.div
-                  ref={filtersRef}
-                  className="relative z-10 w-full max-w-md rounded-3xl bg-[var(--color-surface)] border border-[var(--color-border)] p-5 sm:p-6 shadow-2xl max-h-[85vh] overflow-y-auto space-y-4"
-                  initial={{ opacity: 0, scale: 0.94, y: 15 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.94, y: 15 }}
-                  transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                  onClick={(e) => e.stopPropagation()}
-                >
+          {/* Centered Filter Popup Modal (Portaled) */}
+          {typeof document !== 'undefined' && createPortal(
+            <AnimatePresence>
+              {filtersOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+                  <motion.div
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setFiltersOpen(false)}
+                  />
+                  <motion.div
+                    className="relative z-10 w-full max-w-sm rounded-3xl bg-[var(--color-surface)] border border-[var(--color-border)] p-5 shadow-2xl max-h-[85vh] overflow-y-auto space-y-4"
+                    initial={{ opacity: 0, scale: 0.94, y: 15 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.94, y: 15 }}
+                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
                   <div className="flex items-center justify-between pb-3 border-b border-[var(--color-border)]">
                     <div className="flex items-center gap-2">
                       <h3 className="text-base sm:text-lg font-bold text-[var(--color-text-primary)]">
@@ -316,7 +320,9 @@ export default function MarketplacePage() {
                 </motion.div>
               </div>
             )}
-          </AnimatePresence>
+          </AnimatePresence>,
+          document.body
+        )}
 
           <div className="w-full">
             {isLoading ? (

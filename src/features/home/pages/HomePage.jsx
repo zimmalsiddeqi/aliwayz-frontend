@@ -1,4 +1,5 @@
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -108,20 +109,18 @@ export default function HomePage() {
   const [searchCategoriesOpen, setSearchCategoriesOpen] = useState(false);
   const { lat, lng, isLocated, radiusMiles } = useLocationStore();
 
-  const filterModalRef = useRef(null);
-  useOnClickOutside(filterModalRef, () => {
-    if (filtersOpen) {
-      setFiltersOpen(false);
-    }
-  });
-
   useEffect(() => {
     if (!filtersOpen) return;
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') setFiltersOpen(false);
     };
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    const origOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = origOverflow;
+    };
   }, [filtersOpen]);
 
   const filters = {
@@ -276,7 +275,10 @@ export default function HomePage() {
               variant="outline"
               size="md"
               leftIcon={<SlidersHorizontal size={14} />}
-              onClick={() => setFiltersOpen(true)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setFiltersOpen(true);
+              }}
               className={cn(
                 "relative shrink-0 rounded-2xl h-[46px] border transition-colors",
                 filtersOpen
@@ -373,39 +375,41 @@ export default function HomePage() {
         </section>
       </div>
 
-      {/* Center Screen Filter Popup Modal */}
-      <AnimatePresence>
-        {filtersOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-            {/* Backdrop */}
-            <motion.div
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setFiltersOpen(false)}
-            />
-            {/* Centered Popup Dialog Box */}
-            <motion.div
-              ref={filterModalRef}
-              className="relative z-10 w-full max-w-md rounded-3xl bg-[var(--color-surface)] border border-[var(--color-border)] p-5 sm:p-6 shadow-2xl max-h-[85vh] overflow-y-auto"
-              initial={{ opacity: 0, scale: 0.94, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: 15 }}
-              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <FilterPopupContent
-                filters={filters}
-                updateFilter={updateFilter}
-                clearFilters={clearFilters}
-                onClose={() => setFiltersOpen(false)}
-                activeFilterCount={activeFilterCount}
+      {/* Center Screen Filter Popup Modal (Portaled) */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {filtersOpen && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+              {/* Backdrop */}
+              <motion.div
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setFiltersOpen(false)}
               />
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+              {/* Centered Popup Dialog Box */}
+              <motion.div
+                className="relative z-10 w-full max-w-sm rounded-3xl bg-[var(--color-surface)] border border-[var(--color-border)] p-5 shadow-2xl max-h-[85vh] overflow-y-auto"
+                initial={{ opacity: 0, scale: 0.94, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.94, y: 15 }}
+                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <FilterPopupContent
+                  filters={filters}
+                  updateFilter={updateFilter}
+                  clearFilters={clearFilters}
+                  onClose={() => setFiltersOpen(false)}
+                  activeFilterCount={activeFilterCount}
+                />
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       <SearchCategoriesModal
         isOpen={searchCategoriesOpen}

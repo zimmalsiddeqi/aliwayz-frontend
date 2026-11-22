@@ -328,7 +328,7 @@ function LocationModal({
 
           {/* Modal Container in Middle of Screen */}
           <motion.div
-            className="relative z-10 w-full max-w-md rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
+            className="relative z-10 w-full max-w-[360px] sm:max-w-[375px] rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh]"
             style={{
               backgroundColor: 'var(--color-surface)',
               border:          '1px solid var(--color-border)',
@@ -341,7 +341,7 @@ function LocationModal({
           >
             {/* Header with Title and Close Button */}
             <div
-              className="flex items-center justify-between p-4 sm:p-5 border-b"
+              className="flex items-center justify-between p-3.5 border-b"
               style={{ borderColor: 'var(--color-border)' }}
             >
               <div className="min-w-0 pr-2">
@@ -381,90 +381,65 @@ function LocationModal({
             </div>
 
             {/* Content Body */}
-            <div className="p-4 sm:p-5 space-y-4 overflow-y-auto">
-              {/* Detect My Location (GPS) */}
-              <button
-                type="button"
-                onClick={onDetectGPS}
-                disabled={isDetecting}
-                className="w-full flex items-center gap-3 p-3.5 rounded-xl transition-all hover:bg-[var(--glass-bg-strong)] active:scale-[0.99] text-left"
-                style={{
-                  border: '1px solid var(--color-border)',
-                  backgroundColor: 'var(--color-surface)',
-                }}
-              >
-                {isDetecting ? (
-                  <Loader2
-                    size={20}
-                    className="animate-spin flex-shrink-0"
-                    style={{ color: 'var(--color-brand)' }}
-                  />
-                ) : (
-                  <Navigation
-                    size={20}
-                    className="flex-shrink-0"
-                    style={{ color: 'var(--color-brand)' }}
-                  />
-                )}
-                <div className="flex-1 min-w-0">
-                  <p
-                    className="text-sm font-semibold"
-                    style={{ color: 'var(--color-text-primary)' }}
-                  >
-                    {isDetecting ? 'Detecting Location...' : 'Detect My Location'}
-                  </p>
-                  <p
-                    className="text-xs"
-                    style={{ color: 'var(--color-text-muted)' }}
-                  >
-                    Uses your device GPS to locate your city
-                  </p>
-                </div>
-              </button>
-
-              {/* Divider */}
-              <div className="flex items-center gap-3 my-0.5">
-                <div className="flex-1 h-px" style={{ backgroundColor: 'var(--color-border)' }} />
-                <span
-                  className="text-[11px] font-medium uppercase tracking-wider"
-                  style={{ color: 'var(--color-text-muted)' }}
-                >
-                  or enter zip code
-                </span>
-                <div className="flex-1 h-px" style={{ backgroundColor: 'var(--color-border)' }} />
-              </div>
-
-              {/* ZIP Input Field */}
-              <form onSubmit={onZipSubmit} className="flex gap-2">
-                <div className="flex-1 relative">
-                  <Search
-                    size={15}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2"
-                    style={{ color: 'var(--color-text-muted)' }}
-                  />
-                  <input
-                    type="text"
-                    value={zipInput}
-                    onChange={(e) =>
-                      setZipInput(e.target.value.replace(/\D/g, '').slice(0, 5))
-                    }
-                    placeholder="Enter 5-digit ZIP code"
-                    className="input-base pl-9 py-2.5 text-sm w-full"
-                    maxLength={5}
-                  />
-                </div>
+            <div className="p-3.5 space-y-3 overflow-y-auto">
+              {/* One Line: Detect My Location + ZIP Code Input */}
+              <div className="flex items-center gap-2">
+                {/* Detect My Location Button */}
                 <button
-                  type="submit"
-                  disabled={zipInput.length !== 5 || isDetecting}
-                  className="btn-brand px-4 py-2.5 text-xs font-semibold rounded-xl shrink-0"
+                  type="button"
+                  onClick={onDetectGPS}
+                  disabled={isDetecting}
+                  className="flex-1 min-w-0 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-semibold transition-all hover:bg-[var(--glass-bg-strong)] active:scale-[0.98] border whitespace-nowrap"
+                  style={{
+                    borderColor: 'var(--color-border)',
+                    backgroundColor: 'var(--color-surface)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                  title="Detect my location"
                 >
                   {isDetecting ? (
-                    <Loader2 size={16} className="animate-spin" />
+                    <Loader2
+                      size={14}
+                      className="animate-spin text-[var(--color-brand)] shrink-0"
+                    />
                   ) : (
-                    'Set'
+                    <Navigation
+                      size={14}
+                      className="text-[var(--color-brand)] shrink-0"
+                    />
                   )}
+                  <span className="truncate">
+                    {isDetecting ? 'Detecting...' : 'Detect my location'}
+                  </span>
                 </button>
-              </form>
+
+                {/* ZIP Code Input */}
+                <form onSubmit={onZipSubmit} className="flex-1 min-w-0 flex items-center gap-1">
+                  <div className="relative flex-1 min-w-0">
+                    <input
+                      type="text"
+                      value={zipInput}
+                      onChange={(e) =>
+                        setZipInput(e.target.value.replace(/\D/g, '').slice(0, 5))
+                      }
+                      placeholder="Enter ZIP"
+                      className="input-base py-2.5 px-2 text-xs w-full text-center"
+                      maxLength={5}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={zipInput.length !== 5 || isDetecting}
+                    className="btn-brand px-2.5 py-2.5 text-xs font-semibold rounded-xl shrink-0"
+                  >
+                    {isDetecting ? (
+                      <Loader2 size={13} className="animate-spin" />
+                    ) : (
+                      'Set'
+                    )}
+                  </button>
+                </form>
+              </div>
 
               {/* Error Alert */}
               {error && (
@@ -489,13 +464,13 @@ function LocationModal({
                 >
                   📏 Search Radius
                 </p>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-1.5">
                   {RADIUS_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
                       type="button"
                       onClick={() => onRadiusChange(opt.value)}
-                      className="py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1"
+                      className="py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1"
                       style={{
                         backgroundColor:
                           radiusMiles === opt.value
