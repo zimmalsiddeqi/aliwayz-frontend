@@ -63,11 +63,30 @@ const formatTimeAgo = (dateStr) => {
   try {
     const d = new Date(dateStr);
     const now = new Date();
-    const diffHours = Math.floor((now - d) / (1000 * 60 * 60));
+    const diffMs = now - d;
+    if (diffMs < 0) return 'Posted just now';
+
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     if (diffHours < 1) return 'Posted just now';
-    if (diffHours < 24) return `Posted ${diffHours}h ago`;
+    if (diffHours < 24) return diffHours === 1 ? 'Posted 1 hour ago' : `Posted ${diffHours} hours ago`;
+
     const diffDays = Math.floor(diffHours / 24);
-    return `Posted ${diffDays}d ago`;
+    if (diffDays < 7) {
+      return diffDays === 1 ? 'Posted 1 day ago' : `Posted ${diffDays} days ago`;
+    }
+
+    if (diffDays < 30) {
+      const diffWeeks = Math.max(1, Math.round(diffDays / 7));
+      return diffWeeks === 1 ? 'Posted 1 week ago' : `Posted ${diffWeeks} weeks ago`;
+    }
+
+    if (diffDays < 365) {
+      const diffMonths = Math.max(1, Math.round(diffDays / 30));
+      return diffMonths === 1 ? 'Posted 1 month ago' : `Posted ${diffMonths} months ago`;
+    }
+
+    const diffYears = Math.max(1, Math.round(diffDays / 365));
+    return diffYears === 1 ? 'Posted 1 year ago' : `Posted ${diffYears} years ago`;
   } catch {
     return 'Posted recently';
   }
